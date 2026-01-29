@@ -13,7 +13,7 @@ const APP_CONFIG = {
 
   // 【關於我們 設定】
   aboutUsText: "歡迎您來到梅山！\n我們致力於推廣梅山在地觀光，\n讓您輕鬆找到最棒的民宿與美食。",
-  aboutUsUrl: "", 
+  aboutUsUrl: "https://www.facebook.com/TaipingSuspensionBridge?locale=zh_TW", 
 
   // 【新增】您的 Notion 步道攻略連結 (請貼在這裡)
   notionUrl: "https://www.notion.so/2a11f9fee71981239a89ebdbb2f25441?source=copy_link", 
