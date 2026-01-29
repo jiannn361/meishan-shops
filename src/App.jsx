@@ -3,7 +3,7 @@ import { Search, MapPin, Phone, Navigation, Facebook, Star, Home, Coffee, Gift, 
 
 // 【網站設定區】(由此處控制全站文字)
 const APP_CONFIG = {
-  appName: "Meishan Taiping For Fun",
+  appName: "梅山好好玩",
   subTitle: "Meishan, Chiayi",
   // 請將您的 Google 試算表 CSV 連結貼在下方
   googleSheetUrl: "https://docs.google.com/spreadsheets/d/e/2PACX-1vSYV7_LgqByXVlVddhypjxItSz4tGX7-hfi77RTurkCI1l6ZdqKJNubbMXUByo-fYBuxvt948fGpZu_/pub?output=csv",
@@ -11,9 +11,9 @@ const APP_CONFIG = {
   // LINE LIFF ID
   liffId: "",
 
-  // 【關於 App 設定】
-  aboutusText: "歡迎您來到梅山！\n我們致力於推廣梅山在地觀光，\n讓您輕鬆找到最棒的民宿與美食。",
-  aboutusUrl: "", 
+  // 【關於我們 設定】
+  aboutUsText: "歡迎您來到梅山！\n我們致力於推廣梅山在地觀光，\n讓您輕鬆找到最棒的民宿與美食。",
+  aboutUsUrl: "", 
 
   // 【新增】您的 Notion 步道攻略連結 (請貼在這裡)
   notionUrl: "https://www.notion.so/2a11f9fee71981239a89ebdbb2f25441?source=copy_link", 
@@ -504,14 +504,14 @@ const App = () => {
             </button>
           )}
 
-          {/* 關於 App 按鈕 */}
+          {/* 關於我們 按鈕 */}
           <button 
             className="w-full flex items-center justify-between p-4 bg-gray-50 hover:bg-gray-100 rounded-xl transition-colors text-left" 
             onClick={() => {
-              if (APP_CONFIG.aboutAppUrl) {
-                window.open(APP_CONFIG.aboutAppUrl, '_blank');
+              if (APP_CONFIG.aboutUsUrl) {
+                window.open(APP_CONFIG.aboutUsUrl, '_blank');
               } else {
-                alert(APP_CONFIG.aboutAppText);
+                alert(APP_CONFIG.aboutUsText);
               }
             }}
           >
