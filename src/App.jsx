@@ -3,7 +3,7 @@ import { Search, MapPin, Phone, Navigation, Facebook, Star, Home, Coffee, Gift, 
 
 // 【網站設定區】
 const APP_CONFIG = {
-  appName: "梅山好好玩",      // 網站名稱
+  appName: "Meishan Taiping For Fun",      // 網站名稱
   subTitle: "Meishan, Chiayi", // 副標題
   googleSheetUrl: "https://docs.google.com/spreadsheets/d/e/2PACX-1vSYV7_LgqByXVlVddhypjxItSz4tGX7-hfi77RTurkCI1l6ZdqKJNubbMXUByo-fYBuxvt948fGpZu_/pub?output=csv" 
 };
