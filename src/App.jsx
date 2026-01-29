@@ -3,7 +3,7 @@ import { Search, MapPin, Phone, Navigation, Facebook, Star, Home, Coffee, Gift, 
 
 // 【網站設定區】(由此處控制全站文字)
 const APP_CONFIG = {
-  appName: "梅山好好玩",
+  appName: "Meishan Taiping",
   subTitle: "Meishan, Chiayi",
   // 請將您的 Google 試算表 CSV 連結貼在下方
   googleSheetUrl: "https://docs.google.com/spreadsheets/d/e/2PACX-1vSYV7_LgqByXVlVddhypjxItSz4tGX7-hfi77RTurkCI1l6ZdqKJNubbMXUByo-fYBuxvt948fGpZu_/pub?output=csv",
