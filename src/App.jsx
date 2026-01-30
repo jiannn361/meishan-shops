@@ -19,7 +19,7 @@ const APP_CONFIG = {
   notionUrl: "https://www.notion.so/2a11f9fee71981239a89ebdbb2f25441?source=copy_link", 
 };
 
-const App = () => {
+export default function App() {
   const [activeCategory, setActiveCategory] = useState('all');
   const [selectedVillage, setSelectedVillage] = useState('太平村');
   const [isSidebarOpen, setSidebarOpen] = useState(false);
@@ -46,7 +46,10 @@ const App = () => {
     if (savedFavs) setFavorites(JSON.parse(savedFavs));
 
     if (APP_CONFIG.liffId) {
-      import('https://static.line-scdn.net/liff/edge/2/sdk.js').then(() => {
+      // 動態導入 LIFF SDK
+      const script = document.createElement('script');
+      script.src = 'https://static.line-scdn.net/liff/edge/2/sdk.js';
+      script.onload = () => {
         if (window.liff) {
           window.liff.init({ liffId: APP_CONFIG.liffId })
             .then(() => {
@@ -56,7 +59,8 @@ const App = () => {
             })
             .catch((err) => console.error('LIFF Init failed', err));
         }
-      });
+      };
+      document.body.appendChild(script);
     }
   }, []);
 
@@ -176,27 +180,64 @@ const App = () => {
     }
   ];
 
+  // 【更新】更強大的 CSV 解析器，支援儲存格內換行 (Alt+Enter)
   const parseCSV = (text) => {
     const cleanText = text.replace(/^\uFEFF/, '');
-    const lines = cleanText.split('\n').filter(l => l.trim());
-    const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, '').toLowerCase());
-    
-    return lines.slice(1).map((line, index) => {
-      const values = [];
-      let inQuote = false;
-      let currentVal = '';
-      for (let char of line) {
-        if (char === '"') inQuote = !inQuote;
-        else if (char === ',' && !inQuote) {
-          values.push(currentVal.trim());
-          currentVal = '';
-        } else currentVal += char;
-      }
-      values.push(currentVal.trim());
+    const rows = [];
+    let currentRow = [];
+    let currentVal = '';
+    let inQuote = false;
 
+    for (let i = 0; i < cleanText.length; i++) {
+      const char = cleanText[i];
+      
+      // 處理引號
+      if (char === '"') {
+        if (i + 1 < cleanText.length && cleanText[i + 1] === '"') {
+          // 處理雙引號轉義 (例如文字中有引號時 CSV 會變成 "")
+          currentVal += '"';
+          i++; 
+        } else {
+          inQuote = !inQuote;
+        }
+      } 
+      // 處理分隔符 (逗號)，但在引號內視為文字
+      else if (char === ',' && !inQuote) {
+        currentRow.push(currentVal.trim());
+        currentVal = '';
+      } 
+      // 處理換行，但在引號內視為文字 (這就是解決您問題的關鍵！)
+      else if ((char === '\n' || char === '\r') && !inQuote) {
+        currentRow.push(currentVal.trim());
+        if (currentRow.length > 0 && currentRow.some(c => c)) { 
+          rows.push(currentRow);
+        }
+        currentRow = [];
+        currentVal = '';
+      } 
+      // 一般文字
+      else {
+        currentVal += char;
+      }
+    }
+    // 處理最後一行
+    if (currentVal || currentRow.length > 0) {
+      currentRow.push(currentVal.trim());
+      if (currentRow.some(c => c)) rows.push(currentRow);
+    }
+
+    if (rows.length === 0) return [];
+
+    // 取得標題列 (全部轉小寫以利比對)
+    const headers = rows[0].map(h => h.replace(/^"|"$/g, '').toLowerCase());
+    
+    // 轉換資料列
+    return rows.slice(1).map((values, index) => {
       const entry = {};
       headers.forEach((h, i) => {
-        let val = values[i] ? values[i].replace(/^"|"$/g, '') : '';
+        // 安全取得數值，避免 undefined
+        let val = values[i] ? values[i].replace(/^"|"$/g, '') : ''; // 移除前後多餘引號
+        
         if (h === 'services' || h === '服務標籤') entry[h] = val ? val.split(/,|，/).map(s => s.trim()) : [];
         else if (h === 'image' || h === 'images' || h === '圖片網址') entry['images'] = val ? val.split(/,|，/).map(s => s.trim()) : [];
         else entry[h] = val;
@@ -385,7 +426,8 @@ const App = () => {
               <h4 className="text-sm font-bold text-emerald-800 mb-2 flex items-center gap-1">
                 <Info size={14} /> 店家介紹
               </h4>
-              <p className="text-sm text-gray-600 leading-relaxed text-justify">
+              {/* 【更新】加入 whitespace-pre-wrap 讓換行符號能正確顯示 */}
+              <p className="text-sm text-gray-600 leading-relaxed text-justify whitespace-pre-wrap">
                 {shop.description}
               </p>
             </div>
@@ -721,8 +763,8 @@ const App = () => {
                       <div className="absolute bottom-3 left-3 bg-indigo-500/90 backdrop-blur-md pl-2 pr-3 py-1 rounded-full flex items-center gap-1.5 shadow-lg z-10 pointer-events-none">
                        <Facebook size={12} className="text-white" />
                        <span className="text-xs font-bold text-white tracking-wide">粉專公告</span>
-                     </div>
-                   ) : isOpen === true ? (
+                      </div>
+                    ) : isOpen === true ? (
                       <div className="absolute bottom-3 left-3 bg-emerald-500/90 backdrop-blur-md pl-2 pr-3 py-1 rounded-full flex items-center gap-1.5 shadow-lg z-10 pointer-events-none">
                         <span className="relative flex h-2.5 w-2.5">
                           <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-200 opacity-75"></span>
@@ -742,10 +784,10 @@ const App = () => {
                     <div className="flex justify-between items-start mb-2">
                       <h3 className="text-xl font-bold text-gray-900 leading-tight">{shop.name}</h3>
                       {shop.distance && (
-                         <span className="text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-1 rounded-md">
-                           {shop.distance} km
-                         </span>
-                      )}
+                          <span className="text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-1 rounded-md">
+                            {shop.distance} km
+                          </span>
+                       )}
                     </div>
                     
                     <div className="flex flex-wrap items-center gap-2 mb-3">
@@ -854,6 +896,4 @@ const App = () => {
       </div>
     </div>
   );
-};
-
-export default App;
+}
