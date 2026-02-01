@@ -117,7 +117,7 @@ export default function App() {
   const villages = [
     { name: '太平村', desc: '雲梯與老街' },
     { name: '太興村', desc: '萬鷺朝鳳' },
-    { name: '碧湖村', desc: '觀光茶園' }, 
+    { name: '碧湖/龍眼村', desc: '觀光茶園' }, 
     { name: '瑞里村', desc: '紫色山城' },
     { name: '瑞峰村', desc: '日出與步道' },
     { name: '太和村', desc: '茶園秘境' },
@@ -134,33 +134,112 @@ export default function App() {
 
   const checkIsOpen = (hoursString) => {
     if (!hoursString) return null; 
-    const cleanHours = hoursString.trim();
-    const lowerHours = cleanHours.toLowerCase();
-    if (lowerHours === 'google') return 'google';
-    if (lowerHours === 'fb' || cleanHours === '粉絲專頁') return 'fb';
-    if (cleanHours === '營業中') return true;
-    if (cleanHours === '休息中') return false;
-    if (!/\d{1,2}:\d{2}/.test(cleanHours)) return null; 
-
+    
+    // 1. 取得現在的時間與星期
     const now = new Date();
+    const currentDay = now.getDay(); // 0=週日, 1=週一...
     const currentHour = now.getHours();
     const currentMin = now.getMinutes();
     const currentTimeVal = currentHour * 60 + currentMin;
-    const ranges = cleanHours.split(/,|，/); 
 
-    for (let range of ranges) {
-      const times = range.trim().split('-');
-      if (times.length === 2) {
-        try {
-          const [startStr, endStr] = times;
-          const [startH, startM] = startStr.split(':').map(Number);
-          const [endH, endM] = endStr.split(':').map(Number);
-          const startVal = startH * 60 + startM;
-          const endVal = endH * 60 + endM;
-          if (currentTimeVal >= startVal && currentTimeVal < endVal) return true;
-        } catch (e) { console.error(e); }
+    // 2. 資料正規化 (把全形符號轉半形，統一格式)
+    let cleanHours = hoursString.replace(/：/g, ':').replace(/～/g, '-').replace(/至/g, '-').trim();
+    
+    // 3. 特殊關鍵字檢查
+    if (cleanHours.toLowerCase().includes('google')) return 'google';
+    if (cleanHours.toLowerCase().includes('fb') || cleanHours.includes('粉絲專頁')) return 'fb';
+    if (cleanHours === '營業中') return true;
+    if (cleanHours === '休息中') return false;
+
+    // 4. 定義星期對照表
+    const dayChars = ['日', '一', '二', '三', '四', '五', '六'];
+    const todayChar = dayChars[currentDay];
+    const isWeekend = currentDay === 0 || currentDay === 6; // 週日(0) 或 週六(6)
+
+    // 5. 分段解析 (用逗號或分號切開每一段規則)
+    // 例如: "平日 09:00-18:00, 週六 10:00-20:00"
+    const segments = cleanHours.split(/[,;，；\n]/).map(s => s.trim()).filter(s => s);
+    
+    let matchedRanges = [];
+    let matchPriority = -1; // 優先級: -1=無, 0=通用, 1=平日/假日, 2=指定星期幾 (越高越準)
+
+    for (let segment of segments) {
+      let applies = false;
+      let priority = 0;
+
+      // 判斷這一段文字是否包含 "週X" 或 "星期X"
+      const hasSpecificDay = /(週|星期)[日一二三四五六]/.test(segment);
+      const hasWeekday = /平日/.test(segment);
+      const hasWeekend = /(假日|週末|六日)/.test(segment);
+
+      if (hasSpecificDay) {
+        // 如果有指定星期，檢查是否包含 "今天" (例如 "週一")
+        if (new RegExp(`(週|星期)${todayChar}`).test(segment)) {
+          applies = true;
+          priority = 2; // 最高優先
+        }
+      } else if (hasWeekday) {
+        // 如果是寫 "平日"，且今天是平日
+        if (!isWeekend) { applies = true; priority = 1; }
+      } else if (hasWeekend) {
+        // 如果是寫 "假日"，且今天是假日
+        if (isWeekend) { applies = true; priority = 1; }
+      } else {
+        // 如果都沒寫，代表是通用規則 (例如 "09:00-18:00")
+        applies = true;
+        priority = 0;
+      }
+
+      if (applies) {
+        // 檢查這一段是否寫著 "公休" 或 "休息"
+        const isClosed = /公休|休息/.test(segment);
+
+        if (priority > matchPriority) {
+          // 發現更高優先級的規則，覆蓋之前的判斷
+          matchPriority = priority;
+          matchedRanges = isClosed ? [] : [segment]; // 如果是公休，清空時間範圍
+        } else if (priority === matchPriority) {
+          // 同優先級，如果是公休則清空，否則加入
+          if (isClosed) matchedRanges = [];
+          else matchedRanges.push(segment);
+        }
       }
     }
+
+    // 6. 如果完全沒有匹配到任何規則 (例如只寫 "週六營業" 但今天是週一)
+    // 且字串中明顯有包含日期關鍵字，那預設就是休息
+    if (matchPriority === -1) {
+      const hasAnyDayKeywords = /(週|星期|平日|假日|週末)/.test(cleanHours);
+      if (hasAnyDayKeywords) return false; 
+      
+      // 如果完全沒寫日期關鍵字，當作通用規則
+      matchedRanges = [cleanHours];
+    }
+
+    // 如果匹配到了，但是範圍是空的 (代表命中 "公休" 規則)
+    if (matchedRanges.length === 0 && matchPriority > -1) {
+      return false; // 今天休息
+    }
+
+    // 7. 最後比對時間
+    for (let segment of matchedRanges) {
+      // 抓取所有的 "HH:MM-HH:MM"
+      const times = segment.match(/(\d{1,2}:\d{2})\s*-\s*(\d{1,2}:\d{2})/g);
+      if (times) {
+        for (let timeRange of times) {
+           const [startStr, endStr] = timeRange.split('-').map(s => s.trim());
+           try {
+              const [startH, startM] = startStr.split(':').map(Number);
+              const [endH, endM] = endStr.split(':').map(Number);
+              const startVal = startH * 60 + startM;
+              const endVal = endH * 60 + endM;
+              
+              if (currentTimeVal >= startVal && currentTimeVal < endVal) return true;
+           } catch (e) {}
+        }
+      }
+    }
+    
     return false;
   };
 
@@ -349,6 +428,20 @@ export default function App() {
 
   const ImageCarousel = ({ images, onClick }) => {
     const [currentIndex, setCurrentIndex] = useState(0);
+
+    // 【新增】自動輪播功能
+    useEffect(() => {
+      // 如果只有一張或是沒有照片，就不啟動輪播
+      if (!images || images.length <= 1) return;
+
+      const interval = setInterval(() => {
+        setCurrentIndex((prev) => (prev + 1) % images.length);
+      }, 2000); // 這裡設定 4000 毫秒 = 4 秒切換一次
+
+      // 清除計時器 (當元件移除或是圖片變更時)
+      return () => clearInterval(interval);
+    }, [images?.length]);
+
     if (images.length <= 1) {
        return (
          <img 
