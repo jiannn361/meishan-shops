@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, MapPin, Phone, Navigation, Facebook, Star, Home, Coffee, Gift, User, Filter, Heart, Menu, X, Mountain, Loader2, Camera, Ticket, Tag, Clock, ChevronLeft, ChevronRight, Info, LocateFixed, Globe, Share2, MessageCircle, Map } from 'lucide-react';
+import { Search, MapPin, Phone, Navigation, Facebook, Star, Home, Coffee, Gift, User, Filter, Heart, Menu, X, Mountain, Loader2, Camera, Ticket, Tag, Clock, ChevronLeft, ChevronRight, Info, LocateFixed, Globe, Share2, MessageCircle, Map, ExternalLink } from 'lucide-react';
 
 // 【網站設定區】(由此處控制全站文字)
 const APP_CONFIG = {
@@ -17,6 +17,41 @@ const APP_CONFIG = {
 
   // 【新增】您的 Notion 步道攻略連結 (請貼在這裡)
   notionUrl: "https://www.notion.so/2a11f9fee71981239a89ebdbb2f25441?source=copy_link", 
+};
+
+// 【新功能】文字美化元件：處理換行與括號縮小
+const FormattedText = ({ text, className = "" }) => {
+  if (!text) return null;
+
+  // 1. 先用 | 或 \n 進行分行
+  const lines = text.split(/\||\n|\\n/);
+
+  return (
+    <div className={`space-y-1 ${className}`}>
+      {lines.map((line, lineIdx) => {
+        // 2. 針對每一行，偵測括號 ( ) 或 （ ）
+        // Regex 解釋：捕捉 ( 開頭 ) 結尾，或是 （ 開頭 ） 結尾的內容
+        const parts = line.split(/([（(].*?[)）])/g);
+
+        return (
+          <div key={lineIdx} className="leading-relaxed">
+            {parts.map((part, partIdx) => {
+              // 如果是括號內容，套用小字體樣式
+              if (part.match(/^[（(].*[)）]$/)) {
+                return (
+                  <span key={partIdx} className="text-xs text-gray-400 font-normal ml-0.5">
+                    {part}
+                  </span>
+                );
+              }
+              // 一般文字
+              return <span key={partIdx}>{part}</span>;
+            })}
+          </div>
+        );
+      })}
+    </div>
+  );
 };
 
 export default function App() {
@@ -117,7 +152,7 @@ export default function App() {
   const villages = [
     { name: '太平村', desc: '雲梯與老街' },
     { name: '太興村', desc: '萬鷺朝鳳' },
-    { name: '碧湖村', desc: '觀光茶園' }, 
+    { name: '碧湖/龍眼村', desc: '觀光茶園' }, 
     { name: '瑞里村', desc: '紫色山城' },
     { name: '瑞峰村', desc: '日出與步道' },
     { name: '太和村', desc: '茶園秘境' },
@@ -134,33 +169,117 @@ export default function App() {
 
   const checkIsOpen = (hoursString) => {
     if (!hoursString) return null; 
-    const cleanHours = hoursString.trim();
-    const lowerHours = cleanHours.toLowerCase();
-    if (lowerHours === 'google') return 'google';
-    if (lowerHours === 'fb' || cleanHours === '粉絲專頁') return 'fb';
-    if (cleanHours === '營業中') return true;
-    if (cleanHours === '休息中') return false;
-    if (!/\d{1,2}:\d{2}/.test(cleanHours)) return null; 
-
+    
+    // 1. 取得現在的時間與星期
     const now = new Date();
+    const currentDay = now.getDay(); // 0=週日, 1=週一...
     const currentHour = now.getHours();
     const currentMin = now.getMinutes();
     const currentTimeVal = currentHour * 60 + currentMin;
-    const ranges = cleanHours.split(/,|，/); 
 
-    for (let range of ranges) {
-      const times = range.trim().split('-');
-      if (times.length === 2) {
-        try {
-          const [startStr, endStr] = times;
-          const [startH, startM] = startStr.split(':').map(Number);
-          const [endH, endM] = endStr.split(':').map(Number);
-          const startVal = startH * 60 + startM;
-          const endVal = endH * 60 + endM;
-          if (currentTimeVal >= startVal && currentTimeVal < endVal) return true;
-        } catch (e) { console.error(e); }
+    // 2. 資料正規化
+    let cleanHours = hoursString.replace(/\|/g, ',').replace(/：/g, ':').replace(/～/g, '-').replace(/至/g, '-').trim();
+    
+    const expandDayRanges = (str) => {
+      const dayMap = { '日': 0, '一': 1, '二': 2, '三': 3, '四': 4, '五': 5, '六': 6 };
+      const revMap = ['日', '一', '二', '三', '四', '五', '六'];
+      
+      return str.replace(/(?:週|星期)([日一二三四五六])\s*(?:-|~)\s*(?:週|星期)([日一二三四五六])/g, (match, startChar, endChar) => {
+        let startIdx = dayMap[startChar];
+        let endIdx = dayMap[endChar];
+        let result = [];
+        
+        let curr = startIdx;
+        while (true) {
+          result.push('週' + revMap[curr]);
+          if (curr === endIdx) break;
+          curr = (curr + 1) % 7;
+        }
+        return result.join(' ');
+      });
+    };
+
+    cleanHours = expandDayRanges(cleanHours);
+    
+    // 3. 特殊關鍵字檢查
+    if (cleanHours.toLowerCase().includes('google')) return 'google';
+    if (cleanHours.toLowerCase().includes('fb') || cleanHours.includes('粉絲專頁')) return 'fb';
+    if (cleanHours === '營業中') return true;
+    if (cleanHours === '休息中') return false;
+
+    // 4. 定義星期對照表
+    const dayChars = ['日', '一', '二', '三', '四', '五', '六'];
+    const todayChar = dayChars[currentDay];
+    const isWeekend = currentDay === 0 || currentDay === 6; // 週日(0) 或 週六(6)
+
+    // 5. 分段解析 (用逗號或分號切開每一段規則)
+    const segments = cleanHours.split(/[,;，；\n]/).map(s => s.trim()).filter(s => s);
+    
+    let matchedRanges = [];
+    let matchPriority = -1; 
+
+    for (let segment of segments) {
+      let applies = false;
+      let priority = 0;
+
+      const hasSpecificDay = /(週|星期)[日一二三四五六]/.test(segment);
+      const hasWeekday = /平日/.test(segment);
+      const hasWeekend = /(假日|週末|六日)/.test(segment);
+
+      if (hasSpecificDay) {
+        if (new RegExp(`(週|星期)${todayChar}`).test(segment)) {
+          applies = true;
+          priority = 2;
+        }
+      } else if (hasWeekday) {
+        if (!isWeekend) { applies = true; priority = 1; }
+      } else if (hasWeekend) {
+        if (isWeekend) { applies = true; priority = 1; }
+      } else {
+        applies = true;
+        priority = 0;
+      }
+
+      if (applies) {
+        const isClosed = /公休|休息/.test(segment);
+
+        if (priority > matchPriority) {
+          matchPriority = priority;
+          matchedRanges = isClosed ? [] : [segment]; 
+        } else if (priority === matchPriority) {
+          if (isClosed) matchedRanges = [];
+          else matchedRanges.push(segment);
+        }
       }
     }
+
+    if (matchPriority === -1) {
+      const hasAnyDayKeywords = /(週|星期|平日|假日|週末)/.test(cleanHours);
+      if (hasAnyDayKeywords) return false; 
+      matchedRanges = [cleanHours];
+    }
+
+    if (matchedRanges.length === 0 && matchPriority > -1) {
+      return false; 
+    }
+
+    for (let segment of matchedRanges) {
+      const times = segment.match(/(\d{1,2}:\d{2})\s*-\s*(\d{1,2}:\d{2})/g);
+      if (times) {
+        for (let timeRange of times) {
+           const [startStr, endStr] = timeRange.split('-').map(s => s.trim());
+           try {
+              const [startH, startM] = startStr.split(':').map(Number);
+              const [endH, endM] = endStr.split(':').map(Number);
+              const startVal = startH * 60 + startM;
+              const endVal = endH * 60 + endM;
+              
+              if (currentTimeVal >= startVal && currentTimeVal < endVal) return true;
+           } catch (e) {}
+        }
+      }
+    }
+    
     return false;
   };
 
@@ -180,7 +299,6 @@ export default function App() {
     }
   ];
 
-  // 【更新】更強大的 CSV 解析器，支援儲存格內換行 (Alt+Enter)
   const parseCSV = (text) => {
     const cleanText = text.replace(/^\uFEFF/, '');
     const rows = [];
@@ -190,23 +308,18 @@ export default function App() {
 
     for (let i = 0; i < cleanText.length; i++) {
       const char = cleanText[i];
-      
-      // 處理引號
       if (char === '"') {
         if (i + 1 < cleanText.length && cleanText[i + 1] === '"') {
-          // 處理雙引號轉義 (例如文字中有引號時 CSV 會變成 "")
           currentVal += '"';
           i++; 
         } else {
           inQuote = !inQuote;
         }
       } 
-      // 處理分隔符 (逗號)，但在引號內視為文字
       else if (char === ',' && !inQuote) {
         currentRow.push(currentVal.trim());
         currentVal = '';
       } 
-      // 處理換行，但在引號內視為文字 (這就是解決您問題的關鍵！)
       else if ((char === '\n' || char === '\r') && !inQuote) {
         currentRow.push(currentVal.trim());
         if (currentRow.length > 0 && currentRow.some(c => c)) { 
@@ -215,12 +328,10 @@ export default function App() {
         currentRow = [];
         currentVal = '';
       } 
-      // 一般文字
       else {
         currentVal += char;
       }
     }
-    // 處理最後一行
     if (currentVal || currentRow.length > 0) {
       currentRow.push(currentVal.trim());
       if (currentRow.some(c => c)) rows.push(currentRow);
@@ -228,15 +339,12 @@ export default function App() {
 
     if (rows.length === 0) return [];
 
-    // 取得標題列 (全部轉小寫以利比對)
     const headers = rows[0].map(h => h.replace(/^"|"$/g, '').toLowerCase());
     
-    // 轉換資料列
     return rows.slice(1).map((values, index) => {
       const entry = {};
       headers.forEach((h, i) => {
-        // 安全取得數值，避免 undefined
-        let val = values[i] ? values[i].replace(/^"|"$/g, '') : ''; // 移除前後多餘引號
+        let val = values[i] ? values[i].replace(/^"|"$/g, '') : '';
         
         if (h === 'services' || h === '服務標籤') entry[h] = val ? val.split(/,|，/).map(s => s.trim()) : [];
         else if (h === 'image' || h === 'images' || h === '圖片網址') entry['images'] = val ? val.split(/,|，/).map(s => s.trim()) : [];
@@ -252,8 +360,9 @@ export default function App() {
         lat: parseFloat(entry.lat || entry['緯度']) || null,
         lng: parseFloat(entry.lng || entry['經度']) || null,
         services: entry.services || entry['服務標籤'] || [],
-        rating: 4.5,
-        reviews: 100,
+        rating: entry.rating || entry['星等'] ? parseFloat(entry.rating || entry['星等']) : 4.5,
+        // reviews 欄位保留讀取，但主要顯示會改用連結
+        reviews: entry.reviews || entry['評論數'] ? parseInt(entry.reviews || entry['評論數']) : 0,
         images: entry.images && entry.images.length > 0 ? entry.images : ['https://images.unsplash.com/photo-1566073771259-6a8506099945?ixlib=rb-4.0.3'],
         tel: entry.tel || entry['電話'] || '', 
         fbLink: entry.fblink || entry['粉專連結'] || '',
@@ -304,11 +413,9 @@ export default function App() {
     return dynamicCats;
   };
 
-  // 【核心篩選邏輯】
   const getProcessedShops = () => {
     let result = shops;
 
-    // 1. 基本篩選
     if (currentView === 'favorites') {
       result = result.filter(shop => favorites.includes(shop.id));
     } else {
@@ -319,12 +426,10 @@ export default function App() {
       });
     }
 
-    // 2. 漏斗篩選
     if (filterOpenOnly) {
       result = result.filter(shop => checkIsOpen(shop.hours) === true);
     }
 
-    // 4. 計算距離
     if (userLocation) {
       result = result.map(shop => ({
         ...shop,
@@ -332,7 +437,6 @@ export default function App() {
       }));
     }
 
-    // 5. 排序
     if (sortBy === 'distance' && userLocation) {
       result.sort((a, b) => {
         if (!a.distance) return 1;
@@ -349,6 +453,17 @@ export default function App() {
 
   const ImageCarousel = ({ images, onClick }) => {
     const [currentIndex, setCurrentIndex] = useState(0);
+
+    useEffect(() => {
+      if (!images || images.length <= 1) return;
+
+      const interval = setInterval(() => {
+        setCurrentIndex((prev) => (prev + 1) % images.length);
+      }, 4000); 
+
+      return () => clearInterval(interval);
+    }, [images?.length]);
+
     if (images.length <= 1) {
        return (
          <img 
@@ -403,33 +518,49 @@ export default function App() {
             <div className="absolute bottom-0 inset-x-0 h-24 bg-gradient-to-t from-black/80 to-transparent"></div>
             <div className="absolute bottom-4 left-5 right-5 text-white">
               <h3 className="text-2xl font-bold mb-1">{shop.name}</h3>
-              <div className="flex items-center gap-2 text-sm text-gray-200">
-                <Star size={14} className="fill-yellow-400 text-yellow-400" />
-                <span>{shop.rating} ({shop.reviews} 評論)</span>
+              {/* 【修改】評論區改為 Google Maps 連結 */}
+              <div className="flex items-center gap-3 text-sm">
+                <div className="flex items-center gap-1 text-yellow-400">
+                   <Star size={16} className="fill-yellow-400" />
+                   <span className="font-bold text-lg">{shop.rating}</span>
+                </div>
+                <a 
+                  href={getGoogleMapLink(shop.name, shop.address)}
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-gray-200 hover:text-white underline decoration-white/50 underline-offset-4 flex items-center gap-1 transition-colors"
+                >
+                  查看 Google 評論 <ExternalLink size={12} />
+                </a>
               </div>
             </div>
           </div>
 
           <div className="p-6 space-y-6">
-            <div className="flex justify-between items-center">
-               <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold ${
+            {/* 營業時間區塊 - 改版：將標籤與時間分開兩行顯示，避免擠壓 */}
+            <div className="flex flex-col gap-3 items-start">
+               <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold self-start ${
                  isOpen === true ? 'bg-green-100 text-green-700' : 
                  isOpen === false ? 'bg-gray-100 text-gray-600' : 'bg-blue-50 text-blue-600'
                }`}>
                  <Clock size={14} />
                  {isOpen === true ? '營業中' : isOpen === false ? '休息中' : '詳見公告'}
                </div>
-               {shop.hours && <span className="text-xs text-gray-500">{shop.hours}</span>}
+               {shop.hours && (
+                 <div className="w-full bg-gray-50 rounded-xl p-3 text-sm text-gray-600">
+                    <FormattedText text={shop.hours} />
+                 </div>
+               )}
             </div>
 
             <div className="bg-emerald-50/50 p-4 rounded-2xl border border-emerald-100">
               <h4 className="text-sm font-bold text-emerald-800 mb-2 flex items-center gap-1">
                 <Info size={14} /> 店家介紹
               </h4>
-              {/* 【更新】加入 whitespace-pre-wrap 讓換行符號能正確顯示 */}
-              <p className="text-sm text-gray-600 leading-relaxed text-justify whitespace-pre-wrap">
-                {shop.description}
-              </p>
+              <div className="text-sm text-gray-600 text-justify">
+                {/* 使用美化元件顯示描述，支援換行與括號縮小 */}
+                <FormattedText text={shop.description} />
+              </div>
             </div>
 
             <div className="space-y-3">
@@ -475,7 +606,6 @@ export default function App() {
     );
   };
 
-  // 篩選 Modal
   const FilterModal = () => (
     <div className="fixed inset-0 z-[60] flex items-end justify-center sm:items-center p-4 animate-fade-in">
       <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setShowFilterModal(false)}></div>
@@ -507,7 +637,6 @@ export default function App() {
     </div>
   );
 
-  // 使用者 Modal
   const UserModal = () => (
     <div className="fixed inset-0 z-[60] flex items-end justify-center sm:items-center p-4 animate-fade-in">
       <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setShowUserModal(false)}></div>
@@ -521,7 +650,6 @@ export default function App() {
                 className="w-full h-full object-cover"
               />
             ) : (
-              // Q版山脈預設圖示
               <div className="relative w-full h-full bg-emerald-100 flex items-center justify-center">
                  <Mountain size={40} className="text-emerald-600 relative z-10" strokeWidth={1.5} />
                  <div className="absolute bottom-0 w-full h-1/3 bg-emerald-200/50"></div>
@@ -535,7 +663,6 @@ export default function App() {
         </div>
 
         <div className="space-y-2">
-          {/* Notion 步道攻略按鈕 (如有設定網址才顯示) */}
           {APP_CONFIG.notionUrl && (
             <button 
               className="w-full flex items-center justify-between p-4 bg-emerald-50 hover:bg-emerald-100 rounded-xl transition-colors text-left border border-emerald-100" 
@@ -546,7 +673,6 @@ export default function App() {
             </button>
           )}
 
-          {/* 關於我們 按鈕 */}
           <button 
             className="w-full flex items-center justify-between p-4 bg-gray-50 hover:bg-gray-100 rounded-xl transition-colors text-left" 
             onClick={() => {
@@ -796,9 +922,12 @@ export default function App() {
                            {shop.rating}
                         </div>
                         {shop.hours && (
-                          <div className={`flex items-center gap-1.5 text-xs px-2 py-1 rounded-md border ${getHoursStyle(shop.hours).replace('text', 'border-transparent text')}`}>
-                            <Clock size={10} />
-                            {shop.hours.toLowerCase() === 'google' ? 'Google 公告' : shop.hours.toLowerCase() === 'fb' ? '粉專公告' : shop.hours}
+                          <div className={`flex items-center gap-1.5 text-xs px-2 py-1 rounded-md border max-w-full overflow-hidden ${getHoursStyle(shop.hours).replace('text', 'border-transparent text')}`}>
+                            <Clock size={10} className="flex-shrink-0" />
+                            {/* 卡片預覽僅顯示單行，避免過長 */}
+                            <span className="truncate">
+                                {shop.hours.toLowerCase() === 'google' ? 'Google 公告' : shop.hours.toLowerCase() === 'fb' ? '粉專公告' : shop.hours.split('|')[0]}
+                            </span>
                           </div>
                         )}
                     </div>
