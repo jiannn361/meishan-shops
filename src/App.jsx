@@ -346,6 +346,8 @@ export default function App() {
         images: entry.images && entry.images.length > 0 ? entry.images : ['https://images.unsplash.com/photo-1566073771259-6a8506099945?ixlib=rb-4.0.3'],
         tel: entry.tel || entry['電話'] || '', 
         fbLink: entry.fblink || entry['粉專連結'] || '',
+        // 【新增】支援地圖連結欄位
+        google_url: entry.google_url || entry['地圖連結'] || entry['評論連結'] || '',
         hours: entry.hours || entry['營業時間'] || '', 
         description: entry.description || entry['介紹'] || entry['店家介紹'] || '暫無詳細介紹，歡迎親自蒞臨體驗！',
       };
@@ -497,9 +499,9 @@ export default function App() {
                    <Star size={16} className="fill-yellow-400" />
                    <span className="font-bold text-lg">{shop.rating}</span>
                 </div>
-                {/* 評論連結 */}
+                {/* 評論連結：優先使用試算表中的 google_url，若無則使用搜尋連結 */}
                 <a 
-                  href={getGoogleMapLink(shop.name, shop.address)}
+                  href={shop.google_url || getGoogleMapLink(shop.name, shop.address)}
                   target="_blank" 
                   rel="noopener noreferrer"
                   className="text-gray-200 hover:text-white underline decoration-white/50 underline-offset-4 flex items-center gap-1 transition-colors"
