@@ -1,25 +1,25 @@
 import React, { useState, useEffect } from 'react';
 import { Search, MapPin, Phone, Navigation, Facebook, Star, Home, Coffee, Gift, User, Filter, Heart, Menu, X, Mountain, Loader2, Camera, Ticket, Tag, Clock, ChevronLeft, ChevronRight, Info, LocateFixed, Globe, Share2, MessageCircle, Map, ExternalLink } from 'lucide-react';
 
-// 【網站設定區】(由此處控制全站文字)
+// 【網站設定區】
 const APP_CONFIG = {
   appName: "Meishan Taiping",
   subTitle: "Meishan, Chiayi",
-  // 請將您的 Google 試算表 CSV 連結貼在下方
+  // Google 試算表 CSV 連結
   googleSheetUrl: "https://docs.google.com/spreadsheets/d/e/2PACX-1vSYV7_LgqByXVlVddhypjxItSz4tGX7-hfi77RTurkCI1l6ZdqKJNubbMXUByo-fYBuxvt948fGpZu_/pub?output=csv",
   
-  // LINE LIFF ID
+  // LINE LIFF ID (選填)
   liffId: "",
 
-  // 【關於我們 設定】
+  // 關於我們
   aboutUsText: "歡迎您來到梅山！\n我們致力於推廣梅山在地觀光，\n讓您輕鬆找到最棒的民宿與美食。",
   aboutUsUrl: "https://www.facebook.com/TaipingSuspensionBridge?locale=zh_TW", 
 
-  // 【新增】您的 Notion 步道攻略連結 (請貼在這裡)
+  // Notion 攻略連結 (選填)
   notionUrl: "https://www.notion.so/2a11f9fee71981239a89ebdbb2f25441?source=copy_link", 
 };
 
-// 【新功能】文字美化元件：處理換行與括號縮小
+// 【文字美化元件】處理換行符號 | 與括號縮小
 const FormattedText = ({ text, className = "" }) => {
   if (!text) return null;
 
@@ -30,7 +30,6 @@ const FormattedText = ({ text, className = "" }) => {
     <div className={`space-y-1 ${className}`}>
       {lines.map((line, lineIdx) => {
         // 2. 針對每一行，偵測括號 ( ) 或 （ ）
-        // Regex 解釋：捕捉 ( 開頭 ) 結尾，或是 （ 開頭 ） 結尾的內容
         const parts = line.split(/([（(].*?[)）])/g);
 
         return (
@@ -44,7 +43,6 @@ const FormattedText = ({ text, className = "" }) => {
                   </span>
                 );
               }
-              // 一般文字
               return <span key={partIdx}>{part}</span>;
             })}
           </div>
@@ -66,22 +64,17 @@ export default function App() {
   const [userProfile, setUserProfile] = useState(null);
   const [sortBy, setSortBy] = useState('default');
   
-  // 新增狀態
   const [selectedShop, setSelectedShop] = useState(null); 
   const [showFilterModal, setShowFilterModal] = useState(false); 
   const [showUserModal, setShowUserModal] = useState(false); 
-  
-  // 篩選條件
   const [filterOpenOnly, setFilterOpenOnly] = useState(false); 
 
-  // 設定網頁標題
   useEffect(() => {
     document.title = APP_CONFIG.appName;
     const savedFavs = localStorage.getItem('meishan_favorites');
     if (savedFavs) setFavorites(JSON.parse(savedFavs));
 
     if (APP_CONFIG.liffId) {
-      // 動態導入 LIFF SDK
       const script = document.createElement('script');
       script.src = 'https://static.line-scdn.net/liff/edge/2/sdk.js';
       script.onload = () => {
@@ -167,19 +160,20 @@ export default function App() {
     'experience': { label: '體驗', icon: <Ticket size={18}/> },
   };
 
+  // 營業時間判斷邏輯 (支援週一至週五、| 分隔)
   const checkIsOpen = (hoursString) => {
     if (!hoursString) return null; 
     
-    // 1. 取得現在的時間與星期
     const now = new Date();
-    const currentDay = now.getDay(); // 0=週日, 1=週一...
+    const currentDay = now.getDay(); 
     const currentHour = now.getHours();
     const currentMin = now.getMinutes();
     const currentTimeVal = currentHour * 60 + currentMin;
 
-    // 2. 資料正規化
+    // 1. 正規化：將 | 轉為 , 並處理全形與範圍符號
     let cleanHours = hoursString.replace(/\|/g, ',').replace(/：/g, ':').replace(/～/g, '-').replace(/至/g, '-').trim();
     
+    // 2. 展開日期範圍 (週一-週五 -> 週一 週二...週五)
     const expandDayRanges = (str) => {
       const dayMap = { '日': 0, '一': 1, '二': 2, '三': 3, '四': 4, '五': 5, '六': 6 };
       const revMap = ['日', '一', '二', '三', '四', '五', '六'];
@@ -188,7 +182,6 @@ export default function App() {
         let startIdx = dayMap[startChar];
         let endIdx = dayMap[endChar];
         let result = [];
-        
         let curr = startIdx;
         while (true) {
           result.push('週' + revMap[curr]);
@@ -201,18 +194,15 @@ export default function App() {
 
     cleanHours = expandDayRanges(cleanHours);
     
-    // 3. 特殊關鍵字檢查
     if (cleanHours.toLowerCase().includes('google')) return 'google';
     if (cleanHours.toLowerCase().includes('fb') || cleanHours.includes('粉絲專頁')) return 'fb';
     if (cleanHours === '營業中') return true;
     if (cleanHours === '休息中') return false;
 
-    // 4. 定義星期對照表
     const dayChars = ['日', '一', '二', '三', '四', '五', '六'];
     const todayChar = dayChars[currentDay];
-    const isWeekend = currentDay === 0 || currentDay === 6; // 週日(0) 或 週六(6)
+    const isWeekend = currentDay === 0 || currentDay === 6;
 
-    // 5. 分段解析 (用逗號或分號切開每一段規則)
     const segments = cleanHours.split(/[,;，；\n]/).map(s => s.trim()).filter(s => s);
     
     let matchedRanges = [];
@@ -242,7 +232,6 @@ export default function App() {
 
       if (applies) {
         const isClosed = /公休|休息/.test(segment);
-
         if (priority > matchPriority) {
           matchPriority = priority;
           matchedRanges = isClosed ? [] : [segment]; 
@@ -273,13 +262,11 @@ export default function App() {
               const [endH, endM] = endStr.split(':').map(Number);
               const startVal = startH * 60 + startM;
               const endVal = endH * 60 + endM;
-              
               if (currentTimeVal >= startVal && currentTimeVal < endVal) return true;
            } catch (e) {}
         }
       }
     }
-    
     return false;
   };
 
@@ -299,6 +286,7 @@ export default function App() {
     }
   ];
 
+  // CSV 解析器 (支援換行)
   const parseCSV = (text) => {
     const cleanText = text.replace(/^\uFEFF/, '');
     const rows = [];
@@ -315,20 +303,15 @@ export default function App() {
         } else {
           inQuote = !inQuote;
         }
-      } 
-      else if (char === ',' && !inQuote) {
+      } else if (char === ',' && !inQuote) {
         currentRow.push(currentVal.trim());
         currentVal = '';
-      } 
-      else if ((char === '\n' || char === '\r') && !inQuote) {
+      } else if ((char === '\n' || char === '\r') && !inQuote) {
         currentRow.push(currentVal.trim());
-        if (currentRow.length > 0 && currentRow.some(c => c)) { 
-          rows.push(currentRow);
-        }
+        if (currentRow.length > 0 && currentRow.some(c => c)) rows.push(currentRow);
         currentRow = [];
         currentVal = '';
-      } 
-      else {
+      } else {
         currentVal += char;
       }
     }
@@ -338,14 +321,12 @@ export default function App() {
     }
 
     if (rows.length === 0) return [];
-
     const headers = rows[0].map(h => h.replace(/^"|"$/g, '').toLowerCase());
     
     return rows.slice(1).map((values, index) => {
       const entry = {};
       headers.forEach((h, i) => {
         let val = values[i] ? values[i].replace(/^"|"$/g, '') : '';
-        
         if (h === 'services' || h === '服務標籤') entry[h] = val ? val.split(/,|，/).map(s => s.trim()) : [];
         else if (h === 'image' || h === 'images' || h === '圖片網址') entry['images'] = val ? val.split(/,|，/).map(s => s.trim()) : [];
         else entry[h] = val;
@@ -361,7 +342,6 @@ export default function App() {
         lng: parseFloat(entry.lng || entry['經度']) || null,
         services: entry.services || entry['服務標籤'] || [],
         rating: entry.rating || entry['星等'] ? parseFloat(entry.rating || entry['星等']) : 4.5,
-        // reviews 欄位保留讀取，但主要顯示會改用連結
         reviews: entry.reviews || entry['評論數'] ? parseInt(entry.reviews || entry['評論數']) : 0,
         images: entry.images && entry.images.length > 0 ? entry.images : ['https://images.unsplash.com/photo-1566073771259-6a8506099945?ixlib=rb-4.0.3'],
         tel: entry.tel || entry['電話'] || '', 
@@ -415,7 +395,6 @@ export default function App() {
 
   const getProcessedShops = () => {
     let result = shops;
-
     if (currentView === 'favorites') {
       result = result.filter(shop => favorites.includes(shop.id));
     } else {
@@ -425,18 +404,15 @@ export default function App() {
         return villageMatch && categoryMatch;
       });
     }
-
     if (filterOpenOnly) {
       result = result.filter(shop => checkIsOpen(shop.hours) === true);
     }
-
     if (userLocation) {
       result = result.map(shop => ({
         ...shop,
         distance: calculateDistance(userLocation.lat, userLocation.lng, shop.lat, shop.lng)
       }));
     }
-
     if (sortBy === 'distance' && userLocation) {
       result.sort((a, b) => {
         if (!a.distance) return 1;
@@ -444,23 +420,21 @@ export default function App() {
         return parseFloat(a.distance) - parseFloat(b.distance);
       });
     }
-
     return result;
   };
 
   const processedShops = getProcessedShops();
   const availableCategories = getDynamicCategories();
 
+  // 圖片輪播元件 (自動輪播)
   const ImageCarousel = ({ images, onClick }) => {
     const [currentIndex, setCurrentIndex] = useState(0);
 
     useEffect(() => {
       if (!images || images.length <= 1) return;
-
       const interval = setInterval(() => {
         setCurrentIndex((prev) => (prev + 1) % images.length);
       }, 4000); 
-
       return () => clearInterval(interval);
     }, [images?.length]);
 
@@ -500,7 +474,7 @@ export default function App() {
     return 'bg-gray-50 text-gray-500';
   };
 
-  // 店家詳情 Modal
+  // 詳細頁 Modal
   const ShopDetailModal = ({ shop, onClose }) => {
     if (!shop) return null;
     const isOpen = checkIsOpen(shop.hours);
@@ -518,12 +492,12 @@ export default function App() {
             <div className="absolute bottom-0 inset-x-0 h-24 bg-gradient-to-t from-black/80 to-transparent"></div>
             <div className="absolute bottom-4 left-5 right-5 text-white">
               <h3 className="text-2xl font-bold mb-1">{shop.name}</h3>
-              {/* 【修改】評論區改為 Google Maps 連結 */}
               <div className="flex items-center gap-3 text-sm">
                 <div className="flex items-center gap-1 text-yellow-400">
                    <Star size={16} className="fill-yellow-400" />
                    <span className="font-bold text-lg">{shop.rating}</span>
                 </div>
+                {/* 評論連結 */}
                 <a 
                   href={getGoogleMapLink(shop.name, shop.address)}
                   target="_blank" 
@@ -537,7 +511,6 @@ export default function App() {
           </div>
 
           <div className="p-6 space-y-6">
-            {/* 營業時間區塊 - 改版：將標籤與時間分開兩行顯示，避免擠壓 */}
             <div className="flex flex-col gap-3 items-start">
                <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold self-start ${
                  isOpen === true ? 'bg-green-100 text-green-700' : 
@@ -558,7 +531,6 @@ export default function App() {
                 <Info size={14} /> 店家介紹
               </h4>
               <div className="text-sm text-gray-600 text-justify">
-                {/* 使用美化元件顯示描述，支援換行與括號縮小 */}
                 <FormattedText text={shop.description} />
               </div>
             </div>
@@ -614,7 +586,6 @@ export default function App() {
           <h3 className="text-lg font-bold text-gray-800">快速篩選</h3>
           <button onClick={() => setShowFilterModal(false)}><X size={20} className="text-gray-400" /></button>
         </div>
-        
         <div className="space-y-4">
           <label className="flex items-center justify-between p-4 bg-gray-50 rounded-xl cursor-pointer hover:bg-emerald-50/50 transition-colors">
             <div className="flex items-center gap-3">
@@ -629,7 +600,6 @@ export default function App() {
             </div>
           </label>
         </div>
-
         <button onClick={() => setShowFilterModal(false)} className="w-full bg-emerald-600 text-white py-3 rounded-xl font-bold hover:bg-emerald-700">
           確認
         </button>
@@ -644,11 +614,7 @@ export default function App() {
         <div className="text-center">
           <div className="w-20 h-20 mx-auto rounded-full overflow-hidden border-4 border-emerald-100 shadow-lg mb-4 bg-emerald-50 flex items-center justify-center">
             {userProfile?.pictureUrl ? (
-              <img 
-                src={userProfile.pictureUrl} 
-                alt="User" 
-                className="w-full h-full object-cover"
-              />
+              <img src={userProfile.pictureUrl} alt="User" className="w-full h-full object-cover" />
             ) : (
               <div className="relative w-full h-full bg-emerald-100 flex items-center justify-center">
                  <Mountain size={40} className="text-emerald-600 relative z-10" strokeWidth={1.5} />
@@ -661,48 +627,27 @@ export default function App() {
           </h3>
           <p className="text-sm text-gray-500">歡迎來到梅山</p>
         </div>
-
         <div className="space-y-2">
           {APP_CONFIG.notionUrl && (
-            <button 
-              className="w-full flex items-center justify-between p-4 bg-emerald-50 hover:bg-emerald-100 rounded-xl transition-colors text-left border border-emerald-100" 
-              onClick={() => window.open(APP_CONFIG.notionUrl, '_blank')}
-            >
+            <button className="w-full flex items-center justify-between p-4 bg-emerald-50 hover:bg-emerald-100 rounded-xl transition-colors text-left border border-emerald-100" onClick={() => window.open(APP_CONFIG.notionUrl, '_blank')}>
               <span className="flex items-center gap-3 text-emerald-800 font-bold"><Map size={18} /> 周邊步道攻略</span>
               <ChevronRight size={16} className="text-emerald-400" />
             </button>
           )}
-
-          <button 
-            className="w-full flex items-center justify-between p-4 bg-gray-50 hover:bg-gray-100 rounded-xl transition-colors text-left" 
-            onClick={() => {
-              if (APP_CONFIG.aboutUsUrl) {
-                window.open(APP_CONFIG.aboutUsUrl, '_blank');
-              } else {
-                alert(APP_CONFIG.aboutUsText);
-              }
-            }}
-          >
+          <button className="w-full flex items-center justify-between p-4 bg-gray-50 hover:bg-gray-100 rounded-xl transition-colors text-left" onClick={() => {
+              if (APP_CONFIG.aboutUsUrl) window.open(APP_CONFIG.aboutUsUrl, '_blank');
+              else alert(APP_CONFIG.aboutUsText);
+            }}>
             <span className="flex items-center gap-3 text-gray-700"><Info size={18} /> 關於我們</span>
             <ChevronRight size={16} className="text-gray-400" />
           </button>
-          
           <button className="w-full flex items-center justify-between p-4 bg-gray-50 hover:bg-gray-100 rounded-xl transition-colors text-left" onClick={() => window.open('https://line.me/', '_blank')}>
             <span className="flex items-center gap-3 text-gray-700"><MessageCircle size={18} /> 聯絡客服</span>
             <ChevronRight size={16} className="text-gray-400" />
           </button>
         </div>
-
         {favorites.length > 0 && (
-          <button 
-            onClick={() => {
-              if(confirm('確定要清空所有收藏嗎？')) {
-                setFavorites([]);
-                localStorage.removeItem('meishan_favorites');
-              }
-            }}
-            className="w-full text-center text-rose-500 text-sm py-2 hover:bg-rose-50 rounded-lg transition-colors"
-          >
+          <button onClick={() => { if(confirm('確定要清空所有收藏嗎？')) { setFavorites([]); localStorage.removeItem('meishan_favorites'); } }} className="w-full text-center text-rose-500 text-sm py-2 hover:bg-rose-50 rounded-lg transition-colors">
             清空收藏紀錄
           </button>
         )}
@@ -713,8 +658,6 @@ export default function App() {
   return (
     <div className="min-h-[100dvh] bg-gray-50 text-gray-800 font-sans flex justify-center overflow-hidden">
       <div className="w-full max-w-md bg-white min-h-[100dvh] relative shadow-2xl overflow-y-auto pb-32 no-scrollbar">
-        
-        {/* Modals */}
         {selectedShop && <ShopDetailModal shop={selectedShop} onClose={() => setSelectedShop(null)} />}
         {showFilterModal && <FilterModal />}
         {showUserModal && <UserModal />}
@@ -732,23 +675,9 @@ export default function App() {
                   <X size={24} className="text-gray-500" />
                 </button>
               </div>
-              
               <div className="space-y-3">
                 {villages.map((v) => (
-                  <button
-                    key={v.name}
-                    onClick={() => {
-                      setSelectedVillage(v.name);
-                      setSidebarOpen(false);
-                      setCurrentView('home'); 
-                      setSortBy('default');
-                    }}
-                    className={`w-full text-left p-4 rounded-xl flex justify-between items-center transition-all ${
-                      selectedVillage === v.name 
-                        ? 'bg-emerald-50 border-l-4 border-emerald-600 text-emerald-700 font-bold' 
-                        : 'hover:bg-gray-50 text-gray-600'
-                    }`}
-                  >
+                  <button key={v.name} onClick={() => { setSelectedVillage(v.name); setSidebarOpen(false); setCurrentView('home'); setSortBy('default'); }} className={`w-full text-left p-4 rounded-xl flex justify-between items-center transition-all ${ selectedVillage === v.name ? 'bg-emerald-50 border-l-4 border-emerald-600 text-emerald-700 font-bold' : 'hover:bg-gray-50 text-gray-600' }`}>
                     <span>{v.name}</span>
                     <span className="text-xs text-gray-400 font-normal">{v.desc}</span>
                   </button>
@@ -776,17 +705,9 @@ export default function App() {
               </h1>
             </div>
           </div>
-          
-          <button 
-            onClick={() => setShowUserModal(true)}
-            className="w-10 h-10 rounded-full overflow-hidden border-2 border-white shadow-md bg-emerald-50 flex items-center justify-center"
-          >
+          <button onClick={() => setShowUserModal(true)} className="w-10 h-10 rounded-full overflow-hidden border-2 border-white shadow-md bg-emerald-50 flex items-center justify-center">
              {userProfile?.pictureUrl ? (
-               <img 
-                 src={userProfile.pictureUrl} 
-                 alt="User" 
-                 className="w-full h-full object-cover"
-               />
+               <img src={userProfile.pictureUrl} alt="User" className="w-full h-full object-cover" />
              ) : (
                <Mountain size={20} className="text-emerald-600" />
              )}
@@ -799,28 +720,15 @@ export default function App() {
             <div className="px-6 my-4">
               <div className="bg-gray-100 rounded-2xl p-3 flex items-center gap-3 border border-transparent focus-within:border-emerald-200 focus-within:bg-white focus-within:shadow-lg transition-all">
                 <Search className="text-gray-400" size={20} />
-                <input 
-                  type="text" 
-                  placeholder={`搜尋${selectedVillage}的美食、民宿...`}
-                  className="bg-transparent border-none outline-none text-gray-700 placeholder-gray-400 flex-1 text-sm font-medium"
-                />
+                <input type="text" placeholder={`搜尋${selectedVillage}的美食、民宿...`} className="bg-transparent border-none outline-none text-gray-700 placeholder-gray-400 flex-1 text-sm font-medium" />
               </div>
             </div>
-
             <div className="px-6 mb-6">
               <div className="flex gap-3 overflow-x-auto pb-2 no-scrollbar">
                 {availableCategories.map((catKey) => {
                   const config = categoryConfig[catKey] || { label: catKey, icon: <Tag size={18}/> };
                   return (
-                    <button
-                      key={catKey}
-                      onClick={() => setActiveCategory(catKey)}
-                      className={`flex flex-col items-center justify-center min-w-[70px] h-16 rounded-2xl transition-all duration-300 border ${
-                        activeCategory === catKey 
-                          ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-600/30 transform scale-105' 
-                          : 'bg-white text-gray-400 border-gray-100 hover:bg-gray-50 shadow-sm'
-                      }`}
-                    >
+                    <button key={catKey} onClick={() => setActiveCategory(catKey)} className={`flex flex-col items-center justify-center min-w-[70px] h-16 rounded-2xl transition-all duration-300 border ${ activeCategory === catKey ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-600/30 transform scale-105' : 'bg-white text-gray-400 border-gray-100 hover:bg-gray-50 shadow-sm' }`}>
                       <div className="mb-1">{config.icon}</div>
                       <span className="text-[10px] font-medium capitalize">{config.label}</span>
                     </button>
@@ -869,10 +777,7 @@ export default function App() {
                   <div className="h-48 w-full relative overflow-hidden bg-gray-100">
                     <ImageCarousel images={shop.images} onClick={() => setSelectedShop(shop)} />
                     
-                    <button 
-                      onClick={(e) => { e.preventDefault(); toggleFavorite(shop.id); }}
-                      className="absolute top-3 right-3 bg-white/90 backdrop-blur-md p-2 rounded-full shadow-sm hover:scale-110 transition-all z-10"
-                    >
+                    <button onClick={(e) => { e.preventDefault(); toggleFavorite(shop.id); }} className="absolute top-3 right-3 bg-white/90 backdrop-blur-md p-2 rounded-full shadow-sm hover:scale-110 transition-all z-10">
                       <Heart size={18} className={isFav ? "fill-rose-500 text-rose-500" : "text-gray-400"} />
                     </button>
                     
@@ -924,7 +829,6 @@ export default function App() {
                         {shop.hours && (
                           <div className={`flex items-center gap-1.5 text-xs px-2 py-1 rounded-md border max-w-full overflow-hidden ${getHoursStyle(shop.hours).replace('text', 'border-transparent text')}`}>
                             <Clock size={10} className="flex-shrink-0" />
-                            {/* 卡片預覽僅顯示單行，避免過長 */}
                             <span className="truncate">
                                 {shop.hours.toLowerCase() === 'google' ? 'Google 公告' : shop.hours.toLowerCase() === 'fb' ? '粉專公告' : shop.hours.split('|')[0]}
                             </span>
@@ -947,33 +851,19 @@ export default function App() {
                     </div>
 
                     <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
-                      <a 
-                        href={getGoogleMapLink(shop.name, shop.address)} 
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        className="flex-1 bg-gray-900 hover:bg-black text-white py-2.5 rounded-xl flex items-center justify-center gap-2 transition-colors font-medium shadow-lg shadow-gray-200"
-                      >
+                      <a href={getGoogleMapLink(shop.name, shop.address)} target="_blank" rel="noopener noreferrer" className="flex-1 bg-gray-900 hover:bg-black text-white py-2.5 rounded-xl flex items-center justify-center gap-2 transition-colors font-medium shadow-lg shadow-gray-200">
                         <Navigation size={16} />
                         <span className="text-sm">導航</span>
                       </a>
-                      
                       {shop.tel && (
-                        <a 
-                          href={`tel:${shop.tel}`}
-                          className="w-11 h-11 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 rounded-xl flex items-center justify-center transition-colors border border-emerald-100"
-                        >
+                        <a href={`tel:${shop.tel}`} className="w-11 h-11 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 rounded-xl flex items-center justify-center transition-colors border border-emerald-100">
                           <Phone size={18} />
                         </a>
                       )}
-
                       {shop.fbLink && (
-                        <a 
-                        href={shop.fbLink}
-                        target="_blank" rel="noopener noreferrer"
-                        className="w-11 h-11 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-xl flex items-center justify-center transition-colors border border-blue-100"
-                      >
-                        <Facebook size={18} />
-                      </a>
+                        <a href={shop.fbLink} target="_blank" rel="noopener noreferrer" className="w-11 h-11 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-xl flex items-center justify-center transition-colors border border-blue-100">
+                          <Facebook size={18} />
+                        </a>
                       )}
                     </div>
                   </div>
@@ -984,9 +874,7 @@ export default function App() {
              <div className="text-center py-10 text-gray-400">
                 <Coffee size={48} className="mx-auto mb-3 opacity-20" />
                 <p>
-                  {currentView === 'favorites' 
-                    ? '您還沒有收藏任何店家喔！' 
-                    : '這個村落暫時沒有符合的店家'}
+                  {currentView === 'favorites' ? '您還沒有收藏任何店家喔！' : '這個村落暫時沒有符合的店家'}
                 </p>
                 <button onClick={() => {setCurrentView('home'); setActiveCategory('all');}} className="text-emerald-600 text-sm mt-2 font-medium">
                   {currentView === 'favorites' ? '去探索店家' : '顯示全部'}
@@ -1000,28 +888,21 @@ export default function App() {
              <button onClick={() => { setCurrentView('home'); setSortBy('default'); }} className={`flex flex-col items-center gap-1 group transition-colors ${currentView === 'home' ? 'text-emerald-600' : 'text-gray-400'}`}>
                 <Home size={24} />
              </button>
-             
              <button onClick={() => setCurrentView('favorites')} className={`flex flex-col items-center gap-1 group transition-colors ${currentView === 'favorites' ? 'text-rose-500' : 'text-gray-400'}`}>
                 <Heart size={24} className={currentView === 'favorites' ? "fill-rose-500" : ""} />
              </button>
-
              <button onClick={handleGetLocation} className="-mt-10 w-16 h-16 bg-emerald-600 rounded-full flex items-center justify-center shadow-lg shadow-emerald-600/30 border-[5px] border-white transform hover:scale-105 transition-transform text-white relative">
                 {loading && !userLocation ? (<Loader2 size={24} className="animate-spin" />) : (<LocateFixed size={28} />)}
                 {userLocation && <div className="absolute top-3 right-4 w-2 h-2 bg-green-300 rounded-full animate-ping"></div>}
              </button>
-
-             {/* 漏斗 (Filter) */}
              <button onClick={() => setShowFilterModal(true)} className={`flex flex-col items-center gap-1 group transition-colors ${filterOpenOnly ? 'text-emerald-600' : 'text-gray-400'}`}>
                 <Filter size={24} />
              </button>
-
-             {/* 人像 (User) */}
              <button onClick={() => setShowUserModal(true)} className="flex flex-col items-center gap-1 group text-gray-400 hover:text-gray-600">
                 <User size={24} />
              </button>
           </div>
         </div>
-
       </div>
     </div>
   );
