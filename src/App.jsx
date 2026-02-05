@@ -19,6 +19,13 @@ const APP_CONFIG = {
   notionUrl: "https://www.notion.so/2a11f9fee71981239a89ebdbb2f25441?source=copy_link", 
 };
 
+// 【自定義元件】LINE 圖示
+const LineIcon = ({ size = 20, className = "" }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" className={className} xmlns="http://www.w3.org/2000/svg">
+    <path fillRule="evenodd" clipRule="evenodd" d="M12 2C6.48 2 2 5.58 2 10c0 2.42 1.35 4.58 3.55 5.96-.16.56-.57 1.54-.66 1.83-.09.28-.04.54.26.54.16 0 .36-.04 1.53-.82 2.27-1.5 2.76-1.7 3.32-1.75.66.07 1.33.1 2 .1 5.52 0 10-3.58 10-8s-4.48-8-10-8zm-4.7 10.3c-.22 0-.4-.18-.4-.4V8.3c0-.22.18-.4.4-.4s.4.18.4.4v3.2h2.5c.22 0 .4.18.4.4s-.18.4-.4.4H7.3zm2.8-3.6c0-.22.18-.4.4-.4s.4.18.4.4v3.2c0 .22-.18.4-.4.4s-.4-.18-.4-.4V8.7zm2.4 3.6c-.22 0-.4-.18-.4-.4V8.3c0-.22.18-.4.4-.4s.4.18.4.4v2.7l2-2.9c.07-.12.18-.18.28-.19h.03c.22 0 .4.18.4.4v3.2c0 .22-.18.4-.4.4s-.4-.18-.4-.4V8.9l-2 2.9c-.08.1-.2.17-.3.17h-.01zm5.2 0c-.22 0-.4-.18-.4-.4V8.3c0-.22.18-.4.4-.4h2.5c.22 0 .4.18.4.4s-.18.4-.4.4h-2.1v1h2.1c.22 0 .4.18.4.4s-.18.4-.4.4h-2.1v1h2.1c.22 0 .4.18.4.4s-.18.4-.4.4h-2.5z" />
+  </svg>
+);
+
 // 【文字美化元件】
 const FormattedText = ({ text, className = "" }) => {
   if (!text) return null;
@@ -247,7 +254,7 @@ export default function App() {
       id: 1,
       name: "讀取中...",
       village: "太平村",
-      category: "food",
+      categories: ["food"], // 更新 demo data 結構
       address: "載入資料中",
       lat: null, lng: null,
       services: [],
@@ -322,11 +329,16 @@ export default function App() {
         .map(bh => ({ name: bh.name, url: values[bh.index] ? values[bh.index].replace(/^"|"$/g, '') : '' }))
         .filter(b => b.url && b.url.length > 5);
 
+      // 【更新】解析多個分類
+      let rawCats = entry.category || entry['分類'] || 'food';
+      let categories = rawCats.split(/[,，/|、]/).map(c => c.trim()).filter(Boolean);
+
       return {
         id: index,
         name: entry.name || entry['店家名稱'] || '未命名店家',
         village: entry.village || entry['村落名稱'] || entry['村落'] || '太平村',
-        category: entry.category || entry['分類'] || 'food',
+        categories: categories, // 儲存為陣列
+        category: categories[0], // 保留第一個分類作為預設 (相容舊邏輯)
         address: entry.address || entry['地址'] || '',
         lat: parseFloat(entry.lat || entry['緯度']) || null,
         lng: parseFloat(entry.lng || entry['經度']) || null,
@@ -372,7 +384,14 @@ export default function App() {
   };
 
   const getDynamicCategories = () => {
-    const existingCategories = new Set(shops.map(s => s.category));
+    // 【更新】從每個店家的多個分類中收集所有類別
+    const existingCategories = new Set();
+    shops.forEach(s => {
+      if (s.categories) {
+        s.categories.forEach(c => existingCategories.add(c));
+      }
+    });
+
     const dynamicCats = ['all', ...existingCategories];
     const definedOrder = Object.keys(categoryConfig);
     dynamicCats.sort((a, b) => {
@@ -393,7 +412,8 @@ export default function App() {
     } else {
       result = result.filter(shop => {
         const villageMatch = shop.village === selectedVillage;
-        const categoryMatch = activeCategory === 'all' || shop.category === activeCategory;
+        // 【更新】使用 includes 檢查是否包含所選分類
+        const categoryMatch = activeCategory === 'all' || (shop.categories && shop.categories.includes(activeCategory));
         return villageMatch && categoryMatch;
       });
     }
