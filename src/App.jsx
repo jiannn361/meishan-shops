@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, MapPin, Phone, Navigation, Facebook, Star, Home, Coffee, Gift, User, Filter, Heart, Menu, X, Mountain, Loader2, Camera, Ticket, Tag, Clock, ChevronLeft, ChevronRight, Info, LocateFixed, Globe, Share2, MessageCircle, Map, ExternalLink } from 'lucide-react';
+import { Search, MapPin, Phone, Navigation, Facebook, Star, Home, Coffee, Gift, User, Filter, Heart, Menu, X, Mountain, Loader2, Camera, Ticket, Tag, Clock, ChevronLeft, ChevronRight, Info, LocateFixed, Globe, Share2, MessageCircle, Map, ExternalLink, CalendarCheck } from 'lucide-react';
 
 // 【網站設定區】
 const APP_CONFIG = {
@@ -18,6 +18,13 @@ const APP_CONFIG = {
   // Notion 攻略連結 (選填)
   notionUrl: "https://www.notion.so/2a11f9fee71981239a89ebdbb2f25441?source=copy_link", 
 };
+
+// 【自定義元件】LINE 圖示 (因為 lucide-react 沒有內建 LINE LOGO)
+const LineIcon = ({ size = 20, className = "" }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" className={className} xmlns="http://www.w3.org/2000/svg">
+    <path d="M24 10.3c0-5.7-5.4-10.3-12-10.3-6.6 0-12 4.6-12 10.3 0 5.1 4.5 9.4 10.6 10.1.4.1.9.3 1 .8 0 0 .2 1 .1 1.7-.1.5-.4 1.7-.4 2.1 0 0-.1.5.3.7.4.2 1 .1 1-.1 3.9-2.2 7.7-4.5 9-6.3 1.9-2.2 2.4-3.7 2.4-4.1 0-.1 0-2.9 0-4zm-5.9 2.5c0 .4-.3.6-.6.6h-4.3v-3.7c0-.4-.3-.6-.6-.6s-.6.3-.6.6v4.3c0 .4.3.6.6.6h4.8c.4 0 .6-.3.6-.6s-.2-.6-.5-.6zm-8.2-.1v-4.1c0-.4-.3-.6-.6-.6s-.6.3-.6.6v4.1c0 .4.3.6.6.6s.6-.3.6-.6zm3.3 0v-4.1c0-.4-.3-.6-.6-.6s-.6.3-.6.6v2.6l-2.4-3.3c-.1-.2-.3-.3-.5-.3-.2 0-.3.1-.4.2-.1.1-.1.2-.1.3v4.1c0 .4.3.6.6.6s.6-.3.6-.6v-2.6l2.4 3.3c.1.1.2.2.3.2.3 0 .6-.3.6-.6zm5.8-2.6h-1.8v-1.5c0-.4-.3-.6-.6-.6s-.6.3-.6.6v4.2c0 .4.3.6.6.6h2.4c.4 0 .6-.3.6-.6s-.3-.7-.6-.7z" />
+  </svg>
+);
 
 // 【文字美化元件】處理換行符號 | 與括號縮小
 const FormattedText = ({ text, className = "" }) => {
@@ -286,7 +293,7 @@ export default function App() {
     }
   ];
 
-  // CSV 解析器 (支援換行)
+  // CSV 解析器 (支援換行、LINE、訂房連結)
   const parseCSV = (text) => {
     const cleanText = text.replace(/^\uFEFF/, '');
     const rows = [];
@@ -345,8 +352,10 @@ export default function App() {
         reviews: entry.reviews || entry['評論數'] ? parseInt(entry.reviews || entry['評論數']) : 0,
         images: entry.images && entry.images.length > 0 ? entry.images : ['https://images.unsplash.com/photo-1566073771259-6a8506099945?ixlib=rb-4.0.3'],
         tel: entry.tel || entry['電話'] || '', 
-        fbLink: entry.fblink || entry['粉專連結'] || '',
-        // 【新增】支援地圖連結欄位
+        fbLink: entry.fblink || entry['粉專連結'] || entry['fb link'] || '',
+        line_url: entry.line_url || entry['line'] || entry['line link'] || entry['line連結'] || entry['官方帳號'] || '',
+        // 【新增】訂房連結讀取
+        booking_url: entry.booking_url || entry['訂房連結'] || entry['booking'] || entry['agoda'] || '',
         google_url: entry.google_url || entry['地圖連結'] || entry['評論連結'] || '',
         hours: entry.hours || entry['營業時間'] || '', 
         description: entry.description || entry['介紹'] || entry['店家介紹'] || '暫無詳細介紹，歡迎親自蒞臨體驗！',
@@ -558,9 +567,9 @@ export default function App() {
               ))}
             </div>
 
-            <div className="flex gap-3 pt-2">
+            <div className="flex gap-3 pt-2 flex-wrap">
               <a href={getGoogleMapLink(shop.name, shop.address)} target="_blank" rel="noopener noreferrer" 
-                 className="flex-1 bg-emerald-600 text-white py-3 rounded-xl flex items-center justify-center gap-2 hover:bg-emerald-700 transition-colors font-medium shadow-lg shadow-emerald-200">
+                 className="flex-1 min-w-[120px] bg-emerald-600 text-white py-3 rounded-xl flex items-center justify-center gap-2 hover:bg-emerald-700 transition-colors font-medium shadow-lg shadow-emerald-200">
                 <Navigation size={18} /> 導航
               </a>
               {shop.tel && (
@@ -571,6 +580,18 @@ export default function App() {
               {shop.fbLink && (
                 <a href={shop.fbLink} target="_blank" rel="noopener noreferrer" className="w-12 h-12 flex items-center justify-center rounded-xl border border-blue-200 text-blue-600 hover:bg-blue-50 transition-colors">
                   <Facebook size={20} />
+                </a>
+              )}
+              {/* LINE 按鈕 */}
+              {shop.line_url && (
+                <a href={shop.line_url} target="_blank" rel="noopener noreferrer" className="w-12 h-12 flex items-center justify-center rounded-xl border border-green-200 text-green-600 hover:bg-green-50 transition-colors">
+                  <LineIcon size={24} />
+                </a>
+              )}
+              {/* 【新增】訂房按鈕 (有填 booking_url 才會出現) */}
+              {shop.booking_url && (
+                <a href={shop.booking_url} target="_blank" rel="noopener noreferrer" className="w-12 h-12 flex items-center justify-center rounded-xl border border-rose-200 text-rose-600 hover:bg-rose-50 transition-colors">
+                  <CalendarCheck size={20} />
                 </a>
               )}
             </div>
