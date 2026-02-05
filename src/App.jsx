@@ -19,36 +19,19 @@ const APP_CONFIG = {
   notionUrl: "https://www.notion.so/2a11f9fee71981239a89ebdbb2f25441?source=copy_link", 
 };
 
-// 【自定義元件】LINE 圖示 (因為 lucide-react 沒有內建 LINE LOGO)
-const LineIcon = ({ size = 20, className = "" }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" className={className} xmlns="http://www.w3.org/2000/svg">
-    <path d="M24 10.3c0-5.7-5.4-10.3-12-10.3-6.6 0-12 4.6-12 10.3 0 5.1 4.5 9.4 10.6 10.1.4.1.9.3 1 .8 0 0 .2 1 .1 1.7-.1.5-.4 1.7-.4 2.1 0 0-.1.5.3.7.4.2 1 .1 1-.1 3.9-2.2 7.7-4.5 9-6.3 1.9-2.2 2.4-3.7 2.4-4.1 0-.1 0-2.9 0-4zm-5.9 2.5c0 .4-.3.6-.6.6h-4.3v-3.7c0-.4-.3-.6-.6-.6s-.6.3-.6.6v4.3c0 .4.3.6.6.6h4.8c.4 0 .6-.3.6-.6s-.2-.6-.5-.6zm-8.2-.1v-4.1c0-.4-.3-.6-.6-.6s-.6.3-.6.6v4.1c0 .4.3.6.6.6s.6-.3.6-.6zm3.3 0v-4.1c0-.4-.3-.6-.6-.6s-.6.3-.6.6v2.6l-2.4-3.3c-.1-.2-.3-.3-.5-.3-.2 0-.3.1-.4.2-.1.1-.1.2-.1.3v4.1c0 .4.3.6.6.6s.6-.3.6-.6v-2.6l2.4 3.3c.1.1.2.2.3.2.3 0 .6-.3.6-.6zm5.8-2.6h-1.8v-1.5c0-.4-.3-.6-.6-.6s-.6.3-.6.6v4.2c0 .4.3.6.6.6h2.4c.4 0 .6-.3.6-.6s-.3-.7-.6-.7z" />
-  </svg>
-);
-
-// 【文字美化元件】處理換行符號 | 與括號縮小
+// 【文字美化元件】
 const FormattedText = ({ text, className = "" }) => {
   if (!text) return null;
-
-  // 1. 先用 | 或 \n 進行分行
   const lines = text.split(/\||\n|\\n/);
-
   return (
     <div className={`space-y-1 ${className}`}>
       {lines.map((line, lineIdx) => {
-        // 2. 針對每一行，偵測括號 ( ) 或 （ ）
         const parts = line.split(/([（(].*?[)）])/g);
-
         return (
           <div key={lineIdx} className="leading-relaxed">
             {parts.map((part, partIdx) => {
-              // 如果是括號內容，套用小字體樣式
               if (part.match(/^[（(].*[)）]$/)) {
-                return (
-                  <span key={partIdx} className="text-xs text-gray-400 font-normal ml-0.5">
-                    {part}
-                  </span>
-                );
+                return <span key={partIdx} className="text-xs text-gray-400 font-normal ml-0.5">{part}</span>;
               }
               return <span key={partIdx}>{part}</span>;
             })}
@@ -86,13 +69,11 @@ export default function App() {
       script.src = 'https://static.line-scdn.net/liff/edge/2/sdk.js';
       script.onload = () => {
         if (window.liff) {
-          window.liff.init({ liffId: APP_CONFIG.liffId })
-            .then(() => {
-              if (window.liff.isLoggedIn()) {
-                window.liff.getProfile().then(profile => setUserProfile(profile));
-              }
-            })
-            .catch((err) => console.error('LIFF Init failed', err));
+          window.liff.init({ liffId: APP_CONFIG.liffId }).then(() => {
+            if (window.liff.isLoggedIn()) {
+              window.liff.getProfile().then(profile => setUserProfile(profile));
+            }
+          }).catch((err) => console.error('LIFF Init failed', err));
         }
       };
       document.body.appendChild(script);
@@ -167,24 +148,19 @@ export default function App() {
     'experience': { label: '體驗', icon: <Ticket size={18}/> },
   };
 
-  // 營業時間判斷邏輯 (支援週一至週五、| 分隔)
   const checkIsOpen = (hoursString) => {
     if (!hoursString) return null; 
-    
     const now = new Date();
     const currentDay = now.getDay(); 
     const currentHour = now.getHours();
     const currentMin = now.getMinutes();
     const currentTimeVal = currentHour * 60 + currentMin;
 
-    // 1. 正規化：將 | 轉為 , 並處理全形與範圍符號
     let cleanHours = hoursString.replace(/\|/g, ',').replace(/：/g, ':').replace(/～/g, '-').replace(/至/g, '-').trim();
     
-    // 2. 展開日期範圍 (週一-週五 -> 週一 週二...週五)
     const expandDayRanges = (str) => {
       const dayMap = { '日': 0, '一': 1, '二': 2, '三': 3, '四': 4, '五': 5, '六': 6 };
       const revMap = ['日', '一', '二', '三', '四', '五', '六'];
-      
       return str.replace(/(?:週|星期)([日一二三四五六])\s*(?:-|~)\s*(?:週|星期)([日一二三四五六])/g, (match, startChar, endChar) => {
         let startIdx = dayMap[startChar];
         let endIdx = dayMap[endChar];
@@ -200,7 +176,6 @@ export default function App() {
     };
 
     cleanHours = expandDayRanges(cleanHours);
-    
     if (cleanHours.toLowerCase().includes('google')) return 'google';
     if (cleanHours.toLowerCase().includes('fb') || cleanHours.includes('粉絲專頁')) return 'fb';
     if (cleanHours === '營業中') return true;
@@ -209,32 +184,25 @@ export default function App() {
     const dayChars = ['日', '一', '二', '三', '四', '五', '六'];
     const todayChar = dayChars[currentDay];
     const isWeekend = currentDay === 0 || currentDay === 6;
-
     const segments = cleanHours.split(/[,;，；\n]/).map(s => s.trim()).filter(s => s);
-    
     let matchedRanges = [];
     let matchPriority = -1; 
 
     for (let segment of segments) {
       let applies = false;
       let priority = 0;
-
       const hasSpecificDay = /(週|星期)[日一二三四五六]/.test(segment);
       const hasWeekday = /平日/.test(segment);
       const hasWeekend = /(假日|週末|六日)/.test(segment);
 
       if (hasSpecificDay) {
-        if (new RegExp(`(週|星期)${todayChar}`).test(segment)) {
-          applies = true;
-          priority = 2;
-        }
+        if (new RegExp(`(週|星期)${todayChar}`).test(segment)) { applies = true; priority = 2; }
       } else if (hasWeekday) {
         if (!isWeekend) { applies = true; priority = 1; }
       } else if (hasWeekend) {
         if (isWeekend) { applies = true; priority = 1; }
       } else {
-        applies = true;
-        priority = 0;
+        applies = true; priority = 0;
       }
 
       if (applies) {
@@ -254,10 +222,7 @@ export default function App() {
       if (hasAnyDayKeywords) return false; 
       matchedRanges = [cleanHours];
     }
-
-    if (matchedRanges.length === 0 && matchPriority > -1) {
-      return false; 
-    }
+    if (matchedRanges.length === 0 && matchPriority > -1) return false; 
 
     for (let segment of matchedRanges) {
       const times = segment.match(/(\d{1,2}:\d{2})\s*-\s*(\d{1,2}:\d{2})/g);
@@ -293,7 +258,7 @@ export default function App() {
     }
   ];
 
-  // CSV 解析器 (支援換行、LINE、訂房連結)
+  // CSV 解析器
   const parseCSV = (text) => {
     const cleanText = text.replace(/^\uFEFF/, '');
     const rows = [];
@@ -330,6 +295,20 @@ export default function App() {
     if (rows.length === 0) return [];
     const headers = rows[0].map(h => h.replace(/^"|"$/g, '').toLowerCase());
     
+    // 偵測所有訂房相關的欄位
+    const bookingPlatforms = ['agoda', 'booking', 'airbnb', 'asiayo', 'hotels', 'expedia', 'ezhotel', 'klook', 'kkday', '訂房連結'];
+    const bookingHeaders = [];
+    
+    headers.forEach((h, index) => {
+      const matchedPlatform = bookingPlatforms.find(p => h.includes(p));
+      if (matchedPlatform) {
+        let displayName = matchedPlatform === '訂房連結' ? '線上訂房' : 
+                          matchedPlatform.charAt(0).toUpperCase() + matchedPlatform.slice(1);
+        if (displayName.toLowerCase() === 'booking') displayName = 'Booking.com';
+        bookingHeaders.push({ index, name: displayName });
+      }
+    });
+
     return rows.slice(1).map((values, index) => {
       const entry = {};
       headers.forEach((h, i) => {
@@ -339,6 +318,10 @@ export default function App() {
         else entry[h] = val;
       });
       
+      const shopBookings = bookingHeaders
+        .map(bh => ({ name: bh.name, url: values[bh.index] ? values[bh.index].replace(/^"|"$/g, '') : '' }))
+        .filter(b => b.url && b.url.length > 5);
+
       return {
         id: index,
         name: entry.name || entry['店家名稱'] || '未命名店家',
@@ -354,9 +337,8 @@ export default function App() {
         tel: entry.tel || entry['電話'] || '', 
         fbLink: entry.fblink || entry['粉專連結'] || entry['fb link'] || '',
         line_url: entry.line_url || entry['line'] || entry['line link'] || entry['line連結'] || entry['官方帳號'] || '',
-        // 【新增】訂房連結讀取
-        booking_url: entry.booking_url || entry['訂房連結'] || entry['booking'] || entry['agoda'] || '',
         google_url: entry.google_url || entry['地圖連結'] || entry['評論連結'] || '',
+        bookings: shopBookings,
         hours: entry.hours || entry['營業時間'] || '', 
         description: entry.description || entry['介紹'] || entry['店家介紹'] || '暫無詳細介紹，歡迎親自蒞臨體驗！',
       };
@@ -508,7 +490,6 @@ export default function App() {
                    <Star size={16} className="fill-yellow-400" />
                    <span className="font-bold text-lg">{shop.rating}</span>
                 </div>
-                {/* 評論連結：優先使用試算表中的 google_url，若無則使用搜尋連結 */}
                 <a 
                   href={shop.google_url || getGoogleMapLink(shop.name, shop.address)}
                   target="_blank" 
@@ -569,30 +550,40 @@ export default function App() {
 
             <div className="flex gap-3 pt-2 flex-wrap">
               <a href={getGoogleMapLink(shop.name, shop.address)} target="_blank" rel="noopener noreferrer" 
-                 className="flex-1 min-w-[120px] bg-emerald-600 text-white py-3 rounded-xl flex items-center justify-center gap-2 hover:bg-emerald-700 transition-colors font-medium shadow-lg shadow-emerald-200">
+                 className="flex-1 min-w-[100px] bg-emerald-600 text-white py-3 rounded-xl flex items-center justify-center gap-2 hover:bg-emerald-700 transition-colors font-medium shadow-lg shadow-emerald-200">
                 <Navigation size={18} /> 導航
               </a>
               {shop.tel && (
-                <a href={`tel:${shop.tel}`} className="w-12 h-12 flex items-center justify-center rounded-xl border border-emerald-200 text-emerald-600 hover:bg-emerald-50 transition-colors">
+                <a href={`tel:${shop.tel}`} className="w-12 h-12 flex items-center justify-center rounded-xl border border-emerald-200 text-emerald-600 hover:bg-emerald-50 transition-colors flex-shrink-0">
                   <Phone size={20} />
                 </a>
               )}
               {shop.fbLink && (
-                <a href={shop.fbLink} target="_blank" rel="noopener noreferrer" className="w-12 h-12 flex items-center justify-center rounded-xl border border-blue-200 text-blue-600 hover:bg-blue-50 transition-colors">
+                <a href={shop.fbLink} target="_blank" rel="noopener noreferrer" className="w-12 h-12 flex items-center justify-center rounded-xl border border-blue-200 text-blue-600 hover:bg-blue-50 transition-colors flex-shrink-0">
                   <Facebook size={20} />
                 </a>
               )}
               {/* LINE 按鈕 */}
               {shop.line_url && (
-                <a href={shop.line_url} target="_blank" rel="noopener noreferrer" className="w-12 h-12 flex items-center justify-center rounded-xl border border-green-200 text-green-600 hover:bg-green-50 transition-colors">
-                  <LineIcon size={24} />
+                <a href={shop.line_url} target="_blank" rel="noopener noreferrer" className="w-12 h-12 flex items-center justify-center rounded-xl border border-green-200 text-green-600 hover:bg-green-50 transition-colors flex-shrink-0">
+                  <span className="font-extrabold text-xs">LINE</span>
                 </a>
               )}
-              {/* 【新增】訂房按鈕 (有填 booking_url 才會出現) */}
-              {shop.booking_url && (
-                <a href={shop.booking_url} target="_blank" rel="noopener noreferrer" className="w-12 h-12 flex items-center justify-center rounded-xl border border-rose-200 text-rose-600 hover:bg-rose-50 transition-colors">
-                  <CalendarCheck size={20} />
-                </a>
+              
+              {/* 多個訂房平台連結 */}
+              {shop.bookings && shop.bookings.length > 0 && (
+                shop.bookings.map((booking, idx) => (
+                  <a 
+                    key={idx}
+                    href={booking.url} 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    className="flex-1 min-w-[120px] px-3 py-3 rounded-xl border border-rose-200 text-rose-600 hover:bg-rose-50 transition-colors flex items-center justify-center gap-2 font-bold text-sm"
+                  >
+                    <CalendarCheck size={18} />
+                    <span>{booking.name}</span>
+                  </a>
+                ))
               )}
             </div>
           </div>
@@ -873,6 +864,7 @@ export default function App() {
                       <span className="truncate">{shop.address}</span>
                     </div>
 
+                    {/* 【更新】列表卡片下方的按鈕列，加入 LINE 與 FB */}
                     <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
                       <a href={getGoogleMapLink(shop.name, shop.address)} target="_blank" rel="noopener noreferrer" className="flex-1 bg-gray-900 hover:bg-black text-white py-2.5 rounded-xl flex items-center justify-center gap-2 transition-colors font-medium shadow-lg shadow-gray-200">
                         <Navigation size={16} />
@@ -881,6 +873,11 @@ export default function App() {
                       {shop.tel && (
                         <a href={`tel:${shop.tel}`} className="w-11 h-11 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 rounded-xl flex items-center justify-center transition-colors border border-emerald-100">
                           <Phone size={18} />
+                        </a>
+                      )}
+                      {shop.line_url && (
+                        <a href={shop.line_url} target="_blank" rel="noopener noreferrer" className="w-11 h-11 bg-green-500 hover:bg-green-600 text-white rounded-xl flex items-center justify-center transition-colors border border-green-600 shadow-sm">
+                          <span className="font-extrabold text-[10px]">LINE</span>
                         </a>
                       )}
                       {shop.fbLink && (
