@@ -9,7 +9,7 @@ const APP_CONFIG = {
   googleSheetUrl: "https://docs.google.com/spreadsheets/d/e/2PACX-1vSYV7_LgqByXVlVddhypjxItSz4tGX7-hfi77RTurkCI1l6ZdqKJNubbMXUByo-fYBuxvt948fGpZu_/pub?output=csv",
   
   // LINE LIFF ID (選填)
-  liffId: "",
+  liffId: "2009010332-K14upnUb",
 
   // 關於我們
   aboutUsText: "歡迎您來到梅山！\n我們致力於推廣梅山在地觀光，\n讓您輕鬆找到最棒的民宿與美食。",
@@ -48,6 +48,15 @@ const FormattedText = ({ text, className = "" }) => {
     </div>
   );
 };
+
+// 【新增】預設商家圖片 (山形圖示)
+const DefaultShopImage = () => (
+  <div className="w-full h-full bg-emerald-50 flex items-center justify-center">
+    <div className="w-24 h-24 rounded-full bg-emerald-100 flex items-center justify-center">
+      <Mountain size={48} className="text-emerald-600 opacity-80" strokeWidth={1.5} />
+    </div>
+  </div>
+);
 
 export default function App() {
   const [activeCategory, setActiveCategory] = useState('all');
@@ -254,13 +263,13 @@ export default function App() {
       id: 1,
       name: "讀取中...",
       village: "太平村",
-      categories: ["food"], // 更新 demo data 結構
+      categories: ["food"], 
       address: "載入資料中",
       lat: null, lng: null,
       services: [],
       rating: 0,
       reviews: 0,
-      images: ["https://images.unsplash.com/photo-1595856426463-2287f3b8f645?ixlib=rb-4.0.3"],
+      images: [],
       tel: "", fbLink: "#", hours: "", description: ""
     }
   ];
@@ -345,7 +354,8 @@ export default function App() {
         services: entry.services || entry['服務標籤'] || [],
         rating: entry.rating || entry['星等'] ? parseFloat(entry.rating || entry['星等']) : 4.5,
         reviews: entry.reviews || entry['評論數'] ? parseInt(entry.reviews || entry['評論數']) : 0,
-        images: entry.images && entry.images.length > 0 ? entry.images : ['https://images.unsplash.com/photo-1566073771259-6a8506099945?ixlib=rb-4.0.3'],
+        // 【修改】如果沒有提供圖片，預設為空陣列 (讓前端顯示山形圖)
+        images: entry.images && entry.images.length > 0 && entry.images[0] !== "" ? entry.images : [],
         tel: entry.tel || entry['電話'] || '', 
         fbLink: entry.fblink || entry['粉專連結'] || entry['fb link'] || '',
         line_url: entry.line_url || entry['line'] || entry['line link'] || entry['line連結'] || entry['官方帳號'] || '',
@@ -442,6 +452,7 @@ export default function App() {
   // 圖片輪播元件 (自動輪播)
   const ImageCarousel = ({ images, onClick }) => {
     const [currentIndex, setCurrentIndex] = useState(0);
+    const [imgError, setImgError] = useState(false); // 追蹤圖片載入錯誤
 
     useEffect(() => {
       if (!images || images.length <= 1) return;
@@ -451,17 +462,30 @@ export default function App() {
       return () => clearInterval(interval);
     }, [images?.length]);
 
-    if (images.length <= 1) {
+    // 【更新】如果沒有圖片或圖片載入錯誤，顯示預設的山形圖示
+    if (!images || images.length === 0 || imgError) {
        return (
-         <img 
-            src={images[0]} 
-            alt="shop" 
+         <div 
             onClick={onClick}
-            className="w-full h-full object-cover transition-transform duration-700 hover:scale-110 cursor-pointer"
-            onError={(e) => { e.target.src = "https://images.unsplash.com/photo-1596394516093-501ba68a0ba6?auto=format&fit=crop&w=1000&q=80"; }}
-          />
+            className="w-full h-full cursor-pointer"
+         >
+            <DefaultShopImage />
+         </div>
        );
     }
+
+    if (images.length === 1) {
+        return (
+            <img 
+               src={images[0]} 
+               alt="shop" 
+               onClick={onClick}
+               className="w-full h-full object-cover transition-transform duration-700 hover:scale-110 cursor-pointer"
+               onError={() => setImgError(true)}
+             />
+        );
+    }
+
     const nextSlide = (e) => { e.stopPropagation(); setCurrentIndex((prev) => (prev + 1) % images.length); };
     const prevSlide = (e) => { e.stopPropagation(); setCurrentIndex((prev) => (prev - 1 + images.length) % images.length); };
 
@@ -471,6 +495,7 @@ export default function App() {
           src={images[currentIndex]} 
           alt={`slide-${currentIndex}`} 
           className="w-full h-full object-cover transition-all duration-500"
+          onError={() => setImgError(true)}
         />
         <button onClick={prevSlide} className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/30 hover:bg-black/50 text-white p-1 rounded-full backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity"><ChevronLeft size={20} /></button>
         <button onClick={nextSlide} className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/30 hover:bg-black/50 text-white p-1 rounded-full backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity"><ChevronRight size={20} /></button>
@@ -501,7 +526,18 @@ export default function App() {
           </button>
 
           <div className="h-64 relative">
-            <img src={shop.images[0]} alt={shop.name} className="w-full h-full object-cover" />
+            {/* 【更新】詳情頁圖片處理：無圖片顯示山形圖 */}
+            {shop.images && shop.images.length > 0 ? (
+                <img src={shop.images[0]} alt={shop.name} className="w-full h-full object-cover" 
+                     onError={(e) => { e.target.style.display='none'; e.target.nextSibling.style.display='flex'; }}/>
+            ) : (
+                <DefaultShopImage />
+            )}
+            {/* 備用顯示：當 img onError 時顯示這個 */}
+            <div className="hidden w-full h-full absolute inset-0">
+                <DefaultShopImage />
+            </div>
+
             <div className="absolute bottom-0 inset-x-0 h-24 bg-gradient-to-t from-black/80 to-transparent"></div>
             <div className="absolute bottom-4 left-5 right-5 text-white">
               <h3 className="text-2xl font-bold mb-1">{shop.name}</h3>
