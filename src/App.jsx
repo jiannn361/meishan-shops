@@ -5,8 +5,7 @@ import { Search, MapPin, Phone, Navigation, Facebook, Star, Home, Coffee, Gift, 
 // ⚠️ 重要：請在您的電腦上，將下面這行開頭的 "//" 拿掉，以啟用環境變數讀取功能
 const AIRTABLE_API_KEY = import.meta.env.VITE_AIRTABLE_API_KEY || "";
 
-// 目前為了讓預覽視窗不報錯，先暫時設為空字串 (請在本地端啟用上面那行)
-const AIRTABLE_API_KEY = ""; 
+// 目前為了讓預覽視窗不報錯，先暫時設為空字串 (請在本地端啟用上面那行) 
 
 // 【網站設定區】
 const APP_CONFIG = {
