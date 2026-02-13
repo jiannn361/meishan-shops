@@ -2,10 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { Search, MapPin, Phone, Navigation, Facebook, Star, Home, Coffee, Gift, User, Filter, Heart, Menu, X, Mountain, Loader2, Camera, Ticket, Tag, Clock, ChevronLeft, ChevronRight, Info, LocateFixed, Globe, Share2, MessageCircle, Map, ExternalLink, CalendarCheck } from 'lucide-react';
 
 // 【安全修正】讀取環境變數
-// ⚠️ 重要：請在您的電腦上，將下面這行開頭的 "//" 拿掉，以啟用環境變數讀取功能
-const AIRTABLE_API_KEY = import.meta.env.VITE_AIRTABLE_API_KEY || "";
+// ⚠️ 重要：請在您的電腦上，將下面這行開頭的 "//" 拿掉，以啟用環境變數讀取功能，這樣 Vercel 才能抓到密碼
+ const AIRTABLE_API_KEY = import.meta.env.VITE_AIRTABLE_API_KEY || ""; 
 
-// 目前為了讓預覽視窗不報錯，先暫時設為空字串 (請在本地端啟用上面那行) 
+// 目前為了讓這裡的預覽視窗不報錯，先暫時設為空字串
 
 // 【網站設定區】
 const APP_CONFIG = {
@@ -354,6 +354,8 @@ export default function App() {
       fbLink: f['fbLink'] || f['fb link'] || f['fblink'] || f['FB Link'] || f['粉專連結'] || '',
       line_url: f['line_url'] || f['line'] || f['Line'] || f['line link'] || f['官方帳號'] || '',
       google_url: f['google_url'] || f['google_link'] || f['地圖連結'] || f['評論連結'] || '',
+      // 【新增】導航連結欄位讀取
+      nav_link: f['nav_link'] || f['nav'] || f['navigation'] || f['導航連結'] || f['導航'] || '',
       bookings: shopBookings,
       hours: f['hours'] || f['Hours'] || f['營業時間'] || '',
       description: f['description'] || f['Description'] || f['介紹'] || f['店家介紹'] || '暫無詳細介紹，歡迎親自蒞臨體驗！',
@@ -619,7 +621,8 @@ export default function App() {
             </div>
 
             <div className="flex gap-3 pt-2 flex-wrap">
-              <a href={getGoogleMapLink(shop.name, shop.address)} target="_blank" rel="noopener noreferrer" 
+              {/* 【修改】優先使用導航連結 */}
+              <a href={shop.nav_link || getGoogleMapLink(shop.name, shop.address)} target="_blank" rel="noopener noreferrer" 
                  className="flex-1 min-w-[100px] bg-emerald-600 text-white py-3 rounded-xl flex items-center justify-center gap-2 hover:bg-emerald-700 transition-colors font-medium shadow-lg shadow-emerald-200">
                 <Navigation size={18} /> 導航
               </a>
@@ -936,7 +939,7 @@ export default function App() {
 
                     {/* 【更新】列表卡片下方的按鈕列，加入 LINE 與 FB */}
                     <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
-                      <a href={getGoogleMapLink(shop.name, shop.address)} target="_blank" rel="noopener noreferrer" className="flex-1 bg-gray-900 hover:bg-black text-white py-2.5 rounded-xl flex items-center justify-center gap-2 transition-colors font-medium shadow-lg shadow-gray-200">
+                      <a href={shop.nav_link || getGoogleMapLink(shop.name, shop.address)} target="_blank" rel="noopener noreferrer" className="flex-1 bg-gray-900 hover:bg-black text-white py-2.5 rounded-xl flex items-center justify-center gap-2 transition-colors font-medium shadow-lg shadow-gray-200">
                         <Navigation size={16} />
                         <span className="text-sm">導航</span>
                       </a>
