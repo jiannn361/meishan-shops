@@ -2,10 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { Search, MapPin, Phone, Navigation, Facebook, Star, Home, Coffee, Gift, User, Filter, Heart, Menu, X, Mountain, Loader2, Camera, Ticket, Tag, Clock, ChevronLeft, ChevronRight, Info, LocateFixed, Globe, Share2, MessageCircle, Map, ExternalLink, CalendarCheck } from 'lucide-react';
 
 // 【安全修正】讀取環境變數
-// ⚠️ 重要：請在您的電腦上，將下面這行開頭的 "//" 拿掉，以啟用環境變數讀取功能，這樣 Vercel 才能抓到密碼
- const AIRTABLE_API_KEY = import.meta.env.VITE_AIRTABLE_API_KEY || ""; 
-
-// 目前為了讓這裡的預覽視窗不報錯，先暫時設為空字串
+// ⚠️ 註：為了讓預覽環境能順利編譯，目前先將 AIRTABLE_API_KEY 暫時設為空字串。
+// 在您的電腦本地端或 Vercel 上部署時，請將這行改回： const AIRTABLE_API_KEY = import.meta.env.VITE_AIRTABLE_API_KEY || "";
+const AIRTABLE_API_KEY = import.meta.env.VITE_AIRTABLE_API_KEY ||""; 
 
 // 【網站設定區】
 const APP_CONFIG = {
@@ -66,7 +65,6 @@ const FormattedText = ({ text, className = "" }) => {
 const DefaultShopImage = () => (
   <div className="w-full h-full bg-emerald-50 flex items-center justify-center">
     <div className="w-24 h-24 rounded-full bg-emerald-100 flex items-center justify-center relative overflow-hidden">
-       {/* 模擬圖片中的綠色山形 */}
        <Mountain size={48} className="text-emerald-600 relative z-10" strokeWidth={2} />
     </div>
   </div>
@@ -350,12 +348,12 @@ export default function App() {
       reviews: parseInt(f['reviews'] || f['Reviews'] || f['評論數'] || 0),
       images: images,
       tel: f['tel'] || f['Tel'] || f['Phone'] || f['電話'] || '',
-      // 【修正】加入 f['fblink'] 支援全小寫欄位
       fbLink: f['fbLink'] || f['fb link'] || f['fblink'] || f['FB Link'] || f['粉專連結'] || '',
       line_url: f['line_url'] || f['line'] || f['Line'] || f['line link'] || f['官方帳號'] || '',
       google_url: f['google_url'] || f['google_link'] || f['地圖連結'] || f['評論連結'] || '',
-      // 【新增】導航連結欄位讀取
       nav_link: f['nav_link'] || f['nav'] || f['navigation'] || f['導航連結'] || f['導航'] || '',
+      // 【新增】店家網站欄位讀取
+      website: f['website'] || f['Website'] || f['網站'] || f['官網'] || f['官方網站'] || f['網址'] || '',
       bookings: shopBookings,
       hours: f['hours'] || f['Hours'] || f['營業時間'] || '',
       description: f['description'] || f['Description'] || f['介紹'] || f['店家介紹'] || '暫無詳細介紹，歡迎親自蒞臨體驗！',
@@ -621,7 +619,6 @@ export default function App() {
             </div>
 
             <div className="flex gap-3 pt-2 flex-wrap">
-              {/* 【修改】優先使用導航連結 */}
               <a href={shop.nav_link || getGoogleMapLink(shop.name, shop.address)} target="_blank" rel="noopener noreferrer" 
                  className="flex-1 min-w-[100px] bg-emerald-600 text-white py-3 rounded-xl flex items-center justify-center gap-2 hover:bg-emerald-700 transition-colors font-medium shadow-lg shadow-emerald-200">
                 <Navigation size={18} /> 導航
@@ -636,10 +633,16 @@ export default function App() {
                   <Facebook size={20} />
                 </a>
               )}
-              {/* LINE 按鈕 (使用純文字) */}
+              {/* LINE 按鈕 */}
               {shop.line_url && (
                 <a href={shop.line_url} target="_blank" rel="noopener noreferrer" className="w-12 h-12 flex items-center justify-center rounded-xl border border-green-200 text-green-600 hover:bg-green-50 transition-colors flex-shrink-0">
                   <span className="font-extrabold text-xs">LINE</span>
+                </a>
+              )}
+              {/* 【新增】網站按鈕 */}
+              {shop.website && (
+                <a href={shop.website} target="_blank" rel="noopener noreferrer" className="w-12 h-12 flex items-center justify-center rounded-xl border border-purple-200 text-purple-600 hover:bg-purple-50 transition-colors flex-shrink-0">
+                  <Globe size={20} />
                 </a>
               )}
               
@@ -937,9 +940,9 @@ export default function App() {
                       <span className="truncate">{shop.address}</span>
                     </div>
 
-                    {/* 【更新】列表卡片下方的按鈕列，加入 LINE 與 FB */}
-                    <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
-                      <a href={shop.nav_link || getGoogleMapLink(shop.name, shop.address)} target="_blank" rel="noopener noreferrer" className="flex-1 bg-gray-900 hover:bg-black text-white py-2.5 rounded-xl flex items-center justify-center gap-2 transition-colors font-medium shadow-lg shadow-gray-200">
+                    {/* 【更新】列表卡片下方的按鈕列 (加入網站按鈕) */}
+                    <div className="flex flex-wrap gap-2 mt-auto pt-2" onClick={(e) => e.stopPropagation()}>
+                      <a href={shop.nav_link || getGoogleMapLink(shop.name, shop.address)} target="_blank" rel="noopener noreferrer" className="flex-1 min-w-[100px] bg-gray-900 hover:bg-black text-white py-2.5 rounded-xl flex items-center justify-center gap-2 transition-colors font-medium shadow-lg shadow-gray-200">
                         <Navigation size={16} />
                         <span className="text-sm">導航</span>
                       </a>
@@ -956,6 +959,12 @@ export default function App() {
                       {shop.fbLink && (
                         <a href={shop.fbLink} target="_blank" rel="noopener noreferrer" className="w-11 h-11 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-xl flex items-center justify-center transition-colors border border-blue-100">
                           <Facebook size={18} />
+                        </a>
+                      )}
+                      {/* 【新增】網站按鈕在列表卡片 */}
+                      {shop.website && (
+                        <a href={shop.website} target="_blank" rel="noopener noreferrer" className="w-11 h-11 bg-purple-50 hover:bg-purple-100 text-purple-600 rounded-xl flex items-center justify-center transition-colors border border-purple-100">
+                          <Globe size={18} />
                         </a>
                       )}
                     </div>
