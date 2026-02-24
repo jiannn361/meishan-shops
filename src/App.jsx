@@ -4,7 +4,7 @@ import { Search, MapPin, Phone, Navigation, Facebook, Star, Home, Coffee, Gift, 
 // 【安全修正】讀取環境變數
 // ⚠️ 註：為了讓預覽環境能順利編譯，目前先將 AIRTABLE_API_KEY 暫時設為空字串。
 // 在您的電腦本地端或 Vercel 上部署時，請將這行改回： const AIRTABLE_API_KEY = import.meta.env.VITE_AIRTABLE_API_KEY || "";
-const AIRTABLE_API_KEY = import.meta.env.VITE_AIRTABLE_API_KEY ||""; 
+const AIRTABLE_API_KEY = import.meta.env.VITE_AIRTABLE_API_KEY || ""; 
 
 // 【網站設定區】
 const APP_CONFIG = {
@@ -224,7 +224,11 @@ export default function App() {
       const hasWeekend = /(假日|週末|六日)/.test(segment);
 
       if (hasSpecificDay) {
-        if (new RegExp(`(週|星期)${todayChar}`).test(segment)) { applies = true; priority = 2; }
+        // 【修正】支援 "週一、二、四、五" 這種縮寫格式，只要包含今天的星期就判定符合
+        if (new RegExp(`(週|星期)[日一二三四五六、,，\\s]*${todayChar}`).test(segment)) { 
+          applies = true; 
+          priority = 2; 
+        }
       } else if (hasWeekday) {
         if (!isWeekend) { applies = true; priority = 1; }
       } else if (hasWeekend) {
