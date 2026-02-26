@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Search, MapPin, Phone, Navigation, Facebook, Star, Home, Coffee, Gift, User, Filter, Heart, Menu, X, Mountain, Loader2, Camera, Ticket, Tag, Clock, ChevronLeft, ChevronRight, Info, LocateFixed, Globe, Share2, MessageCircle, Map as MapIcon, ExternalLink, CalendarCheck, Banknote, AlertCircle } from 'lucide-react';
+import { Search, MapPin, Phone, Navigation, Facebook, Star, Home, Coffee, Gift, User, Filter, Heart, Menu, X, Mountain, Loader2, Camera, Ticket, Tag, Clock, ChevronLeft, ChevronRight, Info, LocateFixed, Globe, MessageCircle, Map as MapIcon, ExternalLink, CalendarCheck, Banknote, AlertCircle } from 'lucide-react';
 
 // 【安全修正】讀取環境變數
 // ⚠️ 註：為了讓預覽環境能順利編譯，目前先將 AIRTABLE_API_KEY 暫時設為空字串。
 // 在您的電腦本地端或 Vercel 上部署時，請將這行改回： const AIRTABLE_API_KEY = import.meta.env.VITE_AIRTABLE_API_KEY || "";
-const AIRTABLE_API_KEY = import.meta.env.VITE_AIRTABLE_API_KEY || "";
+const AIRTABLE_API_KEY = import.meta.env.VITE_AIRTABLE_API_KEY ||  ""; 
 
 // 【網站設定區】
 const APP_CONFIG = {
@@ -61,7 +61,7 @@ const translations = {
     welcome: '歡迎來到梅山',
     switchVillage: '切換村落',
     confirmClearFav: '確定要清空所有收藏嗎？',
-    langSwitch: 'EN', // 切換到英文的按鈕文字
+    langSwitch: 'EN',
     aboutUsText: "歡迎您來到梅山！\n我們致力於推廣梅山在地觀光，\n讓您輕鬆找到最棒的民宿與美食。"
   },
   en: {
@@ -105,7 +105,7 @@ const translations = {
     welcome: 'Welcome to Meishan',
     switchVillage: 'Switch Village',
     confirmClearFav: 'Clear all favorites?',
-    langSwitch: '中', // 切換回中文的按鈕文字
+    langSwitch: '中',
     aboutUsText: "Welcome to Meishan!\nWe are dedicated to promoting local tourism,\nhelping you find the best stays and food."
   }
 };
@@ -153,9 +153,9 @@ const DefaultShopImage = () => (
 );
 
 export default function App() {
-  const [language, setLanguage] = useState('zh'); // 預設語言改為中文 zh
+  const [language, setLanguage] = useState('zh');
   const [activeCategory, setActiveCategory] = useState('all');
-  const [selectedVillage, setSelectedVillage] = useState('太平村'); // 內部維持使用中文作為 ID
+  const [selectedVillage, setSelectedVillage] = useState('太平村');
   const [isSidebarOpen, setSidebarOpen] = useState(false);
   const [shops, setShops] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -170,10 +170,9 @@ export default function App() {
   const [showUserModal, setShowUserModal] = useState(false); 
   const [filterOpenOnly, setFilterOpenOnly] = useState(false); 
 
-  // 翻譯輔助函數
-  const t = (key) => translations[language][key] || translations['zh'][key];
+  // 防呆翻譯輔助函數
+  const t = (key) => (translations[language] && translations[language][key]) || translations['zh'][key] || key;
   
-  // 動態資料翻譯輔助 (如果英文沒填，就顯示中文)
   const getDynamicText = (shop, fieldName) => {
     if (language === 'en' && shop[`${fieldName}_en`]) {
       return shop[`${fieldName}_en`];
@@ -187,7 +186,7 @@ export default function App() {
     if (savedFavs) setFavorites(JSON.parse(savedFavs));
 
     const savedLang = localStorage.getItem('meishan_language');
-    if (savedLang) setLanguage(savedLang);
+    if (savedLang === 'en' || savedLang === 'zh') setLanguage(savedLang);
 
     if (APP_CONFIG.liffId) {
       const script = document.createElement('script');
@@ -205,11 +204,11 @@ export default function App() {
     }
   }, []);
 
-  const [currentTime, setCurrentTime] = useState(new Date());
-  useEffect(() => {
-    const timer = setInterval(() => setCurrentTime(new Date()), 60000);
-    return () => clearInterval(timer);
-  }, []);
+  const toggleLanguage = () => {
+    const newLang = language === 'zh' ? 'en' : 'zh';
+    setLanguage(newLang);
+    localStorage.setItem('meishan_language', newLang);
+  };
 
   const toggleFavorite = (shopId) => {
     let newFavs;
@@ -428,12 +427,12 @@ export default function App() {
     return {
       id: record.id,
       name: f['name'] || f['Name'] || f['店家名稱'] || '未命名店家',
-      name_en: f['name_en'] || f['Name_en'] || f['店家名稱_英'] || '', // 英文店名
+      name_en: f['name_en'] || f['Name_en'] || f['店家名稱_英'] || '',
       village: f['village'] || f['Village'] || f['村落名稱'] || f['村落'] || '太平村',
       categories: categories,
       category: categories[0] || 'food',
       address: f['address'] || f['Address'] || f['地址'] || '',
-      address_en: f['address_en'] || f['地址_英'] || '', // 英文地址
+      address_en: f['address_en'] || f['地址_英'] || '',
       lat: parseFloat(f['lat'] || f['Lat'] || f['緯度']) || null,
       lng: parseFloat(f['lng'] || f['Lng'] || f['經度']) || null,
       services: services,
@@ -447,20 +446,19 @@ export default function App() {
       nav_link: f['nav_link'] || f['nav'] || f['navigation'] || f['導航連結'] || f['導航'] || '',
       website: f['website'] || f['Website'] || f['網站'] || f['官網'] || f['官方網站'] || f['網址'] || '',
       payment: f['payment'] || f['付款方式'] || f['支付方式'] || f['付款'] || '',
-      payment_en: f['payment_en'] || f['付款方式_英'] || '', // 英文付款方式
+      payment_en: f['payment_en'] || f['付款方式_英'] || '',
       notice: f['notice'] || f['注意事項'] || f['提醒'] || f['備註'] || '',
-      notice_en: f['notice_en'] || f['注意事項_英'] || '', // 英文注意事項
+      notice_en: f['notice_en'] || f['注意事項_英'] || '',
       bookings: shopBookings,
       hours: f['hours'] || f['Hours'] || f['營業時間'] || '',
       description: f['description'] || f['Description'] || f['介紹'] || f['店家介紹'] || '暫無詳細介紹，歡迎親自蒞臨體驗！',
-      description_en: f['description_en'] || f['Description_en'] || f['介紹_英'] || '', // 英文介紹
+      description_en: f['description_en'] || f['Description_en'] || f['介紹_英'] || '',
     };
   };
 
   useEffect(() => {
     const fetchAirtableData = async () => {
       if (!APP_CONFIG.airtableApiKey) {
-        // 使用 console.log 避免在特定環境觸發 error 中斷
         console.log("Airtable API Key 未設定，進入示範模式");
         setShops(demoData);
         setLoading(false);
@@ -606,7 +604,6 @@ export default function App() {
     if (!shop) return null;
     const isOpen = checkIsOpen(shop.hours);
 
-    // 取得當前語言對應的文字
     const displayName = getDynamicText(shop, 'name');
     const displayDesc = getDynamicText(shop, 'description');
     const displayAddress = getDynamicText(shop, 'address');
@@ -872,9 +869,9 @@ export default function App() {
               <div className="space-y-3">
                 {Object.keys(villageData).map((vKey) => (
                   <button key={vKey} onClick={() => { setSelectedVillage(vKey); setSidebarOpen(false); setCurrentView('home'); setSortBy('default'); }} className={`w-full text-left p-4 rounded-xl flex justify-between items-center transition-all ${ selectedVillage === vKey ? 'bg-emerald-50 border-l-4 border-emerald-600 text-emerald-700 font-bold' : 'hover:bg-gray-50 text-gray-600' }`}>
-                    <span>{villageData[vKey][language]}</span>
+                    <span>{villageData[vKey]?.[language] || vKey}</span>
                     <span className="text-xs text-gray-400 font-normal">
-                      {language === 'en' ? villageData[vKey].desc_en : villageData[vKey].desc_zh}
+                      {language === 'en' ? villageData[vKey]?.desc_en : villageData[vKey]?.desc_zh}
                     </span>
                   </button>
                 ))}
@@ -896,7 +893,7 @@ export default function App() {
                 <span className="text-xs font-bold tracking-wide uppercase">{APP_CONFIG.subTitle}</span>
               </div>
               <h1 className="text-xl font-extrabold text-gray-900 flex items-center gap-2">
-                {currentView === 'favorites' ? t('myFavorites') : villageData[selectedVillage][language]}
+                {currentView === 'favorites' ? t('myFavorites') : (villageData[selectedVillage]?.[language] || selectedVillage)}
                 <span className="text-gray-300 text-sm font-normal">/ {currentView === 'favorites' ? t('pocketList') : t('explore')}</span>
               </h1>
             </div>
