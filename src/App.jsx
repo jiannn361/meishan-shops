@@ -624,8 +624,10 @@ export default function App() {
     const displayPayment = getDynamicText(shop, 'payment');
     const displayNotice = getDynamicText(shop, 'notice');
 
-    // 【新增】判斷是否為民宿，並決定顯示文字
+    // 【修改】判斷是否為民宿，且沒有營業時間，才顯示預約制/訂房連結
     const isAccommodation = shop.categories && shop.categories.includes('accommodation');
+    const hasHours = !!shop.hours;
+    const showAccommodationBadge = isAccommodation && !hasHours;
     const accBadgeText = shop.bookings && shop.bookings.length > 0 ? t('bookNow') : t('byAppointment');
     
     // 【新增】判斷是否需要隱藏營業時間文字塊
@@ -672,8 +674,8 @@ export default function App() {
 
           <div className="p-6 space-y-6">
             <div className="flex flex-col gap-3 items-start">
-               {/* 【修改】依據是否為民宿顯示不同狀態標籤 */}
-               {isAccommodation ? (
+               {/* 【修改】依據是否為無營業時間的民宿，顯示不同狀態標籤 */}
+               {showAccommodationBadge ? (
                  <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold self-start bg-indigo-100 text-indigo-700">
                    <CalendarCheck size={14} />
                    {accBadgeText}
@@ -1016,8 +1018,10 @@ export default function App() {
               const displayName = getDynamicText(shop, 'name');
               const displayAddress = getDynamicText(shop, 'address');
               
-              // 【新增】判斷是否為民宿，決定顯示預約制/訂房連結
+              // 【修改】判斷是否為民宿，且沒有營業時間，才顯示預約制/訂房連結
               const isAccommodation = shop.categories && shop.categories.includes('accommodation');
+              const hasHours = !!shop.hours;
+              const showAccommodationBadge = isAccommodation && !hasHours;
               const accBadgeText = shop.bookings && shop.bookings.length > 0 ? t('bookNow') : t('byAppointment');
               // 【新增】判斷是否在小卡隱藏營業時間(若是google/fb/或是沒填)
               const hideCardHours = !shop.hours || shop.hours.toLowerCase() === 'google' || shop.hours.toLowerCase() === 'fb';
@@ -1035,8 +1039,8 @@ export default function App() {
                         <span className="text-xs text-white font-medium tracking-wide">{villageData[shop.village]?.[language] || shop.village}</span>
                     </div>
 
-                    {/* 【修改】左下角狀態徽章：如果是民宿優先顯示紫色的預約制/線上訂房 */}
-                    {isAccommodation ? (
+                    {/* 【修改】左下角狀態徽章：如果是無營業時間的民宿，優先顯示紫色的預約制/線上訂房 */}
+                    {showAccommodationBadge ? (
                       <div className="absolute bottom-3 left-3 bg-indigo-500/90 backdrop-blur-md pl-2 pr-3 py-1 rounded-full flex items-center gap-1.5 shadow-lg z-10 pointer-events-none">
                         <CalendarCheck size={12} className="text-white" />
                         <span className="text-xs font-bold text-white tracking-wide">{accBadgeText}</span>
