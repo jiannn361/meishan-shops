@@ -443,7 +443,7 @@ export default function App() {
       lat: parseFloat(f['lat'] || f['Lat'] || f['緯度']) || null,
       lng: parseFloat(f['lng'] || f['Lng'] || f['經度']) || null,
       services: services,
-      rating: parseFloat(f['rating'] || f['Rating'] || f['星等'] || 4.5),
+      rating: (f['rating'] || f['Rating'] || f['星等']) ? parseFloat(f['rating'] || f['Rating'] || f['星等']) : null,
       reviews: parseInt(f['reviews'] || f['Reviews'] || f['評論數'] || 0),
       images: images,
       tel: f['tel'] || f['Tel'] || f['Phone'] || f['電話'] || '',
@@ -656,10 +656,12 @@ export default function App() {
             <div className="absolute bottom-4 left-5 right-5 text-white">
               <h3 className="text-2xl font-bold mb-1">{displayName}</h3>
               <div className="flex items-center gap-3 text-sm">
-                <div className="flex items-center gap-1 text-yellow-400">
-                   <Star size={16} className="fill-yellow-400" />
-                   <span className="font-bold text-lg">{shop.rating}</span>
-                </div>
+                {shop.rating && (
+                  <div className="flex items-center gap-1 text-yellow-400">
+                     <Star size={16} className="fill-yellow-400" />
+                     <span className="font-bold text-lg">{shop.rating}</span>
+                  </div>
+                )}
                 <a 
                   href={shop.google_url || getGoogleMapLink(shop.name, shop.address)}
                   target="_blank" 
@@ -1082,10 +1084,12 @@ export default function App() {
                     </div>
                     
                     <div className="flex flex-wrap items-center gap-2 mb-3">
-                        <div className="flex items-center gap-1 text-xs font-bold text-gray-800 bg-yellow-50 px-2 py-1 rounded-md border border-yellow-100">
-                           <Star size={10} className="text-yellow-500 fill-yellow-500" />
-                           {shop.rating}
-                        </div>
+                        {shop.rating && (
+                          <div className="flex items-center gap-1 text-xs font-bold text-gray-800 bg-yellow-50 px-2 py-1 rounded-md border border-yellow-100">
+                             <Star size={10} className="text-yellow-500 fill-yellow-500" />
+                             {shop.rating}
+                          </div>
+                        )}
                         {/* 【修改】若時間是google/fb，就不顯示旁邊的小時間標籤 */}
                         {!hideCardHours && (
                           <div className="flex items-center gap-1.5 text-xs px-2 py-1 rounded-md border border-gray-100 bg-gray-50 text-gray-500 max-w-full overflow-hidden">
