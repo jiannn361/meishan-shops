@@ -1031,15 +1031,7 @@ export default function App() {
                   <div className="h-48 w-full relative overflow-hidden bg-gray-100">
                     <ImageCarousel images={shop.images} onClick={() => setSelectedShop(shop)} />
                     
-                    <button onClick={(e) => { e.preventDefault(); toggleFavorite(shop.id); }} className="absolute top-3 right-3 bg-white/90 backdrop-blur-md p-2 rounded-full shadow-sm hover:scale-110 transition-all z-10">
-                      <Heart size={18} className={isFav ? "fill-rose-500 text-rose-500" : "text-gray-400"} />
-                    </button>
-                    
-                    <div className="absolute top-3 left-3 bg-black/50 backdrop-blur-md px-2 py-1 rounded-lg z-10 pointer-events-none">
-                        <span className="text-xs text-white font-medium tracking-wide">{villageData[shop.village]?.[language] || shop.village}</span>
-                    </div>
-
-                    {/* 【修改】左下角狀態徽章：如果是無營業時間的民宿，優先顯示紫色的預約制/線上訂房 */}
+                    {/* 【修改】左下角狀態徽章：加入即將營業判斷 */}
                     {showAccommodationBadge ? (
                       <div className="absolute bottom-3 left-3 bg-indigo-500/90 backdrop-blur-md pl-2 pr-3 py-1 rounded-full flex items-center gap-1.5 shadow-lg z-10 pointer-events-none">
                         <CalendarCheck size={12} className="text-white" />
@@ -1062,6 +1054,14 @@ export default function App() {
                           <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-white"></span>
                         </span>
                         <span className="text-xs font-bold text-white tracking-wide">{t('openNow')}</span>
+                      </div>
+                    ) : isOpen === 'opening_soon' ? (
+                      <div className="absolute bottom-3 left-3 bg-amber-500/90 backdrop-blur-md pl-2 pr-3 py-1 rounded-full flex items-center gap-1.5 shadow-lg z-10 pointer-events-none">
+                        <span className="relative flex h-2.5 w-2.5">
+                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-200 opacity-75"></span>
+                          <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-white"></span>
+                        </span>
+                        <span className="text-xs font-bold text-white tracking-wide">{t('openingSoon')}</span>
                       </div>
                     ) : isOpen === false ? (
                        <div className="absolute bottom-3 left-3 bg-gray-600/90 backdrop-blur-md pl-2 pr-3 py-1 rounded-full flex items-center gap-1.5 shadow-lg z-10 pointer-events-none">
