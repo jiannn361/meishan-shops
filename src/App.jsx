@@ -34,10 +34,11 @@ const translations = {
     favoritesList: '收藏清單',
     featured: '精選推薦',
     openNow: '營業中',
+    openingSoon: '即將營業',
     closed: '休息中',
     checkAnnouncement: '詳見公告',
-    byAppointment: '預約制', // 【新增】民宿狀態
-    bookNow: '線上訂房',     // 【新增】民宿狀態
+    byAppointment: '預約制',
+    bookNow: '線上訂房',
     distance: '距離',
     shopsCount: '間',
     loading: '正在載入店家資料...',
@@ -80,10 +81,11 @@ const translations = {
     favoritesList: 'Favorites',
     featured: 'Featured',
     openNow: 'Open Now',
+    openingSoon: 'Opening Soon',
     closed: 'Closed',
     checkAnnouncement: 'Check Info',
-    byAppointment: 'By Appt',   // 【新增】民宿狀態
-    bookNow: 'Book Now',        // 【新增】民宿狀態
+    byAppointment: 'By Appt',
+    bookNow: 'Book Now',
     distance: 'Dist',
     shopsCount: 'shops',
     loading: 'Loading data...',
@@ -173,11 +175,8 @@ export default function App() {
   const [showFilterModal, setShowFilterModal] = useState(false); 
   const [showUserModal, setShowUserModal] = useState(false); 
   const [filterOpenOnly, setFilterOpenOnly] = useState(false); 
-  
-  // 【新增】搜尋關鍵字狀態
   const [searchQuery, setSearchQuery] = useState(''); 
 
-  // 防呆翻譯輔助函數
   const t = (key) => (translations[language] && translations[language][key]) || translations['zh'][key] || key;
   
   const getDynamicText = (shop, fieldName) => {
@@ -298,6 +297,8 @@ export default function App() {
     };
 
     cleanHours = expandDayRanges(cleanHours);
+    
+    if (cleanHours.includes('預約制')) return 'appointment';
     if (cleanHours.toLowerCase().includes('google')) return 'google';
     if (cleanHours.toLowerCase().includes('fb') || cleanHours.includes('粉絲專頁')) return 'fb';
     if (cleanHours === '營業中') return true;
@@ -349,6 +350,7 @@ export default function App() {
     }
     if (matchedRanges.length === 0 && matchPriority > -1) return false; 
 
+    let isOpeningSoon = false;
     for (let segment of matchedRanges) {
       const times = segment.match(/(\d{1,2}:\d{2})\s*-\s*(\d{1,2}:\d{2})/g);
       if (times) {
@@ -360,29 +362,15 @@ export default function App() {
               const startVal = startH * 60 + startM;
               const endVal = endH * 60 + endM;
               if (currentTimeVal >= startVal && currentTimeVal < endVal) return true;
+              if (currentTimeVal >= startVal - 30 && currentTimeVal < startVal) isOpeningSoon = true;
            } catch (e) {}
         }
       }
     }
+
+    if (isOpeningSoon) return 'opening_soon';
     return false;
   };
-
-  const demoData = [
-    {
-      id: 1,
-      name: "示範店家 (載入中)",
-      name_en: "Demo Shop (Loading)",
-      village: "太平村",
-      categories: ["food"], 
-      address: "載入資料中",
-      lat: null, lng: null,
-      services: [],
-      rating: 0,
-      reviews: 0,
-      images: [],
-      tel: "", fbLink: "#", hours: "", description: ""
-    }
-  ];
 
   const processAirtableRecord = (record) => {
     const f = record.fields;
@@ -466,8 +454,7 @@ export default function App() {
   useEffect(() => {
     const fetchAirtableData = async () => {
       if (!APP_CONFIG.airtableApiKey) {
-        console.log("Airtable API Key 未設定，進入示範模式");
-        setShops(demoData);
+        console.log("Airtable API Key 未設定");
         setLoading(false);
         return;
       }
@@ -495,7 +482,6 @@ export default function App() {
         setShops(allRecords.map(processAirtableRecord));
       } catch (error) {
         console.log("Airtable 讀取失敗:", error);
-        setShops(demoData);
       } finally {
         setLoading(false);
       }
@@ -531,7 +517,6 @@ export default function App() {
   const getProcessedShops = () => {
     let result = shops;
 
-    // 【新增】搜尋過濾邏輯：比對店名、介紹與服務標籤
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase().trim();
       result = result.filter(shop => {
@@ -624,14 +609,12 @@ export default function App() {
     const displayPayment = getDynamicText(shop, 'payment');
     const displayNotice = getDynamicText(shop, 'notice');
 
-    // 【修改】判斷是否為民宿，且沒有營業時間，才顯示預約制/訂房連結
     const isAccommodation = shop.categories && shop.categories.includes('accommodation');
     const hasHours = !!shop.hours;
     const showAccommodationBadge = isAccommodation && !hasHours;
     const accBadgeText = shop.bookings && shop.bookings.length > 0 ? t('bookNow') : t('byAppointment');
     
-    // 【新增】判斷是否需要隱藏營業時間文字塊
-    const hideHoursText = !shop.hours || shop.hours.toLowerCase() === 'google' || shop.hours.toLowerCase() === 'fb';
+    const hideHoursText = !shop.hours || shop.hours.toLowerCase() === 'google' || shop.hours.toLowerCase() === 'fb' || shop.hours.includes('預約制');
 
     return (
       <div className="fixed inset-0 z-[60] flex items-center justify-center px-4 animate-fade-in">
@@ -642,20 +625,13 @@ export default function App() {
           </button>
 
           <div className="h-64 relative">
-            {shop.images && shop.images.length > 0 ? (
-                <img src={shop.images[0]} alt={displayName} className="w-full h-full object-cover" 
-                     onError={(e) => { e.target.style.display='none'; e.target.nextSibling.style.display='flex'; }}/>
-            ) : (
-                <DefaultShopImage />
-            )}
-            <div className="hidden w-full h-full absolute inset-0">
-                <DefaultShopImage />
-            </div>
+            {/* 【修改】直接引入 ImageCarousel 輪播元件，並阻擋點擊事件以免觸發預期外的行為 */}
+            <ImageCarousel images={shop.images} onClick={(e) => e.stopPropagation()} />
 
-            <div className="absolute bottom-0 inset-x-0 h-24 bg-gradient-to-t from-black/80 to-transparent"></div>
-            <div className="absolute bottom-4 left-5 right-5 text-white">
-              <h3 className="text-2xl font-bold mb-1">{displayName}</h3>
-              <div className="flex items-center gap-3 text-sm">
+            <div className="absolute bottom-0 inset-x-0 h-24 bg-gradient-to-t from-black/80 to-transparent pointer-events-none"></div>
+            <div className="absolute bottom-4 left-5 right-5 text-white pointer-events-none">
+              <h3 className="text-2xl font-bold mb-1 pointer-events-auto">{displayName}</h3>
+              <div className="flex items-center gap-3 text-sm pointer-events-auto">
                 {shop.rating && (
                   <div className="flex items-center gap-1 text-yellow-400">
                      <Star size={16} className="fill-yellow-400" />
@@ -676,23 +652,27 @@ export default function App() {
 
           <div className="p-6 space-y-6">
             <div className="flex flex-col gap-3 items-start">
-               {/* 【修改】依據是否為無營業時間的民宿，顯示不同狀態標籤 */}
                {showAccommodationBadge ? (
                  <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold self-start bg-indigo-100 text-indigo-700">
                    <CalendarCheck size={14} />
                    {accBadgeText}
                  </div>
+               ) : isOpen === 'appointment' ? (
+                 <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold self-start bg-indigo-100 text-indigo-700">
+                   <CalendarCheck size={14} />
+                   {t('byAppointment')}
+                 </div>
                ) : (
                  <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold self-start ${
                    isOpen === true ? 'bg-green-100 text-green-700' : 
+                   isOpen === 'opening_soon' ? 'bg-amber-100 text-amber-700' : 
                    isOpen === false ? 'bg-gray-100 text-gray-600' : 'bg-blue-50 text-blue-600'
                  }`}>
                    <Clock size={14} />
-                   {isOpen === true ? t('openNow') : isOpen === false ? t('closed') : t('checkAnnouncement')}
+                   {isOpen === true ? t('openNow') : isOpen === 'opening_soon' ? t('openingSoon') : isOpen === false ? t('closed') : t('checkAnnouncement')}
                  </div>
                )}
 
-               {/* 【修改】如果時間是 google/fb，就不顯示這個時間區塊 */}
                {!hideHoursText && (
                  <div className="w-full bg-gray-50 rounded-xl p-3 text-sm text-gray-600">
                     <FormattedText text={shop.hours} />
@@ -952,7 +932,6 @@ export default function App() {
         {currentView === 'home' && (
           <>
             <div className="px-6 my-4">
-              {/* 【更新】搜尋輸入框，綁定狀態 */}
               <div className="bg-gray-100 rounded-2xl p-3 flex items-center gap-3 border border-transparent focus-within:border-emerald-200 focus-within:bg-white focus-within:shadow-lg transition-all">
                 <Search className="text-gray-400" size={20} />
                 <input 
@@ -1020,24 +999,34 @@ export default function App() {
               const displayName = getDynamicText(shop, 'name');
               const displayAddress = getDynamicText(shop, 'address');
               
-              // 【修改】判斷是否為民宿，且沒有營業時間，才顯示預約制/訂房連結
               const isAccommodation = shop.categories && shop.categories.includes('accommodation');
               const hasHours = !!shop.hours;
               const showAccommodationBadge = isAccommodation && !hasHours;
               const accBadgeText = shop.bookings && shop.bookings.length > 0 ? t('bookNow') : t('byAppointment');
-              // 【新增】判斷是否在小卡隱藏營業時間(若是google/fb/或是沒填)
-              const hideCardHours = !shop.hours || shop.hours.toLowerCase() === 'google' || shop.hours.toLowerCase() === 'fb';
+              const hideCardHours = !shop.hours || shop.hours.toLowerCase() === 'google' || shop.hours.toLowerCase() === 'fb' || shop.hours.includes('預約制');
 
               return (
                 <div key={shop.id} className="group relative bg-white rounded-[24px] overflow-hidden shadow-[0_8px_30px_rgb(0,0,0,0.06)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.12)] transition-shadow border border-gray-100">
                   <div className="h-48 w-full relative overflow-hidden bg-gray-100">
                     <ImageCarousel images={shop.images} onClick={() => setSelectedShop(shop)} />
                     
-                    {/* 【修改】左下角狀態徽章：加入即將營業判斷 */}
+                    <button onClick={(e) => { e.preventDefault(); toggleFavorite(shop.id); }} className="absolute top-3 right-3 bg-white/90 backdrop-blur-md p-2 rounded-full shadow-sm hover:scale-110 transition-all z-10">
+                      <Heart size={18} className={isFav ? "fill-rose-500 text-rose-500" : "text-gray-400"} />
+                    </button>
+                    
+                    <div className="absolute top-3 left-3 bg-black/50 backdrop-blur-md px-2 py-1 rounded-lg z-10 pointer-events-none">
+                        <span className="text-xs text-white font-medium tracking-wide">{villageData[shop.village]?.[language] || shop.village}</span>
+                    </div>
+
                     {showAccommodationBadge ? (
                       <div className="absolute bottom-3 left-3 bg-indigo-500/90 backdrop-blur-md pl-2 pr-3 py-1 rounded-full flex items-center gap-1.5 shadow-lg z-10 pointer-events-none">
                         <CalendarCheck size={12} className="text-white" />
                         <span className="text-xs font-bold text-white tracking-wide">{accBadgeText}</span>
+                      </div>
+                    ) : isOpen === 'appointment' ? (
+                      <div className="absolute bottom-3 left-3 bg-indigo-500/90 backdrop-blur-md pl-2 pr-3 py-1 rounded-full flex items-center gap-1.5 shadow-lg z-10 pointer-events-none">
+                        <CalendarCheck size={12} className="text-white" />
+                        <span className="text-xs font-bold text-white tracking-wide">{t('byAppointment')}</span>
                       </div>
                     ) : isOpen === 'google' ? (
                        <div className="absolute bottom-3 left-3 bg-blue-500/90 backdrop-blur-md pl-2 pr-3 py-1 rounded-full flex items-center gap-1.5 shadow-lg z-10 pointer-events-none">
@@ -1090,7 +1079,6 @@ export default function App() {
                              {shop.rating}
                           </div>
                         )}
-                        {/* 【修改】若時間是google/fb，就不顯示旁邊的小時間標籤 */}
                         {!hideCardHours && (
                           <div className="flex items-center gap-1.5 text-xs px-2 py-1 rounded-md border border-gray-100 bg-gray-50 text-gray-500 max-w-full overflow-hidden">
                             <Clock size={10} className="flex-shrink-0" />
