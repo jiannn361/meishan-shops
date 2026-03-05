@@ -35,6 +35,7 @@ const translations = {
     featured: '精選推薦',
     openNow: '營業中',
     openingSoon: '即將營業',
+    closingSoon: '即將休息', // 【新增】即將休息
     closed: '休息中',
     checkAnnouncement: '詳見公告',
     byAppointment: '預約制',
@@ -82,6 +83,7 @@ const translations = {
     featured: 'Featured',
     openNow: 'Open Now',
     openingSoon: 'Opening Soon',
+    closingSoon: 'Closing Soon', // 【新增】即將休息英文
     closed: 'Closed',
     checkAnnouncement: 'Check Info',
     byAppointment: 'By Appt',
@@ -350,7 +352,11 @@ export default function App() {
     }
     if (matchedRanges.length === 0 && matchPriority > -1) return false; 
 
+    // 【修改】加入即將休息的判斷邏輯
     let isOpeningSoon = false;
+    let isClosingSoon = false;
+    let isOpenNow = false;
+
     for (let segment of matchedRanges) {
       const times = segment.match(/(\d{1,2}:\d{2})\s*-\s*(\d{1,2}:\d{2})/g);
       if (times) {
@@ -361,13 +367,25 @@ export default function App() {
               const [endH, endM] = endStr.split(':').map(Number);
               const startVal = startH * 60 + startM;
               const endVal = endH * 60 + endM;
-              if (currentTimeVal >= startVal && currentTimeVal < endVal) return true;
-              if (currentTimeVal >= startVal - 30 && currentTimeVal < startVal) isOpeningSoon = true;
+              
+              if (currentTimeVal >= startVal && currentTimeVal < endVal) {
+                  isOpenNow = true;
+                  // 如果距離休息時間小於等於 30 分鐘
+                  if (currentTimeVal >= endVal - 30) {
+                      isClosingSoon = true;
+                  }
+              }
+              // 如果距離開門時間小於等於 30 分鐘
+              if (currentTimeVal >= startVal - 30 && currentTimeVal < startVal) {
+                  isOpeningSoon = true;
+              }
            } catch (e) {}
         }
       }
     }
 
+    if (isClosingSoon) return 'closing_soon';
+    if (isOpenNow) return true;
     if (isOpeningSoon) return 'opening_soon';
     return false;
   };
@@ -520,10 +538,10 @@ export default function App() {
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase().trim();
       result = result.filter(shop => {
+        // 【修改】搜尋邏輯：只比對「店名」與「服務標籤 (services)」，移除容易產生誤判的「介紹內文」
         const nameMatch = shop.name?.toLowerCase().includes(query) || shop.name_en?.toLowerCase().includes(query);
-        const descMatch = shop.description?.toLowerCase().includes(query) || shop.description_en?.toLowerCase().includes(query);
         const serviceMatch = shop.services?.some(s => s.toLowerCase().includes(query));
-        return nameMatch || descMatch || serviceMatch;
+        return nameMatch || serviceMatch;
       });
     }
 
@@ -538,7 +556,18 @@ export default function App() {
     }
     
     if (filterOpenOnly) {
-      result = result.filter(shop => checkIsOpen(shop.hours) === true);
+      result = result.filter(shop => {
+        const isOpen = checkIsOpen(shop.hours);
+        const isAccommodation = shop.categories && shop.categories.includes('accommodation');
+        const showAccommodationBadge = isAccommodation && !shop.hours;
+        
+        // 【修改】漏斗篩選條件：加入即將休息 (closing_soon)
+        return isOpen === true || 
+               isOpen === 'opening_soon' || 
+               isOpen === 'closing_soon' || 
+               isOpen === 'appointment' || 
+               showAccommodationBadge;
+      });
     }
     
     if (userLocation) {
@@ -625,7 +654,6 @@ export default function App() {
           </button>
 
           <div className="h-64 relative">
-            {/* 【修改】直接引入 ImageCarousel 輪播元件，並阻擋點擊事件以免觸發預期外的行為 */}
             <ImageCarousel images={shop.images} onClick={(e) => e.stopPropagation()} />
 
             <div className="absolute bottom-0 inset-x-0 h-24 bg-gradient-to-t from-black/80 to-transparent pointer-events-none"></div>
@@ -652,6 +680,7 @@ export default function App() {
 
           <div className="p-6 space-y-6">
             <div className="flex flex-col gap-3 items-start">
+               {/* 【修改】支援顯示「即將休息」的橘色標籤 */}
                {showAccommodationBadge ? (
                  <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold self-start bg-indigo-100 text-indigo-700">
                    <CalendarCheck size={14} />
@@ -666,10 +695,11 @@ export default function App() {
                  <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold self-start ${
                    isOpen === true ? 'bg-green-100 text-green-700' : 
                    isOpen === 'opening_soon' ? 'bg-amber-100 text-amber-700' : 
+                   isOpen === 'closing_soon' ? 'bg-orange-100 text-orange-700' : 
                    isOpen === false ? 'bg-gray-100 text-gray-600' : 'bg-blue-50 text-blue-600'
                  }`}>
                    <Clock size={14} />
-                   {isOpen === true ? t('openNow') : isOpen === 'opening_soon' ? t('openingSoon') : isOpen === false ? t('closed') : t('checkAnnouncement')}
+                   {isOpen === true ? t('openNow') : isOpen === 'opening_soon' ? t('openingSoon') : isOpen === 'closing_soon' ? t('closingSoon') : isOpen === false ? t('closed') : t('checkAnnouncement')}
                  </div>
                )}
 
@@ -1018,6 +1048,7 @@ export default function App() {
                         <span className="text-xs text-white font-medium tracking-wide">{villageData[shop.village]?.[language] || shop.village}</span>
                     </div>
 
+                    {/* 【修改】加入「即將休息」的卡片狀態燈 */}
                     {showAccommodationBadge ? (
                       <div className="absolute bottom-3 left-3 bg-indigo-500/90 backdrop-blur-md pl-2 pr-3 py-1 rounded-full flex items-center gap-1.5 shadow-lg z-10 pointer-events-none">
                         <CalendarCheck size={12} className="text-white" />
@@ -1053,6 +1084,14 @@ export default function App() {
                           <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-white"></span>
                         </span>
                         <span className="text-xs font-bold text-white tracking-wide">{t('openingSoon')}</span>
+                      </div>
+                    ) : isOpen === 'closing_soon' ? (
+                      <div className="absolute bottom-3 left-3 bg-orange-500/90 backdrop-blur-md pl-2 pr-3 py-1 rounded-full flex items-center gap-1.5 shadow-lg z-10 pointer-events-none">
+                        <span className="relative flex h-2.5 w-2.5">
+                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-200 opacity-75"></span>
+                          <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-white"></span>
+                        </span>
+                        <span className="text-xs font-bold text-white tracking-wide">{t('closingSoon')}</span>
                       </div>
                     ) : isOpen === false ? (
                        <div className="absolute bottom-3 left-3 bg-gray-600/90 backdrop-blur-md pl-2 pr-3 py-1 rounded-full flex items-center gap-1.5 shadow-lg z-10 pointer-events-none">
