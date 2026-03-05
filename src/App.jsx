@@ -4,7 +4,7 @@ import { Search, MapPin, Phone, Navigation, Facebook, Star, Home, Coffee, Gift, 
 // 【安全修正】讀取環境變數
 // ⚠️ 註：為了讓預覽環境能順利編譯，目前先將 AIRTABLE_API_KEY 暫時設為空字串。
 // 在您的電腦本地端或 Vercel 上部署時，請將這行改回： const AIRTABLE_API_KEY = import.meta.env.VITE_AIRTABLE_API_KEY || "";
-const AIRTABLE_API_KEY = import.meta.env.VITE_AIRTABLE_API_KEY ||  ""; 
+const AIRTABLE_API_KEY = ""; 
 
 // 【網站設定區】
 const APP_CONFIG = {
@@ -16,6 +16,8 @@ const APP_CONFIG = {
   liffId: "2009010332-K14upnUb",
   aboutUsUrl: "https://www.facebook.com/TaipingSuspensionBridge?locale=zh_TW", 
   notionUrl: "https://www.notion.so/2a11f9fee71981239a89ebdbb2f25441?source=copy_link", 
+  // 【新增】請在這裡填入社區官方 LINE 的加入好友或聊天連結
+  contactLineUrl: "https://lin.ee/qQGyvHo", 
 };
 
 // 【多國語言字典 - 系統介面】
@@ -877,7 +879,8 @@ export default function App() {
             <span className="flex items-center gap-3 text-gray-700"><Info size={18} /> {t('aboutUs')}</span>
             <ChevronRight size={16} className="text-gray-400" />
           </button>
-          <button className="w-full flex items-center justify-between p-4 bg-gray-50 hover:bg-gray-100 rounded-xl transition-colors text-left" onClick={() => window.open('https://line.me/', '_blank')}>
+          {/* 【修改】點擊聯絡客服，開啟設定的 LINE 連結 */}
+          <button className="w-full flex items-center justify-between p-4 bg-gray-50 hover:bg-gray-100 rounded-xl transition-colors text-left" onClick={() => window.open(APP_CONFIG.contactLineUrl, '_blank')}>
             <span className="flex items-center gap-3 text-gray-700"><MessageCircle size={18} /> {t('contactSupport')}</span>
             <ChevronRight size={16} className="text-gray-400" />
           </button>
