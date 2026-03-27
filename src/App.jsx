@@ -147,7 +147,7 @@ const hexToRgba = (hex, alpha) => {
 // ==========================================
 const Mascot = ({ size = 60, className = "", animation = "" }) => {
   // 您可以在 public 資料夾放入自己的吉祥物圖案，並改為 "/mascot.png"
-  const mascotUrl = "https://cdn-icons-png.flaticon.com/512/3466/3466395.png";
+  const mascotUrl = "/mascot.png";
 
   let animClass = "";
   if (animation === "spin") animClass = "animate-spin";     
