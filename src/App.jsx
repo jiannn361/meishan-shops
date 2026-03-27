@@ -69,7 +69,7 @@ const translations = {
     confirmClearFav: '確定要清空所有收藏嗎？',
     langSwitch: 'EN',
     aboutUsText: "歡迎您來到梅山！\n我們致力於推廣梅山在地觀光，\n讓您輕鬆找到最棒的民宿與美食。",
-    welcomeTitle: "您想去哪裡探索呢？",
+    welcomeTitle: "今天想去哪裡呢?",
     enterVillage: "開始探索"
   },
   en: {
