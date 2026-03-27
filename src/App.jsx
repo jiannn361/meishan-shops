@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Search, MapPin, Phone, Navigation, Facebook, Star, Home, Coffee, Gift, User, Filter, Heart, Menu, X, Mountain, Loader2, Camera, Ticket, Tag, Clock, ChevronLeft, ChevronRight, Info, LocateFixed, Globe, MessageCircle, Map as MapIcon, ExternalLink, CalendarCheck, Banknote, AlertCircle, Bus, ChevronDown } from 'lucide-react';
+import { Search, MapPin, Phone, Navigation, Facebook, Star, Home, Coffee, Gift, User, Filter, Heart, Menu, X, Mountain, Loader2, Camera, Ticket, Tag, Clock, ChevronLeft, ChevronRight, Info, LocateFixed, Globe, MessageCircle, Map as MapIcon, ExternalLink, CalendarCheck, Banknote, AlertCircle, Bus, ChevronDown, Play } from 'lucide-react';
 
-// 【安全修正】讀取環境變數
+// 【安全修正】讀取環境變數 (請勿在此處直接貼上金鑰)
 // ⚠️ 註：為了讓預覽環境能順利編譯，目前先將 AIRTABLE_API_KEY 暫時設為空字串。
 // 在您的電腦本地端或 Vercel 上部署時，請將這行改回： const AIRTABLE_API_KEY = import.meta.env.VITE_AIRTABLE_API_KEY || "";
 const AIRTABLE_API_KEY = import.meta.env.VITE_AIRTABLE_API_KEY || "";
@@ -44,9 +44,9 @@ const translations = {
     bookNow: '線上訂房',
     distance: '距離',
     shopsCount: '間',
-    loading: '正在載入店家資料...',
-    noFavorites: '您還沒有收藏任何店家喔！',
-    noShops: '找不到符合關鍵字的店家',
+    loading: '努力為您尋找中...',
+    noFavorites: '您的口袋名單還是空的喔！',
+    noShops: '哎呀，找不到符合的店家...',
     goToExplore: '去探索店家',
     showAll: '顯示全部',
     googleInfo: 'Google 資訊',
@@ -93,9 +93,9 @@ const translations = {
     bookNow: 'Book Now',
     distance: 'Dist',
     shopsCount: 'shops',
-    loading: 'Loading data...',
+    loading: 'Looking for best places...',
     noFavorites: 'You have no favorites yet!',
-    noShops: 'No shops match your criteria.',
+    noShops: 'Oops, no shops match your criteria.',
     goToExplore: 'Explore Shops',
     showAll: 'Show All',
     googleInfo: 'Google Info',
@@ -121,14 +121,47 @@ const translations = {
   }
 };
 
-// 【村落資料字典】
+// ==========================================
+// 🎨 【更新】村落資料字典 (加入色票配置)
+// ==========================================
 const villageData = {
-  '太平村': { zh: '太平村', en: 'Taiping', desc_zh: '雲梯與老街', desc_en: 'Sky Bridge & Old Street' },
-  '太興村': { zh: '太興村', en: 'Taixing', desc_zh: '萬鷺朝鳳', desc_en: 'Herons Migration' },
-  '碧湖/龍眼村': { zh: '碧湖/龍眼村', en: 'Bihu / Longyan', desc_zh: '觀光茶園', desc_en: 'Tea Gardens' },
-  '瑞里村': { zh: '瑞里村', en: 'Ruili', desc_zh: '紫色山城', desc_en: 'Purple Mountain Town' },
-  '瑞峰村': { zh: '瑞峰村', en: 'Ruifeng', desc_zh: '日出與步道', desc_en: 'Sunrise & Trails' },
-  '太和村': { zh: '太和村', en: 'Taihe', desc_zh: '茶園秘境', desc_en: 'Hidden Tea Farms' },
+  '太平村': { zh: '太平村', en: 'Taiping', desc_zh: '雲梯與老街', desc_en: 'Sky Bridge & Old Street', color: '#b8caa5', textDark: '#506638', textBadge: '#ffffff' },
+  '太興村': { zh: '太興村', en: 'Taixing', desc_zh: '萬鷺朝鳳', desc_en: 'Herons Migration', color: '#ea994d', textDark: '#a35a0f', textBadge: '#ffffff' },
+  '碧湖/龍眼村': { zh: '碧湖/龍眼村', en: 'Bihu / Longyan', desc_zh: '觀光茶園', desc_en: 'Tea Gardens', color: '#80a4aa', textDark: '#3a595e', textBadge: '#ffffff' },
+  '瑞里村': { zh: '瑞里村', en: 'Ruili', desc_zh: '紫色山城', desc_en: 'Purple Mountain Town', color: '#d2cbe3', textDark: '#5a5270', textBadge: '#413a54' },
+  '瑞峰村': { zh: '瑞峰村', en: 'Ruifeng', desc_zh: '日出與步道', desc_en: 'Sunrise & Trails', color: '#dd785b', textDark: '#8a371c', textBadge: '#ffffff' },
+  '太和村': { zh: '太和村', en: 'Taihe', desc_zh: '茶園秘境', desc_en: 'Hidden Tea Farms', color: '#c4b28e', textDark: '#70603d', textBadge: '#ffffff' },
+};
+
+// 輔助函式：將 Hex 轉為帶有透明度的 RGBA
+const hexToRgba = (hex, alpha) => {
+  if (!hex) return `rgba(0,0,0,${alpha})`;
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+};
+
+// ==========================================
+// 🐻 專屬吉祥物元件 (Mascot)
+// ==========================================
+const Mascot = ({ size = 60, className = "", animation = "" }) => {
+  // 您可以在 public 資料夾放入自己的吉祥物圖案，並改為 "/mascot.png"
+  const mascotUrl = "https://cdn-icons-png.flaticon.com/512/3466/3466395.png";
+
+  let animClass = "";
+  if (animation === "spin") animClass = "animate-spin";     
+  if (animation === "bounce") animClass = "animate-bounce"; 
+  if (animation === "pulse") animClass = "animate-pulse";   
+
+  return (
+    <img
+      src={mascotUrl}
+      alt="Mascot"
+      style={{ width: size, height: size }}
+      className={`object-contain drop-shadow-sm ${animClass} ${className}`}
+    />
+  );
 };
 
 const FormattedText = ({ text, className = "" }) => {
@@ -139,9 +172,8 @@ const FormattedText = ({ text, className = "" }) => {
   return (
     <div className={`space-y-1 ${className}`}>
       {lines.map((line, lineIdx) => {
-        // 【修正】如果是空行，塞入一個不換行空白(&nbsp;)，強制保留一行的高度
         if (line.trim() === '') {
-          return <div key={lineIdx} className="h-3 md:h-4"></div>; // 給予明確的高度保留空行
+          return <div key={lineIdx} className="h-3 md:h-4"></div>; 
         }
 
         const parts = line.split(/([（(].*?[)）])/g);
@@ -169,6 +201,7 @@ const DefaultShopImage = () => (
 );
 
 export default function App() {
+  const [appStarted, setAppStarted] = useState(false); // 【新增】控制是否進入迎賓頁面
   const [language, setLanguage] = useState('zh');
   const [activeCategory, setActiveCategory] = useState('all');
   const [selectedVillage, setSelectedVillage] = useState('太平村');
@@ -895,20 +928,55 @@ export default function App() {
     </div>
   );
 
+  // ==========================================
+  // 🎮 【新增】遊戲風迎賓畫面 (Landing Page)
+  // ==========================================
+  if (!appStarted) {
+    return (
+      <div className="min-h-[100dvh] bg-gray-50 font-sans flex justify-center overflow-hidden">
+        {/* 背景漸層套用您提供的色票 */}
+        <div className="w-full max-w-md relative shadow-2xl overflow-hidden bg-gradient-to-br from-[#f2cfc9] via-[#d2cbe3] to-[#b4d8d4] flex flex-col items-center justify-center">
+          
+          <div className="relative z-10 flex flex-col items-center justify-center space-y-8 p-8 bg-white/50 backdrop-blur-xl rounded-[40px] shadow-2xl border border-white/60 w-[85%] text-center transform transition-all hover:scale-105">
+            {/* 吉祥物彈跳動畫 */}
+            <Mascot size={120} animation="bounce" className="drop-shadow-xl" />
+            
+            <div className="space-y-2">
+              <h1 className="text-3xl font-extrabold text-gray-800 tracking-tight">{APP_CONFIG.appName}</h1>
+              <p className="text-sm font-bold text-gray-500 tracking-widest uppercase">{APP_CONFIG.subTitle}</p>
+            </div>
+
+            <button 
+              onClick={() => setAppStarted(true)}
+              className="group relative w-full py-4 bg-gray-900 text-white rounded-2xl font-bold text-lg shadow-xl hover:shadow-2xl hover:-translate-y-1 transition-all active:translate-y-0 flex items-center justify-center gap-3 overflow-hidden"
+            >
+              <span className="relative z-10 flex items-center justify-center gap-2">
+                 Ready to Go ! <Play size={18} className="fill-white group-hover:translate-x-1 transition-transform" />
+              </span>
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ==========================================
+  // 核心主畫面
+  // ==========================================
   return (
-    <div className="min-h-[100dvh] bg-gray-50 text-gray-800 font-sans flex justify-center overflow-hidden">
+    <div className="min-h-[100dvh] bg-gray-50 text-gray-800 font-sans flex justify-center overflow-hidden animate-fade-in">
       <div className="w-full max-w-md bg-white min-h-[100dvh] relative shadow-2xl overflow-y-auto pb-32 no-scrollbar">
         {selectedShop && <ShopDetailModal shop={selectedShop} onClose={() => setSelectedShop(null)} />}
         {showFilterModal && <FilterModal />}
         {showUserModal && <UserModal />}
 
-        {/* Sidebar */}
+        {/* Sidebar - 側邊選單：套用動態村落顏色 */}
         {isSidebarOpen && (
           <div className="absolute inset-0 z-50 flex">
              <div className="w-64 bg-white h-full shadow-2xl p-6 transform transition-transform duration-300 ease-in-out flex flex-col z-20">
               <div className="flex justify-between items-center mb-8">
                 <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2">
-                  <Mountain className="text-emerald-600" />
+                  <MapPin className="text-gray-600" />
                   {t('switchVillage')}
                 </h2>
                 <button onClick={() => setSidebarOpen(false)} className="p-2 hover:bg-gray-100 rounded-full">
@@ -916,31 +984,40 @@ export default function App() {
                 </button>
               </div>
               <div className="space-y-3">
-                {Object.keys(villageData).map((vKey) => (
-                  <button key={vKey} onClick={() => { setSelectedVillage(vKey); setSidebarOpen(false); setCurrentView('home'); setSortBy('default'); }} className={`w-full text-left p-4 rounded-xl flex justify-between items-center transition-all ${ selectedVillage === vKey ? 'bg-emerald-50 border-l-4 border-emerald-600 text-emerald-700 font-bold' : 'hover:bg-gray-50 text-gray-600' }`}>
-                    <span>{villageData[vKey]?.[language] || vKey}</span>
-                    <span className="text-xs text-gray-400 font-normal">
-                      {language === 'en' ? villageData[vKey]?.desc_en : villageData[vKey]?.desc_zh}
-                    </span>
-                  </button>
-                ))}
+                {Object.keys(villageData).map((vKey) => {
+                  const vData = villageData[vKey];
+                  const isSelected = selectedVillage === vKey;
+                  return (
+                    <button 
+                      key={vKey} 
+                      onClick={() => { setSelectedVillage(vKey); setSidebarOpen(false); setCurrentView('home'); setSortBy('default'); }} 
+                      style={isSelected ? { backgroundColor: hexToRgba(vData.color, 0.2), borderLeftColor: vData.color } : {}}
+                      className={`w-full text-left p-4 rounded-xl flex justify-between items-center transition-all border-l-4 ${ isSelected ? 'font-bold' : 'border-transparent hover:bg-gray-50 text-gray-600' }`}
+                    >
+                      <span style={{ color: isSelected ? vData.textDark : '' }}>{vData?.[language] || vKey}</span>
+                      <span className="text-xs font-normal" style={{ color: isSelected ? hexToRgba(vData.textDark, 0.7) : '#9ca3af' }}>
+                        {language === 'en' ? vData?.desc_en : vData?.desc_zh}
+                      </span>
+                    </button>
+                  );
+                })}
               </div>
             </div>
             <div className="flex-1 bg-black/20 backdrop-blur-sm" onClick={() => setSidebarOpen(false)}></div>
           </div>
         )}
 
-        {/* Header - 改版：超直覺點擊村落名稱下拉 */}
+        {/* Header */}
         <div className="px-6 pt-12 pb-4 flex justify-between items-center bg-white/90 sticky top-0 z-20 backdrop-blur-sm border-b border-gray-100">
           <div className="flex items-center gap-3">
-            {/* 將原本的漢堡選單移除，改為標題直接點擊 */}
             <div 
               onClick={() => setSidebarOpen(true)}
               className="group flex flex-col items-start cursor-pointer"
             >
-              <div className="flex items-center gap-1 text-emerald-700 mb-0.5">
+              {/* 【更新】頂部標題套用當前村落專屬色系 */}
+              <div className="flex items-center gap-1 mb-0.5" style={{ color: villageData[selectedVillage]?.color || '#059669' }}>
                 <MapPin size={14} />
-                <span className="text-xs font-bold tracking-wide uppercase">{APP_CONFIG.subTitle}</span>
+                <span className="text-xs font-bold tracking-wide uppercase" style={{ color: villageData[selectedVillage]?.textDark || '#059669' }}>{APP_CONFIG.subTitle}</span>
               </div>
               <div className="flex items-center gap-1.5 bg-gray-50/50 hover:bg-gray-100 px-2 py-1 -ml-2 rounded-lg transition-colors">
                 <h1 className="text-xl font-extrabold text-gray-900">
@@ -951,15 +1028,14 @@ export default function App() {
             </div>
           </div>
           <div className="flex items-center gap-2">
-            {/* 語言切換按鈕 */}
             <button onClick={toggleLanguage} className="text-sm font-bold text-emerald-700 bg-emerald-50 px-2 py-1 rounded-lg border border-emerald-100 hover:bg-emerald-100 transition-colors">
               {t('langSwitch')}
             </button>
-            <button onClick={() => setShowUserModal(true)} className="w-10 h-10 rounded-full overflow-hidden border-2 border-white shadow-md bg-emerald-50 flex items-center justify-center">
+            <button onClick={() => setShowUserModal(true)} className="w-10 h-10 rounded-full overflow-hidden border-2 border-white shadow-md bg-gray-100 flex items-center justify-center">
                {userProfile?.pictureUrl ? (
                  <img src={userProfile.pictureUrl} alt="User" className="w-full h-full object-cover" />
                ) : (
-                 <Mountain size={20} className="text-emerald-600" />
+                 <User size={20} className="text-gray-500" />
                )}
             </button>
           </div>
@@ -1026,8 +1102,9 @@ export default function App() {
         <div className="px-6 space-y-6">
           {loading ? (
              <div className="flex flex-col items-center justify-center py-20 text-gray-400">
-               <Loader2 size={32} className="animate-spin mb-2 text-emerald-600" />
-               <p>{t('loading')}</p>
+               {/* 🎨【套用】載入時吉祥物繞圈圈 */}
+               <Mascot size={64} animation="spin" className="mb-4" />
+               <p className="text-emerald-700 font-bold tracking-widest animate-pulse">{t('loading')}</p>
              </div>
           ) : processedShops.length > 0 ? (
             processedShops.map((shop) => {
@@ -1052,8 +1129,15 @@ export default function App() {
                       <Heart size={18} className={isFav ? "fill-rose-500 text-rose-500" : "text-gray-400"} />
                     </button>
                     
-                    <div className="absolute top-3 left-3 bg-black/50 backdrop-blur-md px-2 py-1 rounded-lg z-10 pointer-events-none">
-                        <span className="text-xs text-white font-medium tracking-wide">{villageData[shop.village]?.[language] || shop.village}</span>
+                    {/* 【更新】照片左上角的村落徽章，套用該村落的專屬色票 */}
+                    <div 
+                      className="absolute top-3 left-3 px-2 py-1 rounded-lg z-10 pointer-events-none shadow-sm"
+                      style={{ 
+                        backgroundColor: villageData[shop.village]?.color || 'rgba(0,0,0,0.5)', 
+                        color: villageData[shop.village]?.textBadge || '#ffffff' 
+                      }}
+                    >
+                        <span className="text-xs font-bold tracking-wide">{villageData[shop.village]?.[language] || shop.village}</span>
                     </div>
 
                     {showAccommodationBadge ? (
@@ -1129,7 +1213,6 @@ export default function App() {
                           <div className="flex items-center gap-1.5 text-xs px-2 py-1 rounded-md border border-gray-100 bg-gray-50 text-gray-500 max-w-full overflow-hidden">
                             <Clock size={10} className="flex-shrink-0" />
                             <span className="truncate">
-                                {/* 【修正】確實替換 google 與 fb 為中文說明 */}
                                 {shop.hours.trim().toLowerCase() === 'google' ? t('googleInfo') : 
                                  shop.hours.trim().toLowerCase() === 'fb' ? t('fbAnnouncement') : 
                                  shop.hours.split('|')[0]}
@@ -1184,7 +1267,8 @@ export default function App() {
             })
           ) : (
              <div className="text-center py-10 text-gray-400">
-                <Coffee size={48} className="mx-auto mb-3 opacity-20" />
+                {/* 🎨【套用】找不到店家時，吉祥物彈跳 */}
+                <Mascot size={72} animation="bounce" className="mx-auto mb-4 opacity-60 grayscale" />
                 <p>
                   {currentView === 'favorites' ? t('noFavorites') : t('noShops')}
                 </p>
@@ -1204,7 +1288,8 @@ export default function App() {
                 <Heart size={24} className={currentView === 'favorites' ? "fill-rose-500" : ""} />
              </button>
              <button onClick={handleGetLocation} className="-mt-10 w-16 h-16 bg-emerald-600 rounded-full flex items-center justify-center shadow-lg shadow-emerald-600/30 border-[5px] border-white transform hover:scale-105 transition-transform text-white relative">
-                {loading && !userLocation ? (<Loader2 size={24} className="animate-spin" />) : (<LocateFixed size={28} />)}
+                {/* 🎨【套用】點擊定位尋找時，小吉祥物繞圈圈 */}
+                {loading && !userLocation ? (<Mascot size={28} animation="spin" />) : (<LocateFixed size={28} />)}
                 {userLocation && <div className="absolute top-3 right-4 w-2 h-2 bg-green-300 rounded-full animate-ping"></div>}
              </button>
              <button onClick={() => setShowFilterModal(true)} className={`flex flex-col items-center gap-1 group transition-colors ${filterOpenOnly ? 'text-emerald-600' : 'text-gray-400'}`}>
