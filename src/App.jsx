@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Search, MapPin, Phone, Navigation, Facebook, Star, Home, Coffee, Gift, User, Filter, Heart, Menu, X, Mountain, Loader2, Camera, Ticket, Tag, Clock, ChevronLeft, ChevronRight, Info, LocateFixed, Globe, MessageCircle, Map as MapIcon, ExternalLink, CalendarCheck, Banknote, AlertCircle, Bus, ChevronDown, Play, ArrowRight } from 'lucide-react';
 
 // 【安全修正】讀取環境變數
+// ⚠️ 註：為了讓預覽環境能順利編譯，目前先將 AIRTABLE_API_KEY 暫時設為空字串。
+// 在您的電腦本地端或 Vercel 上部署時，請將這行改回： const AIRTABLE_API_KEY = import.meta.env.VITE_AIRTABLE_API_KEY || "";
 const AIRTABLE_API_KEY = import.meta.env.VITE_AIRTABLE_API_KEY || "";
 
 // 【網站設定區】
@@ -124,7 +126,7 @@ const translations = {
 };
 
 // ==========================================
-// 🎨 【新增】村落資料字典 (加入色票配置與專屬介紹文字)
+// 🎨 村落資料字典 (加入色票配置與專屬介紹文字)
 // ==========================================
 const villageData = {
   '太平村': { 
@@ -1028,7 +1030,8 @@ export default function App() {
             {landingStep === 'welcome' && (
               <div className="flex-1 flex flex-col items-center justify-center p-8 animate-fade-in">
                 <div className="flex flex-col items-center space-y-8 p-8 bg-white/60 backdrop-blur-xl rounded-[40px] shadow-2xl border border-white/60 w-full text-center transform transition-all hover:scale-105">
-                  <Mascot size={120} imageUrl="/mascot-happy.png" animation="bounce" className="drop-shadow-xl" />
+                  {/* 【修改】統一使用預設表情 */}
+                  <Mascot size={120} animation="bounce" className="drop-shadow-xl" />
                   
                   <div className="space-y-2">
                     <p className="text-sm font-bold text-gray-600 tracking-widest uppercase">{APP_CONFIG.subTitle}</p>
@@ -1093,7 +1096,8 @@ export default function App() {
                      
                      <div className="flex items-center gap-4">
                         <div className="w-16 h-16 rounded-2xl flex items-center justify-center shadow-md" style={{ backgroundColor: hexToRgba(villageData[previewVillage].color, 0.15), color: villageData[previewVillage].textDark }}>
-                           <Mascot size={40} imageUrl="/mascot-happy.png" />
+                           {/* 【修改】統一使用預設表情 */}
+                           <Mascot size={40} />
                         </div>
                         <div>
                            <h2 className="text-3xl font-extrabold" style={{ color: villageData[previewVillage].textDark }}>{villageData[previewVillage][language] || previewVillage}</h2>
@@ -1176,7 +1180,7 @@ export default function App() {
         {/* Header */}
         <div className="px-6 pt-12 pb-4 flex justify-between items-center bg-white/90 sticky top-0 z-20 backdrop-blur-sm border-b border-gray-100">
           <div className="flex items-center gap-1">
-            {/* 🎨【新增】返回村落選單按鈕 */}
+            {/* 🎨 返回村落選單按鈕 */}
             <button 
               onClick={() => {
                  if (currentView === 'favorites') {
@@ -1306,7 +1310,8 @@ export default function App() {
         <div className="px-6 space-y-6">
           {loading ? (
              <div className="flex flex-col items-center justify-center py-20">
-               <Mascot size={64} imageUrl="/mascot-loading.png" animation="spin" className="mb-4" />
+               {/* 【修改】統一使用預設表情 */}
+               <Mascot size={64} animation="spin" className="mb-4" />
                <p className="font-bold tracking-widest animate-pulse" style={{ color: currentDarkColor }}>{t('loading')}</p>
              </div>
           ) : processedShops.length > 0 ? (
@@ -1467,7 +1472,8 @@ export default function App() {
             })
           ) : (
              <div className="text-center py-10 text-gray-400">
-                <Mascot size={72} imageUrl="/mascot-sad.png" animation="bounce" className="mx-auto mb-4 opacity-60 grayscale" />
+                {/* 【修改】統一使用預設表情 */}
+                <Mascot size={72} animation="bounce" className="mx-auto mb-4 opacity-60 grayscale" />
                 <p>
                   {currentView === 'favorites' ? t('noFavorites') : t('noShops')}
                 </p>
@@ -1491,7 +1497,8 @@ export default function App() {
              {/* 中間大定位按鈕 */}
              <button onClick={handleGetLocation} className="-mt-10 w-16 h-16 rounded-full flex items-center justify-center shadow-lg border-[5px] border-white transform hover:scale-105 transition-transform text-white relative"
                      style={{ backgroundColor: currentPrimaryColor, boxShadow: `0 10px 15px -3px ${hexToRgba(currentPrimaryColor, 0.4)}` }}>
-                {loading && !userLocation ? (<Mascot size={28} imageUrl="/mascot-loading.png" animation="spin" />) : (<LocateFixed size={28} />)}
+                {/* 【修改】統一使用預設表情 */}
+                {loading && !userLocation ? (<Mascot size={28} animation="spin" />) : (<LocateFixed size={28} />)}
                 {userLocation && <div className="absolute top-3 right-4 w-2 h-2 bg-green-300 rounded-full animate-ping"></div>}
              </button>
              
