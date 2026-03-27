@@ -139,6 +139,11 @@ const FormattedText = ({ text, className = "" }) => {
   return (
     <div className={`space-y-1 ${className}`}>
       {lines.map((line, lineIdx) => {
+        // 【修正】如果是空行，塞入一個不換行空白(&nbsp;)，強制保留一行的高度
+        if (line.trim() === '') {
+          return <div key={lineIdx} className="h-3 md:h-4"></div>; // 給予明確的高度保留空行
+        }
+
         const parts = line.split(/([（(].*?[)）])/g);
         return (
           <div key={lineIdx} className="leading-relaxed">
