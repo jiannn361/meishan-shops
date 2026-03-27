@@ -122,7 +122,7 @@ const translations = {
 };
 
 // ==========================================
-// 🎨 【更新】村落資料字典 (加入色票配置)
+// 🎨 村落資料字典 (加入色票配置)
 // ==========================================
 const villageData = {
   '太平村': { zh: '太平村', en: 'Taiping', desc_zh: '雲梯與老街', desc_en: 'Sky Bridge & Old Street', color: '#b8caa5', textDark: '#506638', textBadge: '#ffffff' },
@@ -133,7 +133,6 @@ const villageData = {
   '太和村': { zh: '太和村', en: 'Taihe', desc_zh: '茶園秘境', desc_en: 'Hidden Tea Farms', color: '#c4b28e', textDark: '#70603d', textBadge: '#ffffff' },
 };
 
-// 輔助函式：將 Hex 轉為帶有透明度的 RGBA
 const hexToRgba = (hex, alpha) => {
   if (!hex) return `rgba(0,0,0,${alpha})`;
   const r = parseInt(hex.slice(1, 3), 16);
@@ -145,9 +144,13 @@ const hexToRgba = (hex, alpha) => {
 // ==========================================
 // 🐻 專屬吉祥物元件 (Mascot)
 // ==========================================
-const Mascot = ({ size = 60, className = "", animation = "" }) => {
-  // 您可以在 public 資料夾放入自己的吉祥物圖案，並改為 "/mascot.png"
-  const mascotUrl = "/mascot.png";
+// 【更新】我們讓 Mascot 支援傳入 imageUrl，這樣您就可以根據狀態切換表情！
+const Mascot = ({ size = 60, className = "", animation = "", imageUrl = null }) => {
+  // 【修改這裡】將預設網址改成指向 public 資料夾內的 mascot.png
+  const defaultMascotUrl = "/mascot.png";
+  
+  // 如果有傳入指定的圖片，就用指定的，否則用預設的
+  const mascotSrc = imageUrl || defaultMascotUrl;
 
   let animClass = "";
   if (animation === "spin") animClass = "animate-spin";     
@@ -156,7 +159,7 @@ const Mascot = ({ size = 60, className = "", animation = "" }) => {
 
   return (
     <img
-      src={mascotUrl}
+      src={mascotSrc}
       alt="Mascot"
       style={{ width: size, height: size }}
       className={`object-contain drop-shadow-sm ${animClass} ${className}`}
@@ -201,7 +204,7 @@ const DefaultShopImage = () => (
 );
 
 export default function App() {
-  const [appStarted, setAppStarted] = useState(false); // 【新增】控制是否進入迎賓頁面
+  const [appStarted, setAppStarted] = useState(false); 
   const [language, setLanguage] = useState('zh');
   const [activeCategory, setActiveCategory] = useState('all');
   const [selectedVillage, setSelectedVillage] = useState('太平村');
@@ -219,6 +222,11 @@ export default function App() {
   const [showUserModal, setShowUserModal] = useState(false); 
   const [filterOpenOnly, setFilterOpenOnly] = useState(false); 
   const [searchQuery, setSearchQuery] = useState(''); 
+
+  // 動態取得當前村落的主題色
+  const currentPrimaryColor = villageData[selectedVillage]?.color || '#059669';
+  const currentDarkColor = villageData[selectedVillage]?.textDark || '#047857';
+  const currentBadgeColor = villageData[selectedVillage]?.textBadge || '#ffffff';
 
   const t = (key) => (translations[language] && translations[language][key]) || translations['zh'][key] || key;
   
@@ -683,6 +691,10 @@ export default function App() {
     
     const hideHoursText = !shop.hours || shop.hours.trim().toLowerCase() === 'google' || shop.hours.trim().toLowerCase() === 'fb' || shop.hours.includes('預約制');
 
+    // 取得該店家的所屬村落顏色
+    const shopColor = villageData[shop.village]?.color || '#059669';
+    const shopDarkColor = villageData[shop.village]?.textDark || '#047857';
+
     return (
       <div className="fixed inset-0 z-[60] flex items-center justify-center px-4 animate-fade-in">
         <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose}></div>
@@ -718,23 +730,34 @@ export default function App() {
 
           <div className="p-6 space-y-6">
             <div className="flex flex-col gap-3 items-start">
+               {/* 🎨【統一色調】營業中/預約制標籤 */}
                {showAccommodationBadge ? (
-                 <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold self-start bg-indigo-100 text-indigo-700">
+                 <div 
+                  className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold self-start"
+                  style={{ backgroundColor: hexToRgba(shopColor, 0.15), color: shopDarkColor }}
+                 >
                    <CalendarCheck size={14} />
                    {accBadgeText}
                  </div>
                ) : isOpen === 'appointment' ? (
-                 <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold self-start bg-indigo-100 text-indigo-700">
+                 <div 
+                  className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold self-start"
+                  style={{ backgroundColor: hexToRgba(shopColor, 0.15), color: shopDarkColor }}
+                 >
                    <CalendarCheck size={14} />
                    {t('byAppointment')}
                  </div>
                ) : (
-                 <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold self-start ${
-                   isOpen === true ? 'bg-green-100 text-green-700' : 
-                   isOpen === 'opening_soon' ? 'bg-amber-100 text-amber-700' : 
-                   isOpen === 'closing_soon' ? 'bg-orange-100 text-orange-700' : 
-                   isOpen === false ? 'bg-gray-100 text-gray-600' : 'bg-blue-50 text-blue-600'
-                 }`}>
+                 <div 
+                  className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold self-start`}
+                  style={
+                    isOpen === true ? { backgroundColor: hexToRgba(shopColor, 0.15), color: shopDarkColor } : 
+                    isOpen === 'opening_soon' ? { backgroundColor: '#fef3c7', color: '#b45309' } : 
+                    isOpen === 'closing_soon' ? { backgroundColor: '#ffedd5', color: '#c2410c' } : 
+                    isOpen === false ? { backgroundColor: '#f3f4f6', color: '#4b5563' } : 
+                    { backgroundColor: '#eff6ff', color: '#2563eb' }
+                  }
+                 >
                    <Clock size={14} />
                    {isOpen === true ? t('openNow') : isOpen === 'opening_soon' ? t('openingSoon') : isOpen === 'closing_soon' ? t('closingSoon') : isOpen === false ? t('closed') : t('checkAnnouncement')}
                  </div>
@@ -774,8 +797,8 @@ export default function App() {
               </div>
             )}
 
-            <div className="bg-emerald-50/50 p-4 rounded-2xl border border-emerald-100">
-              <h4 className="text-sm font-bold text-emerald-800 mb-2 flex items-center gap-1">
+            <div className="p-4 rounded-2xl border" style={{ backgroundColor: hexToRgba(shopColor, 0.05), borderColor: hexToRgba(shopColor, 0.15) }}>
+              <h4 className="text-sm font-bold mb-2 flex items-center gap-1" style={{ color: shopDarkColor }}>
                 <Info size={14} /> {t('shopIntro')}
               </h4>
               <div className="text-sm text-gray-600 text-justify">
@@ -785,12 +808,12 @@ export default function App() {
 
             <div className="space-y-3">
               <div className="flex items-start gap-3 text-sm text-gray-600">
-                <MapPin size={18} className="text-emerald-600 mt-0.5 shrink-0" />
+                <MapPin size={18} className="mt-0.5 shrink-0" style={{ color: shopColor }} />
                 <span>{displayAddress}</span>
               </div>
               {shop.tel && (
                 <div className="flex items-center gap-3 text-sm text-gray-600">
-                  <Phone size={18} className="text-emerald-600 shrink-0" />
+                  <Phone size={18} className="shrink-0" style={{ color: shopColor }} />
                   <span>{shop.tel}</span>
                 </div>
               )}
@@ -804,13 +827,22 @@ export default function App() {
               ))}
             </div>
 
+            {/* 🎨【統一色調】導航、電話按鈕 */}
             <div className="flex gap-3 pt-2 flex-wrap">
-              <a href={shop.nav_link || getGoogleMapLink(shop.name, shop.address)} target="_blank" rel="noopener noreferrer" 
-                 className="flex-1 min-w-[100px] bg-emerald-600 text-white py-3 rounded-xl flex items-center justify-center gap-2 hover:bg-emerald-700 transition-colors font-medium shadow-lg shadow-emerald-200">
+              <a 
+                href={shop.nav_link || getGoogleMapLink(shop.name, shop.address)} 
+                target="_blank" rel="noopener noreferrer" 
+                className="flex-1 min-w-[100px] text-white py-3 rounded-xl flex items-center justify-center gap-2 hover:opacity-90 transition-opacity font-medium shadow-lg"
+                style={{ backgroundColor: shopColor, boxShadow: `0 4px 14px 0 ${hexToRgba(shopColor, 0.4)}` }}
+              >
                 <Navigation size={18} /> {t('navigate')}
               </a>
               {shop.tel && (
-                <a href={`tel:${shop.tel}`} className="w-12 h-12 flex items-center justify-center rounded-xl border border-emerald-200 text-emerald-600 hover:bg-emerald-50 transition-colors flex-shrink-0">
+                <a 
+                  href={`tel:${shop.tel}`} 
+                  className="w-12 h-12 flex items-center justify-center rounded-xl border hover:opacity-80 transition-opacity flex-shrink-0"
+                  style={{ backgroundColor: hexToRgba(shopColor, 0.05), borderColor: hexToRgba(shopColor, 0.2), color: shopColor }}
+                >
                   <Phone size={20} />
                 </a>
               )}
@@ -837,7 +869,8 @@ export default function App() {
                     href={booking.url} 
                     target="_blank" 
                     rel="noopener noreferrer" 
-                    className="flex-1 min-w-[120px] px-3 py-3 rounded-xl border border-rose-200 text-rose-600 hover:bg-rose-50 transition-colors flex items-center justify-center gap-2 font-bold text-sm"
+                    className="flex-1 min-w-[120px] px-3 py-3 rounded-xl border text-white transition-opacity hover:opacity-90 flex items-center justify-center gap-2 font-bold text-sm"
+                    style={{ backgroundColor: shopDarkColor, boxShadow: `0 4px 14px 0 ${hexToRgba(shopDarkColor, 0.3)}` }}
                   >
                     <CalendarCheck size={18} />
                     <span>{booking.name}</span>
@@ -860,20 +893,25 @@ export default function App() {
           <button onClick={() => setShowFilterModal(false)}><X size={20} className="text-gray-400" /></button>
         </div>
         <div className="space-y-4">
-          <label className="flex items-center justify-between p-4 bg-gray-50 rounded-xl cursor-pointer hover:bg-emerald-50/50 transition-colors">
+          <label className="flex items-center justify-between p-4 bg-gray-50 rounded-xl cursor-pointer hover:bg-opacity-80 transition-colors" style={{ hover: { backgroundColor: hexToRgba(currentPrimaryColor, 0.05) } }}>
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-green-100 text-green-600 flex items-center justify-center">
+              <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ backgroundColor: hexToRgba(currentPrimaryColor, 0.15), color: currentPrimaryColor }}>
                 <Clock size={20} />
               </div>
               <span className="font-medium text-gray-700">{t('onlyOpenNow')}</span>
             </div>
-            <div className={`w-12 h-6 rounded-full p-1 transition-colors ${filterOpenOnly ? 'bg-emerald-500' : 'bg-gray-300'}`}
+            <div className={`w-12 h-6 rounded-full p-1 transition-colors ${filterOpenOnly ? '' : 'bg-gray-300'}`}
+                 style={filterOpenOnly ? { backgroundColor: currentPrimaryColor } : {}}
                  onClick={(e) => { e.preventDefault(); setFilterOpenOnly(!filterOpenOnly); }}>
               <div className={`w-4 h-4 bg-white rounded-full shadow-sm transition-transform ${filterOpenOnly ? 'translate-x-6' : 'translate-x-0'}`}></div>
             </div>
           </label>
         </div>
-        <button onClick={() => setShowFilterModal(false)} className="w-full bg-emerald-600 text-white py-3 rounded-xl font-bold hover:bg-emerald-700">
+        <button 
+          onClick={() => setShowFilterModal(false)} 
+          className="w-full text-white py-3 rounded-xl font-bold hover:opacity-90 transition-opacity"
+          style={{ backgroundColor: currentPrimaryColor }}
+        >
           {t('confirm')}
         </button>
       </div>
@@ -885,13 +923,16 @@ export default function App() {
       <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setShowUserModal(false)}></div>
       <div className="relative w-full max-w-sm bg-white rounded-t-3xl sm:rounded-3xl p-6 space-y-6 animate-slide-up">
         <div className="text-center">
-          <div className="w-20 h-20 mx-auto rounded-full overflow-hidden border-4 border-emerald-100 shadow-lg mb-4 bg-emerald-50 flex items-center justify-center">
+          <div 
+            className="w-20 h-20 mx-auto rounded-full overflow-hidden border-4 shadow-lg mb-4 flex items-center justify-center"
+            style={{ borderColor: hexToRgba(currentPrimaryColor, 0.2), backgroundColor: hexToRgba(currentPrimaryColor, 0.05) }}
+          >
             {userProfile?.pictureUrl ? (
               <img src={userProfile.pictureUrl} alt="User" className="w-full h-full object-cover" />
             ) : (
-              <div className="relative w-full h-full bg-emerald-100 flex items-center justify-center">
-                 <Mountain size={40} className="text-emerald-600 relative z-10" strokeWidth={1.5} />
-                 <div className="absolute bottom-0 w-full h-1/3 bg-emerald-200/50"></div>
+              <div className="relative w-full h-full flex items-center justify-center">
+                 <Mountain size={40} className="relative z-10" strokeWidth={1.5} style={{ color: currentPrimaryColor }} />
+                 <div className="absolute bottom-0 w-full h-1/3" style={{ backgroundColor: hexToRgba(currentPrimaryColor, 0.2) }}></div>
               </div>
             )}
           </div>
@@ -902,9 +943,13 @@ export default function App() {
         </div>
         <div className="space-y-2">
           {APP_CONFIG.notionUrl && (
-            <button className="w-full flex items-center justify-between p-4 bg-emerald-50 hover:bg-emerald-100 rounded-xl transition-colors text-left border border-emerald-100" onClick={() => window.open(APP_CONFIG.notionUrl, '_blank')}>
-              <span className="flex items-center gap-3 text-emerald-800 font-bold"><MapIcon size={18} /> {t('trailGuide')}</span>
-              <ChevronRight size={16} className="text-emerald-400" />
+            <button 
+              className="w-full flex items-center justify-between p-4 hover:opacity-80 rounded-xl transition-colors text-left border" 
+              style={{ backgroundColor: hexToRgba(currentPrimaryColor, 0.05), borderColor: hexToRgba(currentPrimaryColor, 0.2) }}
+              onClick={() => window.open(APP_CONFIG.notionUrl, '_blank')}
+            >
+              <span className="flex items-center gap-3 font-bold" style={{ color: currentDarkColor }}><MapIcon size={18} /> {t('trailGuide')}</span>
+              <ChevronRight size={16} style={{ color: currentPrimaryColor }} />
             </button>
           )}
           <button className="w-full flex items-center justify-between p-4 bg-gray-50 hover:bg-gray-100 rounded-xl transition-colors text-left" onClick={() => {
@@ -1015,9 +1060,9 @@ export default function App() {
               className="group flex flex-col items-start cursor-pointer"
             >
               {/* 【更新】頂部標題套用當前村落專屬色系 */}
-              <div className="flex items-center gap-1 mb-0.5" style={{ color: villageData[selectedVillage]?.color || '#059669' }}>
+              <div className="flex items-center gap-1 mb-0.5" style={{ color: currentPrimaryColor }}>
                 <MapPin size={14} />
-                <span className="text-xs font-bold tracking-wide uppercase" style={{ color: villageData[selectedVillage]?.textDark || '#059669' }}>{APP_CONFIG.subTitle}</span>
+                <span className="text-xs font-bold tracking-wide uppercase" style={{ color: currentDarkColor }}>{APP_CONFIG.subTitle}</span>
               </div>
               <div className="flex items-center gap-1.5 bg-gray-50/50 hover:bg-gray-100 px-2 py-1 -ml-2 rounded-lg transition-colors">
                 <h1 className="text-xl font-extrabold text-gray-900">
@@ -1028,14 +1073,18 @@ export default function App() {
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <button onClick={toggleLanguage} className="text-sm font-bold text-emerald-700 bg-emerald-50 px-2 py-1 rounded-lg border border-emerald-100 hover:bg-emerald-100 transition-colors">
+            <button 
+              onClick={toggleLanguage} 
+              className="text-sm font-bold px-2 py-1 rounded-lg border hover:opacity-80 transition-opacity"
+              style={{ color: currentPrimaryColor, backgroundColor: hexToRgba(currentPrimaryColor, 0.1), borderColor: hexToRgba(currentPrimaryColor, 0.2) }}
+            >
               {t('langSwitch')}
             </button>
             <button onClick={() => setShowUserModal(true)} className="w-10 h-10 rounded-full overflow-hidden border-2 border-white shadow-md bg-gray-100 flex items-center justify-center">
                {userProfile?.pictureUrl ? (
                  <img src={userProfile.pictureUrl} alt="User" className="w-full h-full object-cover" />
                ) : (
-                 <User size={20} className="text-gray-500" />
+                 <User size={20} style={{ color: currentPrimaryColor }} />
                )}
             </button>
           </div>
@@ -1045,7 +1094,7 @@ export default function App() {
         {currentView === 'home' && (
           <>
             <div className="px-6 my-4">
-              <div className="bg-gray-100 rounded-2xl p-3 flex items-center gap-3 border border-transparent focus-within:border-emerald-200 focus-within:bg-white focus-within:shadow-lg transition-all">
+              <div className="bg-gray-100 rounded-2xl p-3 flex items-center gap-3 border border-transparent focus-within:bg-white focus-within:shadow-lg transition-all" style={{ outlineColor: currentPrimaryColor }}>
                 <Search className="text-gray-400" size={20} />
                 <input 
                   type="text" 
@@ -1065,8 +1114,22 @@ export default function App() {
               <div className="flex gap-3 overflow-x-auto pb-2 no-scrollbar">
                 {availableCategories.map((catKey) => {
                   const config = categoryConfig[catKey] || { labelKey: 'all', icon: <Tag size={18}/> };
+                  const isActive = activeCategory === catKey;
                   return (
-                    <button key={catKey} onClick={() => setActiveCategory(catKey)} className={`flex flex-col items-center justify-center min-w-[70px] h-16 rounded-2xl transition-all duration-300 border ${ activeCategory === catKey ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-600/30 transform scale-105' : 'bg-white text-gray-400 border-gray-100 hover:bg-gray-50 shadow-sm' }`}>
+                    <button 
+                      key={catKey} 
+                      onClick={() => setActiveCategory(catKey)} 
+                      className={`flex flex-col items-center justify-center min-w-[70px] h-16 rounded-2xl transition-all duration-300 border ${ 
+                        isActive 
+                          ? 'transform scale-105 border-transparent' 
+                          : 'bg-white text-gray-400 border-gray-100 hover:bg-gray-50 shadow-sm' 
+                      }`}
+                      style={isActive ? {
+                        backgroundColor: currentPrimaryColor,
+                        color: currentBadgeColor,
+                        boxShadow: `0 10px 15px -3px ${hexToRgba(currentPrimaryColor, 0.4)}`
+                      } : {}}
+                    >
                       <div className="mb-1">{config.icon}</div>
                       <span className="text-[10px] font-medium capitalize">{t(config.labelKey) || catKey}</span>
                     </button>
@@ -1083,17 +1146,20 @@ export default function App() {
             </h2>
             <div className="flex items-center gap-2">
               {filterOpenOnly && (
-                <span className="text-xs text-green-600 font-medium bg-green-50 px-2 py-1 rounded-lg flex items-center gap-1 border border-green-100">
+                <span className="text-xs font-medium px-2 py-1 rounded-lg flex items-center gap-1 border"
+                      style={{ backgroundColor: hexToRgba(currentPrimaryColor, 0.1), color: currentDarkColor, borderColor: hexToRgba(currentPrimaryColor, 0.2) }}>
                   <Clock size={12} /> {t('openNow')}
                 </span>
               )}
               {userLocation && (
-                <span className="text-xs text-emerald-600 font-medium bg-emerald-50 px-2 py-1 rounded-lg flex items-center gap-1">
+                <span className="text-xs font-medium px-2 py-1 rounded-lg flex items-center gap-1"
+                      style={{ backgroundColor: hexToRgba(currentPrimaryColor, 0.1), color: currentDarkColor }}>
                   <LocateFixed size={12} /> {t('distance')}
                 </span>
               )}
-              <div className="flex items-center gap-1 text-xs text-emerald-600 bg-emerald-50 px-2 py-1 rounded-lg">
-                  <Star size={12} className="fill-emerald-600" />
+              <div className="flex items-center gap-1 text-xs px-2 py-1 rounded-lg"
+                   style={{ backgroundColor: hexToRgba(currentPrimaryColor, 0.1), color: currentDarkColor }}>
+                  <Star size={12} style={{ fill: currentDarkColor }} />
                   <span>{processedShops.length} {t('shopsCount')}</span>
               </div>
             </div>
@@ -1101,10 +1167,10 @@ export default function App() {
 
         <div className="px-6 space-y-6">
           {loading ? (
-             <div className="flex flex-col items-center justify-center py-20 text-gray-400">
+             <div className="flex flex-col items-center justify-center py-20">
                {/* 🎨【套用】載入時吉祥物繞圈圈 */}
                <Mascot size={64} animation="spin" className="mb-4" />
-               <p className="text-emerald-700 font-bold tracking-widest animate-pulse">{t('loading')}</p>
+               <p className="font-bold tracking-widest animate-pulse" style={{ color: currentDarkColor }}>{t('loading')}</p>
              </div>
           ) : processedShops.length > 0 ? (
             processedShops.map((shop) => {
@@ -1120,6 +1186,9 @@ export default function App() {
               
               const hideCardHours = !shop.hours || shop.hours.trim().toLowerCase() === 'google' || shop.hours.trim().toLowerCase() === 'fb' || shop.hours.includes('預約制');
 
+              // 卡片的專屬色
+              const shopCardColor = villageData[shop.village]?.color || '#059669';
+
               return (
                 <div key={shop.id} className="group relative bg-white rounded-[24px] overflow-hidden shadow-[0_8px_30px_rgb(0,0,0,0.06)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.12)] transition-shadow border border-gray-100">
                   <div className="h-48 w-full relative overflow-hidden bg-gray-100">
@@ -1129,26 +1198,22 @@ export default function App() {
                       <Heart size={18} className={isFav ? "fill-rose-500 text-rose-500" : "text-gray-400"} />
                     </button>
                     
-                    {/* 【更新】照片左上角的村落徽章，套用該村落的專屬色票 */}
+                    {/* 照片左上角的村落徽章 */}
                     <div 
                       className="absolute top-3 left-3 px-2 py-1 rounded-lg z-10 pointer-events-none shadow-sm"
                       style={{ 
-                        backgroundColor: villageData[shop.village]?.color || 'rgba(0,0,0,0.5)', 
+                        backgroundColor: shopCardColor, 
                         color: villageData[shop.village]?.textBadge || '#ffffff' 
                       }}
                     >
                         <span className="text-xs font-bold tracking-wide">{villageData[shop.village]?.[language] || shop.village}</span>
                     </div>
 
-                    {showAccommodationBadge ? (
-                      <div className="absolute bottom-3 left-3 bg-indigo-500/90 backdrop-blur-md pl-2 pr-3 py-1 rounded-full flex items-center gap-1.5 shadow-lg z-10 pointer-events-none">
+                    {/* 🎨【統一色調】左下角狀態徽章 */}
+                    {showAccommodationBadge || isOpen === 'appointment' ? (
+                      <div className="absolute bottom-3 left-3 backdrop-blur-md pl-2 pr-3 py-1 rounded-full flex items-center gap-1.5 shadow-lg z-10 pointer-events-none" style={{ backgroundColor: hexToRgba(shopCardColor, 0.9) }}>
                         <CalendarCheck size={12} className="text-white" />
-                        <span className="text-xs font-bold text-white tracking-wide">{accBadgeText}</span>
-                      </div>
-                    ) : isOpen === 'appointment' ? (
-                      <div className="absolute bottom-3 left-3 bg-indigo-500/90 backdrop-blur-md pl-2 pr-3 py-1 rounded-full flex items-center gap-1.5 shadow-lg z-10 pointer-events-none">
-                        <CalendarCheck size={12} className="text-white" />
-                        <span className="text-xs font-bold text-white tracking-wide">{t('byAppointment')}</span>
+                        <span className="text-xs font-bold text-white tracking-wide">{showAccommodationBadge ? accBadgeText : t('byAppointment')}</span>
                       </div>
                     ) : isOpen === 'google' ? (
                        <div className="absolute bottom-3 left-3 bg-blue-500/90 backdrop-blur-md pl-2 pr-3 py-1 rounded-full flex items-center gap-1.5 shadow-lg z-10 pointer-events-none">
@@ -1161,9 +1226,9 @@ export default function App() {
                        <span className="text-xs font-bold text-white tracking-wide">{t('fbAnnouncement')}</span>
                       </div>
                     ) : isOpen === true ? (
-                      <div className="absolute bottom-3 left-3 bg-emerald-500/90 backdrop-blur-md pl-2 pr-3 py-1 rounded-full flex items-center gap-1.5 shadow-lg z-10 pointer-events-none">
+                      <div className="absolute bottom-3 left-3 backdrop-blur-md pl-2 pr-3 py-1 rounded-full flex items-center gap-1.5 shadow-lg z-10 pointer-events-none" style={{ backgroundColor: hexToRgba(shopCardColor, 0.95) }}>
                         <span className="relative flex h-2.5 w-2.5">
-                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-200 opacity-75"></span>
+                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75" style={{ backgroundColor: '#fff' }}></span>
                           <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-white"></span>
                         </span>
                         <span className="text-xs font-bold text-white tracking-wide">{t('openNow')}</span>
@@ -1196,7 +1261,7 @@ export default function App() {
                     <div className="flex justify-between items-start mb-2">
                       <h3 className="text-xl font-bold text-gray-900 leading-tight">{displayName}</h3>
                       {shop.distance && (
-                          <span className="text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-1 rounded-md">
+                          <span className="text-xs font-bold px-2 py-1 rounded-md" style={{ backgroundColor: hexToRgba(shopCardColor, 0.1), color: villageData[shop.village]?.textDark }}>
                             {shop.distance} km
                           </span>
                        )}
@@ -1230,34 +1295,32 @@ export default function App() {
                       {shop.services.length > 3 && <span className="text-[10px] text-gray-400 px-1 py-1">+{shop.services.length - 3}</span>}
                     </div>
                     
-                    <div className="flex items-center text-gray-500 text-xs mb-5">
-                      <MapPin size={12} className="mr-1 text-emerald-600" />
+                    <div className="flex items-center text-xs mb-5" style={{ color: villageData[shop.village]?.textDark || '#4b5563' }}>
+                      <MapPin size={12} className="mr-1" style={{ color: shopCardColor }} />
                       <span className="truncate">{displayAddress}</span>
                     </div>
 
                     <div className="flex flex-wrap gap-2 mt-auto pt-2" onClick={(e) => e.stopPropagation()}>
-                      <a href={shop.nav_link || getGoogleMapLink(shop.name, shop.address)} target="_blank" rel="noopener noreferrer" className="flex-1 min-w-[100px] bg-gray-900 hover:bg-black text-white py-2.5 rounded-xl flex items-center justify-center gap-2 transition-colors font-medium shadow-lg shadow-gray-200">
+                      <a href={shop.nav_link || getGoogleMapLink(shop.name, shop.address)} target="_blank" rel="noopener noreferrer" 
+                         className="flex-1 min-w-[100px] text-white py-2.5 rounded-xl flex items-center justify-center gap-2 transition-colors font-medium shadow-lg hover:opacity-90"
+                         style={{ backgroundColor: shopCardColor, boxShadow: `0 4px 14px 0 ${hexToRgba(shopCardColor, 0.4)}` }}>
                         <Navigation size={16} />
                         <span className="text-sm">{t('navigate')}</span>
                       </a>
                       {shop.tel && (
-                        <a href={`tel:${shop.tel}`} className="w-11 h-11 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 rounded-xl flex items-center justify-center transition-colors border border-emerald-100">
+                        <a href={`tel:${shop.tel}`} className="w-11 h-11 rounded-xl flex items-center justify-center transition-colors border hover:opacity-80"
+                           style={{ backgroundColor: hexToRgba(shopCardColor, 0.05), borderColor: hexToRgba(shopCardColor, 0.2), color: shopCardColor }}>
                           <Phone size={18} />
                         </a>
                       )}
                       {shop.line_url && (
-                        <a href={shop.line_url} target="_blank" rel="noopener noreferrer" className="w-11 h-11 bg-green-500 hover:bg-green-600 text-white rounded-xl flex items-center justify-center transition-colors border border-green-600 shadow-sm">
+                        <a href={shop.line_url} target="_blank" rel="noopener noreferrer" className="w-11 h-11 bg-green-500 hover:bg-green-600 text-white rounded-xl flex items-center justify-center transition-colors shadow-sm">
                           <span className="font-extrabold text-[10px]">LINE</span>
                         </a>
                       )}
                       {shop.fbLink && (
-                        <a href={shop.fbLink} target="_blank" rel="noopener noreferrer" className="w-11 h-11 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-xl flex items-center justify-center transition-colors border border-blue-100">
+                        <a href={shop.fbLink} target="_blank" rel="noopener noreferrer" className="w-11 h-11 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-xl flex items-center justify-center transition-colors">
                           <Facebook size={18} />
-                        </a>
-                      )}
-                      {shop.website && (
-                        <a href={shop.website} target="_blank" rel="noopener noreferrer" className="w-11 h-11 bg-purple-50 hover:bg-purple-100 text-purple-600 rounded-xl flex items-center justify-center transition-colors border border-purple-100">
-                          <Globe size={18} />
                         </a>
                       )}
                     </div>
@@ -1272,30 +1335,34 @@ export default function App() {
                 <p>
                   {currentView === 'favorites' ? t('noFavorites') : t('noShops')}
                 </p>
-                <button onClick={() => {setCurrentView('home'); setActiveCategory('all'); setSearchQuery('');}} className="text-emerald-600 text-sm mt-2 font-medium">
+                <button onClick={() => {setCurrentView('home'); setActiveCategory('all'); setSearchQuery('');}} className="text-sm mt-2 font-medium" style={{ color: currentPrimaryColor }}>
                   {currentView === 'favorites' ? t('goToExplore') : t('showAll')}
                 </button>
              </div>
           )}
         </div>
 
+        {/* 🎨 底層導航列統一顏色 */}
         <div className="fixed bottom-6 left-0 right-0 flex justify-center z-50 pointer-events-none">
           <div className="bg-white/95 backdrop-blur-xl border border-gray-100 shadow-[0_10px_40px_-10px_rgba(0,0,0,0.15)] rounded-full px-6 py-3 flex items-center gap-8 pointer-events-auto">
-             <button onClick={() => { setCurrentView('home'); setSortBy('default'); }} className={`flex flex-col items-center gap-1 group transition-colors ${currentView === 'home' ? 'text-emerald-600' : 'text-gray-400'}`}>
+             <button onClick={() => { setCurrentView('home'); setSortBy('default'); }} className={`flex flex-col items-center gap-1 group transition-colors`} style={{ color: currentView === 'home' ? currentPrimaryColor : '#9ca3af' }}>
                 <Home size={24} />
              </button>
-             <button onClick={() => setCurrentView('favorites')} className={`flex flex-col items-center gap-1 group transition-colors ${currentView === 'favorites' ? 'text-rose-500' : 'text-gray-400'}`}>
-                <Heart size={24} className={currentView === 'favorites' ? "fill-rose-500" : ""} />
+             <button onClick={() => setCurrentView('favorites')} className={`flex flex-col items-center gap-1 group transition-colors`} style={{ color: currentView === 'favorites' ? '#f43f5e' : '#9ca3af' }}>
+                <Heart size={24} className={currentView === 'favorites' ? "fill-rose-500 text-rose-500" : ""} />
              </button>
-             <button onClick={handleGetLocation} className="-mt-10 w-16 h-16 bg-emerald-600 rounded-full flex items-center justify-center shadow-lg shadow-emerald-600/30 border-[5px] border-white transform hover:scale-105 transition-transform text-white relative">
-                {/* 🎨【套用】點擊定位尋找時，小吉祥物繞圈圈 */}
+             
+             {/* 中間大定位按鈕 */}
+             <button onClick={handleGetLocation} className="-mt-10 w-16 h-16 rounded-full flex items-center justify-center shadow-lg border-[5px] border-white transform hover:scale-105 transition-transform text-white relative"
+                     style={{ backgroundColor: currentPrimaryColor, boxShadow: `0 10px 15px -3px ${hexToRgba(currentPrimaryColor, 0.4)}` }}>
                 {loading && !userLocation ? (<Mascot size={28} animation="spin" />) : (<LocateFixed size={28} />)}
                 {userLocation && <div className="absolute top-3 right-4 w-2 h-2 bg-green-300 rounded-full animate-ping"></div>}
              </button>
-             <button onClick={() => setShowFilterModal(true)} className={`flex flex-col items-center gap-1 group transition-colors ${filterOpenOnly ? 'text-emerald-600' : 'text-gray-400'}`}>
+             
+             <button onClick={() => setShowFilterModal(true)} className={`flex flex-col items-center gap-1 group transition-colors`} style={{ color: filterOpenOnly ? currentPrimaryColor : '#9ca3af' }}>
                 <Filter size={24} />
              </button>
-             <button onClick={() => setShowUserModal(true)} className="flex flex-col items-center gap-1 group text-gray-400 hover:text-gray-600">
+             <button onClick={() => setShowUserModal(true)} className="flex flex-col items-center gap-1 group hover:text-gray-600 transition-colors" style={{ color: showUserModal ? currentPrimaryColor : '#9ca3af' }}>
                 <User size={24} />
              </button>
           </div>
