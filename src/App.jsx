@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Search, MapPin, Phone, Navigation, Facebook, Star, Home, Coffee, Gift, User, Filter, Heart, Menu, X, Mountain, Loader2, Camera, Ticket, Tag, Clock, ChevronLeft, ChevronRight, Info, LocateFixed, Globe, MessageCircle, Map as MapIcon, ExternalLink, CalendarCheck, Banknote, AlertCircle, Bus, ChevronDown, Play, ArrowRight, Sparkles } from 'lucide-react';
 
 // 【安全修正】讀取環境變數
-const AIRTABLE_API_KEY = import.meta.env.VITE_AIRTABLE_API_KEY || ""; 
+const AIRTABLE_API_KEY = import.meta.env.VITE_AIRTABLE_API_KEY || "";
 
 // 【網站設定區】
 const APP_CONFIG = {
@@ -39,7 +39,7 @@ const translations = {
     closed: '休息中',
     checkAnnouncement: '詳見公告',
     byAppointment: '預約制',
-    bookNow: '線上訂房',
+    bookNow: '線上預約',
     distance: '距離',
     shopsCount: '間',
     loading: '努力為您尋找中...',
@@ -515,8 +515,8 @@ export default function App() {
         { key: 'asiayo', label: 'AsiaYo' },
         { key: 'klook', label: 'Klook' },
         { key: 'kkday', label: 'KKday' },
-        { key: '訂房連結', label: language === 'en' ? 'Book Now' : '線上訂房' },
-        { key: 'booking_url', label: language === 'en' ? 'Book Now' : '訂房' }
+        { key: '訂房連結', label: language === 'en' ? 'Book Now' : '線上預約' },
+        { key: 'booking_url', label: language === 'en' ? 'Book Now' : '預約' }
     ];
     
     const shopBookings = [];
