@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Search, MapPin, Phone, Navigation, Facebook, Star, Home, Coffee, Gift, User, Filter, Heart, Menu, X, Mountain, Loader2, Camera, Ticket, Tag, Clock, ChevronLeft, ChevronRight, Info, LocateFixed, Globe, MessageCircle, Map as MapIcon, ExternalLink, CalendarCheck, Banknote, AlertCircle, Bus, ChevronDown, Play, ArrowRight, Sparkles } from 'lucide-react';
 
 // 【安全修正】讀取環境變數
-const AIRTABLE_API_KEY = import.meta.env.VITE_AIRTABLE_API_KEY || "";
+const AIRTABLE_API_KEY = import.meta.env.VITE_AIRTABLE_API_KEY || ""; 
 
 // 【網站設定區】
 const APP_CONFIG = {
@@ -124,37 +124,43 @@ const translations = {
 };
 
 // ==========================================
-// 🎨 村落資料字典 (加入色票配置與專屬介紹文字)
+// 🎨 村落資料字典 (加入對應的背景圖檔名 bgFile)
 // ==========================================
 const villageData = {
   '太平村': { 
     zh: '太平村', en: 'Taiping', desc_zh: '雲梯與老街', desc_en: 'Sky Bridge & Old Street', 
     color: '#b8caa5', textDark: '#506638', textBadge: '#ffffff',
+    bgFile: 'bg-taiping.png',
     intro: '漫步在雲端上的太平雲梯，俯瞰嘉南平原的壯麗景色，並在充滿歷史韻味的太平老街品嚐在地茶香與美食，感受雲霧繚繞的茶鄉風情。'
   },
   '太興村': { 
     zh: '太興村', en: 'Taixing', desc_zh: '萬鷺朝鳳', desc_en: 'Herons Migration', 
     color: '#ea994d', textDark: '#a35a0f', textBadge: '#ffffff',
+    bgFile: 'bg-taixing.png',
     intro: '每年秋季限定的「萬鷺朝鳳」奇景令人嘆為觀止。這裡有著豐富的生態與優美的步道，適合喜愛大自然與深度生態旅遊的您。'
   },
   '碧湖/龍眼村': { 
     zh: '碧湖/龍眼村', en: 'Bihu / Longyan', desc_zh: '觀光茶園', desc_en: 'Tea Gardens', 
     color: '#80a4aa', textDark: '#3a595e', textBadge: '#ffffff',
+    bgFile: 'bg-bihu.png',
     intro: '被群山環繞的翠綠觀光茶園，層層疊疊的茶樹宛如綠色地毯。來到這裡，點一杯好茶，靜靜享受遠離塵囂的寧靜與茶香。'
   },
   '瑞里村': { 
     zh: '瑞里村', en: 'Ruili', desc_zh: '紫色山城', desc_en: 'Purple Mountain Town', 
     color: '#d2cbe3', textDark: '#5a5270', textBadge: '#413a54',
+    bgFile: 'bg-ruili.png',
     intro: '著名的浪漫紫色山城，春季紫藤花盛開時如夢似幻。擁有燕子崖、蝙蝠洞等壯麗的自然地質景觀，是登山健行的絕佳勝地。'
   },
   '瑞峰村': { 
     zh: '瑞峰村', en: 'Ruifeng', desc_zh: '日出與步道', desc_en: 'Sunrise & Trails', 
     color: '#dd785b', textDark: '#8a371c', textBadge: '#ffffff',
+    bgFile: 'bg-ruifeng.png',
     intro: '坐擁絕美的日出勝地與竹坑溪步道，清晨的雲海與壯闊的山林景緻交織。非常適合熱愛早起迎接第一道曙光與親近森林的旅人。'
   },
   '太和村': { 
     zh: '太和村', en: 'Taihe', desc_zh: '茶園秘境', desc_en: 'Hidden Tea Farms', 
     color: '#c4b28e', textDark: '#70603d', textBadge: '#ffffff',
+    bgFile: 'bg-taihe.png',
     intro: '隱藏在深山中的茶園秘境，保留了最原始純粹的自然風貌。漫步在茶園小徑，感受山林間最清新的空氣與獨特靜謐。'
   },
 };
@@ -486,7 +492,6 @@ export default function App() {
       images = String(rawImg).split(/[,，]/).map(s => s.trim());
     }
 
-    // 🗺️ 【新增】擷取步道簡圖欄位
     let trailMapRaw = f['trail_map'] || f['步道簡圖'] || f['Trail Map'] || f['簡圖'];
     let trailMap = '';
     if (Array.isArray(trailMapRaw) && trailMapRaw.length > 0) {
@@ -535,7 +540,7 @@ export default function App() {
       lat: parseFloat(f['lat'] || f['Lat'] || f['緯度']) || null,
       lng: parseFloat(f['lng'] || f['Lng'] || f['經度']) || null,
       services: services,
-      trail_map: trailMap, // 加入步道簡圖屬性
+      trail_map: trailMap,
       rating: (f['rating'] || f['Rating'] || f['星等']) ? parseFloat(f['rating'] || f['Rating'] || f['星等']) : null,
       reviews: parseInt(f['reviews'] || f['Reviews'] || f['評論數'] || 0),
       images: images,
@@ -566,7 +571,7 @@ export default function App() {
 
       const CACHE_KEY = 'meishan_airtable_data';
       const CACHE_TIME_KEY = 'meishan_airtable_time';
-      const CACHE_DURATION = 1000 * 60 * 60; 
+      const CACHE_DURATION = 1000 * 60 * 5; 
 
       const cachedData = localStorage.getItem(CACHE_KEY);
       const cachedTime = localStorage.getItem(CACHE_TIME_KEY);
@@ -624,7 +629,6 @@ export default function App() {
     shops.forEach(s => {
       if (s.categories) {
         s.categories.forEach(c => {
-           // 🌟 隱藏系統專用的特殊分類 (不當成按鈕)
            if(c !== '活動' && c !== '公告' && c !== 'announcement') {
                existingCategories.add(c);
            }
@@ -646,7 +650,6 @@ export default function App() {
   };
 
   const getProcessedShops = () => {
-    // 🌟 先排除「活動與公告」，避免出現在一般店家清單中
     let result = shops.filter(shop => {
         return !shop.categories.includes('活動') && !shop.categories.includes('公告') && !shop.categories.includes('announcement') && shop.category !== 'announcement';
     });
@@ -743,7 +746,6 @@ export default function App() {
   };
 
   const ShopDetailModal = ({ shop, onClose }) => {
-    // 🗺️ 步道簡圖專屬狀態
     const [viewTrailMap, setViewTrailMap] = useState(false);
 
     if (!shop) return null;
@@ -769,7 +771,6 @@ export default function App() {
       <div className="fixed inset-0 z-[60] flex items-center justify-center px-4 animate-fade-in">
         <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose}></div>
 
-        {/* 🗺️ 【新增】步道簡圖全螢幕燈箱 */}
         {viewTrailMap && (
            <div className="fixed inset-0 z-[70] bg-black/90 backdrop-blur-sm flex flex-col items-center justify-center p-4 animate-fade-in" onClick={() => setViewTrailMap(false)}>
               <button className="absolute top-6 right-6 text-white bg-black/50 p-2 rounded-full hover:bg-white/20 transition-colors">
@@ -908,7 +909,6 @@ export default function App() {
               ))}
             </div>
 
-            {/* 🗺️ 【新增】步道簡圖按鈕 (若該景點有提供) */}
             {shop.trail_map && (
               <button 
                  onClick={() => setViewTrailMap(true)}
@@ -1188,8 +1188,31 @@ export default function App() {
   // 核心主畫面
   // ==========================================
   return (
-    <div className="min-h-[100dvh] bg-gray-50 text-gray-800 font-sans flex justify-center overflow-hidden animate-fade-in">
-      <div className="w-full max-w-md bg-white min-h-[100dvh] relative shadow-2xl overflow-y-auto pb-32 no-scrollbar">
+    <div className="min-h-[100dvh] bg-gray-50 text-gray-800 font-sans flex justify-center overflow-hidden animate-fade-in relative">
+      
+      {/* 定義自訂動畫 (背景緩慢漂浮用) */}
+      <style>
+        {`
+          @keyframes slowFloat {
+            0% { transform: translateY(0) scale(1); }
+            50% { transform: translateY(-15px) scale(1.02); }
+            100% { transform: translateY(0) scale(1); }
+          }
+        `}
+      </style>
+
+      {/* 🌟 【新增】動態生態背景層 */}
+      <div className="fixed inset-0 w-full max-w-md mx-auto z-0 pointer-events-none overflow-hidden flex items-center justify-center">
+        <img 
+          src={`/${villageData[selectedVillage]?.bgFile}`} 
+          alt="Village Background" 
+          className="w-full h-full object-cover opacity-[0.08] mix-blend-multiply"
+          style={{ animation: 'slowFloat 20s ease-in-out infinite' }}
+          onError={(e) => e.target.style.display = 'none'}
+        />
+      </div>
+
+      <div className="w-full max-w-md bg-white/95 min-h-[100dvh] relative z-10 shadow-2xl overflow-y-auto pb-32 no-scrollbar">
         {selectedShop && <ShopDetailModal shop={selectedShop} onClose={() => setSelectedShop(null)} />}
         {showFilterModal && <FilterModal />}
         {showUserModal && <UserModal />}
@@ -1232,7 +1255,7 @@ export default function App() {
         )}
 
         {/* Header */}
-        <div className="px-6 pt-12 pb-4 flex justify-between items-center bg-white/90 sticky top-0 z-20 backdrop-blur-sm border-b border-gray-100">
+        <div className="px-6 pt-12 pb-4 flex justify-between items-center bg-white/90 sticky top-0 z-20 backdrop-blur-md border-b border-gray-100">
           <div className="flex items-center gap-1">
             <button 
               onClick={() => {
@@ -1287,8 +1310,8 @@ export default function App() {
         {/* Main Content */}
         {currentView === 'home' && (
           <>
-            <div className="px-6 my-4">
-              <div className="bg-gray-100 rounded-2xl p-3 flex items-center gap-3 border border-transparent focus-within:bg-white focus-within:shadow-lg transition-all" style={{ outlineColor: currentPrimaryColor }}>
+            <div className="px-6 my-4 relative z-10">
+              <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-3 flex items-center gap-3 border border-transparent focus-within:bg-white focus-within:shadow-lg transition-all" style={{ outlineColor: currentPrimaryColor }}>
                 <Search className="text-gray-400" size={20} />
                 <input 
                   type="text" 
@@ -1305,18 +1328,16 @@ export default function App() {
               </div>
             </div>
 
-            {/* 🌟 【新增】最新消息 & 活動 Banner 區塊 (根據村落自動切換) */}
             {(() => {
-               // 從商店清單中篩選出該村落的「活動或公告」
                const announcements = shops.filter(s => 
                  (s.categories.includes('活動') || s.categories.includes('公告') || s.categories.includes('announcement')) && 
                  s.village === selectedVillage
                );
 
-               if (announcements.length === 0) return null; // 沒有公告就隱藏
+               if (announcements.length === 0) return null; 
 
                return (
-                  <div className="px-6 mb-6 animate-fade-in">
+                  <div className="px-6 mb-6 animate-fade-in relative z-10">
                     <h3 className="text-sm font-bold mb-3 flex items-center gap-1" style={{ color: currentDarkColor }}>
                       <Sparkles size={16} /> 最新消息 & 活動
                     </h3>
@@ -1327,7 +1348,7 @@ export default function App() {
                            <div key={ann.id} 
                                 onClick={() => link ? window.open(link, '_blank') : null}
                                 className={`snap-center shrink-0 w-full sm:w-[85%] h-32 rounded-2xl overflow-hidden relative shadow-md border ${link ? 'cursor-pointer group' : ''}`}
-                                style={{ borderColor: hexToRgba(currentPrimaryColor, 0.3) }}>
+                                style={{ borderColor: hexToRgba(currentPrimaryColor, 0.3), backgroundColor: 'rgba(255,255,255,0.8)' }}>
                               
                               {ann.images && ann.images.length > 0 ? (
                                  <img src={ann.images[0]} alt={ann.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
@@ -1350,7 +1371,7 @@ export default function App() {
                );
             })()}
 
-            <div className="px-6 mb-6">
+            <div className="px-6 mb-6 relative z-10">
               <div className="flex gap-3 overflow-x-auto pb-2 no-scrollbar">
                 {availableCategories.map((catKey) => {
                   const config = categoryConfig[catKey] || { labelKey: 'all', icon: <Tag size={18}/> };
@@ -1362,7 +1383,7 @@ export default function App() {
                       className={`flex flex-col items-center justify-center min-w-[70px] h-16 rounded-2xl transition-all duration-300 border ${ 
                         isActive 
                           ? 'transform scale-105 border-transparent' 
-                          : 'bg-white text-gray-400 border-gray-100 hover:bg-gray-50 shadow-sm' 
+                          : 'bg-white/80 backdrop-blur-sm text-gray-400 border-gray-100 hover:bg-gray-50 shadow-sm' 
                       }`}
                       style={isActive ? {
                         backgroundColor: currentPrimaryColor,
@@ -1380,7 +1401,7 @@ export default function App() {
           </>
         )}
 
-        <div className="px-6 mb-4 flex justify-between items-center">
+        <div className="px-6 mb-4 flex justify-between items-center relative z-10">
             <h2 className="text-lg font-bold text-gray-800">
               {currentView === 'favorites' ? t('favoritesList') : t('featured')}
             </h2>
@@ -1405,9 +1426,9 @@ export default function App() {
             </div>
         </div>
 
-        <div className="px-6 space-y-6">
+        <div className="px-6 space-y-6 relative z-10">
           {loading ? (
-             <div className="flex flex-col items-center justify-center py-20">
+             <div className="flex flex-col items-center justify-center py-20 bg-white/50 backdrop-blur-sm rounded-3xl">
                <Mascot size={64} animation="spin" className="mb-4" />
                <p className="font-bold tracking-widest animate-pulse" style={{ color: currentDarkColor }}>{t('loading')}</p>
              </div>
@@ -1428,7 +1449,7 @@ export default function App() {
               const shopCardColor = villageData[shop.village]?.color || '#059669';
 
               return (
-                <div key={shop.id} className="group relative bg-white rounded-[24px] overflow-hidden shadow-[0_8px_30px_rgb(0,0,0,0.06)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.12)] transition-shadow border border-gray-100">
+                <div key={shop.id} className="group relative bg-white/95 backdrop-blur-md rounded-[24px] overflow-hidden shadow-[0_8px_30px_rgb(0,0,0,0.06)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.12)] transition-shadow border border-white">
                   <div className="h-48 w-full relative overflow-hidden bg-gray-100">
                     <ImageCarousel images={shop.images} onClick={() => setSelectedShop(shop)} />
                     
@@ -1565,12 +1586,12 @@ export default function App() {
               );
             })
           ) : (
-             <div className="text-center py-10 text-gray-400">
+             <div className="text-center py-10 bg-white/50 backdrop-blur-sm rounded-3xl">
                 <Mascot size={72} animation="bounce" className="mx-auto mb-4 opacity-60 grayscale" />
-                <p>
+                <p className="text-gray-500 font-medium">
                   {currentView === 'favorites' ? t('noFavorites') : t('noShops')}
                 </p>
-                <button onClick={() => {setCurrentView('home'); setActiveCategory('all'); setSearchQuery('');}} className="text-sm mt-2 font-medium" style={{ color: currentPrimaryColor }}>
+                <button onClick={() => {setCurrentView('home'); setActiveCategory('all'); setSearchQuery('');}} className="text-sm mt-2 font-bold hover:underline" style={{ color: currentPrimaryColor }}>
                   {currentView === 'favorites' ? t('goToExplore') : t('showAll')}
                 </button>
              </div>
