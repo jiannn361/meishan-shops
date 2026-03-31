@@ -4,7 +4,7 @@ import { Search, MapPin, Phone, Navigation, Facebook, Star, Home, Coffee, Gift, 
 // 【安全修正】讀取環境變數
 // ⚠️ 註：為了讓預覽環境能順利編譯，目前先將 AIRTABLE_API_KEY 暫時設為空字串。
 // 在您的電腦本地端或 Vercel 上部署時，請將這行改回： const AIRTABLE_API_KEY = import.meta.env.VITE_AIRTABLE_API_KEY || "";
-const AIRTABLE_API_KEY = import.meta.env.VITE_AIRTABLE_API_KEY || "";
+const AIRTABLE_API_KEY = import.meta.env.VITE_AIRTABLE_API_KEY || ""; 
 
 // 【網站設定區】
 const APP_CONFIG = {
@@ -558,6 +558,23 @@ export default function App() {
         return;
       }
 
+      // 🌟 【新增】智慧快取機制：大幅節省 Airtable API 額度
+      const CACHE_KEY = 'meishan_airtable_data';
+      const CACHE_TIME_KEY = 'meishan_airtable_time';
+      const CACHE_DURATION = 1000 * 60 * 60; // 設定快取記憶時間為 1 小時
+
+      const cachedData = localStorage.getItem(CACHE_KEY);
+      const cachedTime = localStorage.getItem(CACHE_TIME_KEY);
+      const now = new Date().getTime();
+
+      // 如果手機裡有暫存資料，且距離上次抓取不到 1 小時，就直接用暫存的！
+      if (cachedData && cachedTime && (now - parseInt(cachedTime)) < CACHE_DURATION) {
+        console.log("✨ 讀取本地快取資料，成功節省 1 次 API 額度！");
+        setShops(JSON.parse(cachedData));
+        setLoading(false);
+        return;
+      }
+
       setLoading(true);
       let allRecords = [];
       let offset = '';
@@ -578,7 +595,13 @@ export default function App() {
           if (data.offset) offset = data.offset; else break;
         }
 
-        setShops(allRecords.map(processAirtableRecord));
+        const processedShops = allRecords.map(processAirtableRecord);
+        setShops(processedShops);
+
+        // 🌟 【新增】將最新抓回來的資料存進手機/電腦裡
+        localStorage.setItem(CACHE_KEY, JSON.stringify(processedShops));
+        localStorage.setItem(CACHE_TIME_KEY, now.toString());
+
       } catch (error) {
         console.log("Airtable 讀取失敗:", error);
       } finally {
