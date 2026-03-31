@@ -1,10 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Search, MapPin, Phone, Navigation, Facebook, Star, Home, Coffee, Gift, User, Filter, Heart, Menu, X, Mountain, Loader2, Camera, Ticket, Tag, Clock, ChevronLeft, ChevronRight, Info, LocateFixed, Globe, MessageCircle, Map as MapIcon, ExternalLink, CalendarCheck, Banknote, AlertCircle, Bus, ChevronDown, Play, ArrowRight } from 'lucide-react';
+import { Search, MapPin, Phone, Navigation, Facebook, Star, Home, Coffee, Gift, User, Filter, Heart, Menu, X, Mountain, Loader2, Camera, Ticket, Tag, Clock, ChevronLeft, ChevronRight, Info, LocateFixed, Globe, MessageCircle, Map as MapIcon, ExternalLink, CalendarCheck, Banknote, AlertCircle, Bus, ChevronDown, Play, ArrowRight, Sparkles } from 'lucide-react';
 
 // 【安全修正】讀取環境變數
-// ⚠️ 註：為了讓預覽環境能順利編譯，目前先將 AIRTABLE_API_KEY 暫時設為空字串。
-// 在您的電腦本地端或 Vercel 上部署時，請將這行改回： const AIRTABLE_API_KEY = import.meta.env.VITE_AIRTABLE_API_KEY || "";
-const AIRTABLE_API_KEY = import.meta.env.VITE_AIRTABLE_API_KEY || ""; 
+const AIRTABLE_API_KEY = import.meta.env.VITE_AIRTABLE_API_KEY || "";
 
 // 【網站設定區】
 const APP_CONFIG = {
@@ -188,7 +186,6 @@ const Mascot = ({ size = 60, className = "", animation = "", imageUrl = null }) 
       style={{ width: size, height: size }}
       className={`object-contain drop-shadow-sm ${animClass} ${className}`}
       onError={(e) => {
-        // 防呆：如果 public 裡面沒有圖片，退回小熊圖示避免破圖
         if (e.target.src !== "https://cdn-icons-png.flaticon.com/512/3466/3466395.png") {
             e.target.src = "https://cdn-icons-png.flaticon.com/512/3466/3466395.png";
         }
@@ -234,10 +231,9 @@ const DefaultShopImage = () => (
 );
 
 export default function App() {
-  // 🎮 遊戲風迎賓狀態控制
   const [appStarted, setAppStarted] = useState(false); 
-  const [landingStep, setLandingStep] = useState('welcome'); // 'welcome' | 'select'
-  const [previewVillage, setPreviewVillage] = useState(null); // 目前夾層預覽的村落
+  const [landingStep, setLandingStep] = useState('welcome'); 
+  const [previewVillage, setPreviewVillage] = useState(null); 
 
   const [language, setLanguage] = useState('zh');
   const [activeCategory, setActiveCategory] = useState('all');
@@ -490,6 +486,15 @@ export default function App() {
       images = String(rawImg).split(/[,，]/).map(s => s.trim());
     }
 
+    // 🗺️ 【新增】擷取步道簡圖欄位
+    let trailMapRaw = f['trail_map'] || f['步道簡圖'] || f['Trail Map'] || f['簡圖'];
+    let trailMap = '';
+    if (Array.isArray(trailMapRaw) && trailMapRaw.length > 0) {
+      trailMap = trailMapRaw[0].url || trailMapRaw[0];
+    } else if (typeof trailMapRaw === 'string') {
+      trailMap = trailMapRaw.split(/[,，]/)[0].trim();
+    }
+
     let services = [];
     const rawSvc = f['services'] || f['服務標籤'] || f['Services'];
     if (Array.isArray(rawSvc)) {
@@ -530,6 +535,7 @@ export default function App() {
       lat: parseFloat(f['lat'] || f['Lat'] || f['緯度']) || null,
       lng: parseFloat(f['lng'] || f['Lng'] || f['經度']) || null,
       services: services,
+      trail_map: trailMap, // 加入步道簡圖屬性
       rating: (f['rating'] || f['Rating'] || f['星等']) ? parseFloat(f['rating'] || f['Rating'] || f['星等']) : null,
       reviews: parseInt(f['reviews'] || f['Reviews'] || f['評論數'] || 0),
       images: images,
@@ -558,18 +564,15 @@ export default function App() {
         return;
       }
 
-      // 🌟 【新增】智慧快取機制：大幅節省 Airtable API 額度
       const CACHE_KEY = 'meishan_airtable_data';
       const CACHE_TIME_KEY = 'meishan_airtable_time';
-      const CACHE_DURATION = 1000 * 60 * 60; // 設定快取記憶時間為 1 小時
+      const CACHE_DURATION = 1000 * 60 * 60; 
 
       const cachedData = localStorage.getItem(CACHE_KEY);
       const cachedTime = localStorage.getItem(CACHE_TIME_KEY);
       const now = new Date().getTime();
 
-      // 如果手機裡有暫存資料，且距離上次抓取不到 1 小時，就直接用暫存的！
       if (cachedData && cachedTime && (now - parseInt(cachedTime)) < CACHE_DURATION) {
-        console.log("✨ 讀取本地快取資料，成功節省 1 次 API 額度！");
         setShops(JSON.parse(cachedData));
         setLoading(false);
         return;
@@ -598,7 +601,6 @@ export default function App() {
         const processedShops = allRecords.map(processAirtableRecord);
         setShops(processedShops);
 
-        // 🌟 【新增】將最新抓回來的資料存進手機/電腦裡
         localStorage.setItem(CACHE_KEY, JSON.stringify(processedShops));
         localStorage.setItem(CACHE_TIME_KEY, now.toString());
 
@@ -620,7 +622,14 @@ export default function App() {
   const getDynamicCategories = () => {
     const existingCategories = new Set();
     shops.forEach(s => {
-      if (s.categories) s.categories.forEach(c => existingCategories.add(c));
+      if (s.categories) {
+        s.categories.forEach(c => {
+           // 🌟 隱藏系統專用的特殊分類 (不當成按鈕)
+           if(c !== '活動' && c !== '公告' && c !== 'announcement') {
+               existingCategories.add(c);
+           }
+        });
+      }
     });
 
     const dynamicCats = ['all', ...existingCategories];
@@ -637,7 +646,10 @@ export default function App() {
   };
 
   const getProcessedShops = () => {
-    let result = shops;
+    // 🌟 先排除「活動與公告」，避免出現在一般店家清單中
+    let result = shops.filter(shop => {
+        return !shop.categories.includes('活動') && !shop.categories.includes('公告') && !shop.categories.includes('announcement') && shop.category !== 'announcement';
+    });
 
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase().trim();
@@ -731,6 +743,9 @@ export default function App() {
   };
 
   const ShopDetailModal = ({ shop, onClose }) => {
+    // 🗺️ 步道簡圖專屬狀態
+    const [viewTrailMap, setViewTrailMap] = useState(false);
+
     if (!shop) return null;
     const isOpen = checkIsOpen(shop.hours);
 
@@ -753,6 +768,18 @@ export default function App() {
     return (
       <div className="fixed inset-0 z-[60] flex items-center justify-center px-4 animate-fade-in">
         <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose}></div>
+
+        {/* 🗺️ 【新增】步道簡圖全螢幕燈箱 */}
+        {viewTrailMap && (
+           <div className="fixed inset-0 z-[70] bg-black/90 backdrop-blur-sm flex flex-col items-center justify-center p-4 animate-fade-in" onClick={() => setViewTrailMap(false)}>
+              <button className="absolute top-6 right-6 text-white bg-black/50 p-2 rounded-full hover:bg-white/20 transition-colors">
+                 <X size={24} />
+              </button>
+              <h3 className="absolute top-6 left-6 text-white font-bold text-lg drop-shadow-md">步道簡圖</h3>
+              <img src={shop.trail_map} alt="步道簡圖" className="max-w-full max-h-[80vh] object-contain rounded-xl shadow-2xl" onClick={e => e.stopPropagation()} />
+           </div>
+        )}
+
         <div className="relative w-full max-w-sm bg-white rounded-3xl overflow-hidden shadow-2xl animate-scale-up max-h-[85vh] overflow-y-auto">
           <button onClick={onClose} className="absolute top-4 right-4 z-10 bg-black/30 hover:bg-black/50 text-white p-2 rounded-full backdrop-blur-md transition-colors">
             <X size={20} />
@@ -880,6 +907,17 @@ export default function App() {
                 </span>
               ))}
             </div>
+
+            {/* 🗺️ 【新增】步道簡圖按鈕 (若該景點有提供) */}
+            {shop.trail_map && (
+              <button 
+                 onClick={() => setViewTrailMap(true)}
+                 className="w-full py-3 mb-2 rounded-2xl flex items-center justify-center gap-2 font-bold shadow-sm transition-transform active:scale-95 mt-4"
+                 style={{ backgroundColor: hexToRgba(shopColor, 0.1), color: shopDarkColor, border: `1px solid ${hexToRgba(shopColor, 0.3)}` }}
+              >
+                 <MapIcon size={18} /> 查看步道簡圖
+              </button>
+            )}
 
             <div className="flex gap-3 pt-2 flex-wrap">
               <a 
@@ -1034,7 +1072,6 @@ export default function App() {
       <div className="min-h-[100dvh] bg-gray-50 font-sans flex justify-center overflow-hidden">
         <div className="w-full max-w-md relative shadow-2xl overflow-hidden flex flex-col bg-gray-100">
           
-          {/* 背景層 */}
           <img 
             src="/bg.png" 
             alt="Background" 
@@ -1046,14 +1083,11 @@ export default function App() {
           />
           <div className="absolute inset-0 bg-white/20 backdrop-blur-[2px] z-0"></div>
 
-          {/* 內容層 */}
           <div className="relative z-10 flex flex-col w-full h-full">
             
-            {/* 步驟一：首頁迎賓按鈕 */}
             {landingStep === 'welcome' && (
               <div className="flex-1 flex flex-col items-center justify-center p-8 animate-fade-in">
                 <div className="flex flex-col items-center space-y-8 p-8 bg-white/60 backdrop-blur-xl rounded-[40px] shadow-2xl border border-white/60 w-full text-center transform transition-all hover:scale-105">
-                  {/* 【修改】統一使用預設表情 */}
                   <Mascot size={120} animation="bounce" className="drop-shadow-xl" />
                   
                   <div className="space-y-2">
@@ -1072,7 +1106,6 @@ export default function App() {
               </div>
             )}
 
-            {/* 步驟二：村落選單 (互動夾層) */}
             {landingStep === 'select' && (
               <div className="flex-1 flex flex-col p-6 animate-fade-in overflow-y-auto">
                 <div className="flex justify-between items-center mb-6 mt-4">
@@ -1105,7 +1138,6 @@ export default function App() {
               </div>
             )}
 
-            {/* 步驟三：村落介紹預覽夾層 (Bottom Sheet) */}
             {previewVillage && (
                <div className="absolute inset-0 z-50 flex items-end animate-fade-in">
                   <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setPreviewVillage(null)}></div>
@@ -1119,7 +1151,6 @@ export default function App() {
                      
                      <div className="flex items-center gap-4">
                         <div className="w-16 h-16 rounded-2xl flex items-center justify-center shadow-md" style={{ backgroundColor: hexToRgba(villageData[previewVillage].color, 0.15), color: villageData[previewVillage].textDark }}>
-                           {/* 【修改】統一使用預設表情 */}
                            <Mascot size={40} />
                         </div>
                         <div>
@@ -1137,7 +1168,7 @@ export default function App() {
                      <button 
                         onClick={() => {
                           setSelectedVillage(previewVillage);
-                          setAppStarted(true); // 正式進入主畫面
+                          setAppStarted(true); 
                         }}
                         className="w-full py-4 rounded-2xl font-bold text-lg text-white shadow-xl hover:-translate-y-1 transition-all active:translate-y-0 flex items-center justify-center gap-2 group"
                         style={{ backgroundColor: villageData[previewVillage].color, boxShadow: `0 10px 20px -5px ${hexToRgba(villageData[previewVillage].color, 0.5)}` }}
@@ -1163,7 +1194,7 @@ export default function App() {
         {showFilterModal && <FilterModal />}
         {showUserModal && <UserModal />}
 
-        {/* Sidebar - 側邊選單：套用動態村落顏色 */}
+        {/* Sidebar */}
         {isSidebarOpen && (
           <div className="absolute inset-0 z-50 flex">
              <div className="w-64 bg-white h-full shadow-2xl p-6 transform transition-transform duration-300 ease-in-out flex flex-col z-20">
@@ -1203,15 +1234,14 @@ export default function App() {
         {/* Header */}
         <div className="px-6 pt-12 pb-4 flex justify-between items-center bg-white/90 sticky top-0 z-20 backdrop-blur-sm border-b border-gray-100">
           <div className="flex items-center gap-1">
-            {/* 🎨 返回村落選單按鈕 */}
             <button 
               onClick={() => {
                  if (currentView === 'favorites') {
                      setCurrentView('home');
                  } else {
-                     setAppStarted(false);       // 退回迎賓狀態
-                     setLandingStep('select');   // 直接跳到「選擇村落」的步驟
-                     setPreviewVillage(null);    // 清除夾層預覽
+                     setAppStarted(false);       
+                     setLandingStep('select');   
+                     setPreviewVillage(null);    
                  }
               }}
               className="w-10 h-10 -ml-3 rounded-full flex items-center justify-center transition-colors hover:bg-gray-100 active:bg-gray-200"
@@ -1224,7 +1254,6 @@ export default function App() {
               onClick={() => setSidebarOpen(true)}
               className="group flex flex-col items-start cursor-pointer"
             >
-              {/* 【更新】頂部標題套用當前村落專屬色系 */}
               <div className="flex items-center gap-1 mb-0.5" style={{ color: currentPrimaryColor }}>
                 <MapPin size={14} />
                 <span className="text-xs font-bold tracking-wide uppercase" style={{ color: currentDarkColor }}>{APP_CONFIG.subTitle}</span>
@@ -1275,6 +1304,52 @@ export default function App() {
                 )}
               </div>
             </div>
+
+            {/* 🌟 【新增】最新消息 & 活動 Banner 區塊 (根據村落自動切換) */}
+            {(() => {
+               // 從商店清單中篩選出該村落的「活動或公告」
+               const announcements = shops.filter(s => 
+                 (s.categories.includes('活動') || s.categories.includes('公告') || s.categories.includes('announcement')) && 
+                 s.village === selectedVillage
+               );
+
+               if (announcements.length === 0) return null; // 沒有公告就隱藏
+
+               return (
+                  <div className="px-6 mb-6 animate-fade-in">
+                    <h3 className="text-sm font-bold mb-3 flex items-center gap-1" style={{ color: currentDarkColor }}>
+                      <Sparkles size={16} /> 最新消息 & 活動
+                    </h3>
+                    <div className="flex gap-3 overflow-x-auto no-scrollbar snap-x">
+                      {announcements.map(ann => {
+                         const link = ann.website || ann.fbLink || ann.line_url || ann.nav_link;
+                         return (
+                           <div key={ann.id} 
+                                onClick={() => link ? window.open(link, '_blank') : null}
+                                className={`snap-center shrink-0 w-full sm:w-[85%] h-32 rounded-2xl overflow-hidden relative shadow-md border ${link ? 'cursor-pointer group' : ''}`}
+                                style={{ borderColor: hexToRgba(currentPrimaryColor, 0.3) }}>
+                              
+                              {ann.images && ann.images.length > 0 ? (
+                                 <img src={ann.images[0]} alt={ann.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                              ) : (
+                                 <div className="w-full h-full flex items-center justify-center bg-gray-100">
+                                    <span className="text-gray-400 text-sm">尚無圖片</span>
+                                 </div>
+                              )}
+
+                              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"></div>
+                              <div className="absolute bottom-3 left-4 right-4 text-white">
+                                 <h4 className="font-bold text-sm truncate">{ann.name}</h4>
+                                 {ann.description && <p className="text-xs text-gray-200 truncate mt-0.5">{ann.description}</p>}
+                              </div>
+                           </div>
+                         );
+                      })}
+                    </div>
+                  </div>
+               );
+            })()}
+
             <div className="px-6 mb-6">
               <div className="flex gap-3 overflow-x-auto pb-2 no-scrollbar">
                 {availableCategories.map((catKey) => {
@@ -1333,7 +1408,6 @@ export default function App() {
         <div className="px-6 space-y-6">
           {loading ? (
              <div className="flex flex-col items-center justify-center py-20">
-               {/* 【修改】統一使用預設表情 */}
                <Mascot size={64} animation="spin" className="mb-4" />
                <p className="font-bold tracking-widest animate-pulse" style={{ color: currentDarkColor }}>{t('loading')}</p>
              </div>
@@ -1351,7 +1425,6 @@ export default function App() {
               
               const hideCardHours = !shop.hours || shop.hours.trim().toLowerCase() === 'google' || shop.hours.trim().toLowerCase() === 'fb' || shop.hours.includes('預約制');
 
-              // 卡片的專屬色
               const shopCardColor = villageData[shop.village]?.color || '#059669';
 
               return (
@@ -1363,7 +1436,6 @@ export default function App() {
                       <Heart size={18} className={isFav ? "fill-rose-500 text-rose-500" : "text-gray-400"} />
                     </button>
                     
-                    {/* 照片左上角的村落徽章 */}
                     <div 
                       className="absolute top-3 left-3 px-2 py-1 rounded-lg z-10 pointer-events-none shadow-sm"
                       style={{ 
@@ -1374,7 +1446,6 @@ export default function App() {
                         <span className="text-xs font-bold tracking-wide">{villageData[shop.village]?.[language] || shop.village}</span>
                     </div>
 
-                    {/* 🎨【統一色調】左下角狀態徽章 */}
                     {showAccommodationBadge || isOpen === 'appointment' ? (
                       <div className="absolute bottom-3 left-3 backdrop-blur-md pl-2 pr-3 py-1 rounded-full flex items-center gap-1.5 shadow-lg z-10 pointer-events-none" style={{ backgroundColor: hexToRgba(shopCardColor, 0.9) }}>
                         <CalendarCheck size={12} className="text-white" />
@@ -1495,7 +1566,6 @@ export default function App() {
             })
           ) : (
              <div className="text-center py-10 text-gray-400">
-                {/* 【修改】統一使用預設表情 */}
                 <Mascot size={72} animation="bounce" className="mx-auto mb-4 opacity-60 grayscale" />
                 <p>
                   {currentView === 'favorites' ? t('noFavorites') : t('noShops')}
@@ -1507,7 +1577,7 @@ export default function App() {
           )}
         </div>
 
-        {/* 🎨 底層導航列統一顏色 */}
+        {/* 底層導航列 */}
         <div className="fixed bottom-6 left-0 right-0 flex justify-center z-50 pointer-events-none">
           <div className="bg-white/95 backdrop-blur-xl border border-gray-100 shadow-[0_10px_40px_-10px_rgba(0,0,0,0.15)] rounded-full px-6 py-3 flex items-center gap-8 pointer-events-auto">
              <button onClick={() => { setCurrentView('home'); setSortBy('default'); }} className={`flex flex-col items-center gap-1 group transition-colors`} style={{ color: currentView === 'home' ? currentPrimaryColor : '#9ca3af' }}>
@@ -1517,10 +1587,8 @@ export default function App() {
                 <Heart size={24} className={currentView === 'favorites' ? "fill-rose-500 text-rose-500" : ""} />
              </button>
              
-             {/* 中間大定位按鈕 */}
              <button onClick={handleGetLocation} className="-mt-10 w-16 h-16 rounded-full flex items-center justify-center shadow-lg border-[5px] border-white transform hover:scale-105 transition-transform text-white relative"
                      style={{ backgroundColor: currentPrimaryColor, boxShadow: `0 10px 15px -3px ${hexToRgba(currentPrimaryColor, 0.4)}` }}>
-                {/* 【修改】統一使用預設表情 */}
                 {loading && !userLocation ? (<Mascot size={28} animation="spin" />) : (<LocateFixed size={28} />)}
                 {userLocation && <div className="absolute top-3 right-4 w-2 h-2 bg-green-300 rounded-full animate-ping"></div>}
              </button>
