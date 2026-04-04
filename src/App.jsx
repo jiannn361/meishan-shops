@@ -571,7 +571,7 @@ export default function App() {
 
       const CACHE_KEY = 'meishan_airtable_data';
       const CACHE_TIME_KEY = 'meishan_airtable_time';
-      const CACHE_DURATION = 1000 * 60 * 5; 
+      const CACHE_DURATION = 1000 * 60 * 1; 
 
       const cachedData = localStorage.getItem(CACHE_KEY);
       const cachedTime = localStorage.getItem(CACHE_TIME_KEY);
