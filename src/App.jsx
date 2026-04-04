@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Search, MapPin, Phone, Navigation, Facebook, Star, Home, Coffee, Gift, User, Filter, Heart, Menu, X, Mountain, Loader2, Camera, Ticket, Tag, Clock, ChevronLeft, ChevronRight, Info, LocateFixed, Globe, MessageCircle, Map as MapIcon, ExternalLink, CalendarCheck, Banknote, AlertCircle, Bus, ChevronDown, Play, ArrowRight, Sparkles } from 'lucide-react';
 
 // 【安全修正】讀取環境變數
+// ⚠️ 註：為了讓預覽環境能順利編譯，目前先將 AIRTABLE_API_KEY 暫時設為空字串。
+// 在您的電腦本地端或 Vercel 上部署時，請將這行改回： const AIRTABLE_API_KEY = import.meta.env.VITE_AIRTABLE_API_KEY || "";
 const AIRTABLE_API_KEY = import.meta.env.VITE_AIRTABLE_API_KEY || "";
 
 // 【網站設定區】
@@ -124,7 +126,7 @@ const translations = {
 };
 
 // ==========================================
-// 🎨 村落資料字典 (加入對應的背景圖檔名 bgFile)
+// 🎨 村落資料字典
 // ==========================================
 const villageData = {
   '太平村': { 
@@ -813,10 +815,11 @@ export default function App() {
 
           <div className="p-6 space-y-6">
             <div className="flex flex-col gap-3 items-start">
+               {/* 🎨【修正】所有 Modal 內的狀態標籤均套用村落的 深色 (textDark) 增加識別度 */}
                {showAccommodationBadge ? (
                  <div 
                   className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold self-start"
-                  style={{ backgroundColor: hexToRgba(shopColor, 0.15), color: shopDarkColor }}
+                  style={{ backgroundColor: hexToRgba(shopDarkColor, 0.15), color: shopDarkColor }}
                  >
                    <CalendarCheck size={14} />
                    {accBadgeText}
@@ -824,7 +827,7 @@ export default function App() {
                ) : isOpen === 'appointment' ? (
                  <div 
                   className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold self-start"
-                  style={{ backgroundColor: hexToRgba(shopColor, 0.15), color: shopDarkColor }}
+                  style={{ backgroundColor: hexToRgba(shopDarkColor, 0.15), color: shopDarkColor }}
                  >
                    <CalendarCheck size={14} />
                    {t('byAppointment')}
@@ -833,7 +836,7 @@ export default function App() {
                  <div 
                   className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold self-start`}
                   style={
-                    isOpen === true ? { backgroundColor: hexToRgba(shopColor, 0.15), color: shopDarkColor } : 
+                    isOpen === true ? { backgroundColor: hexToRgba(shopDarkColor, 0.15), color: shopDarkColor } : 
                     isOpen === 'opening_soon' ? { backgroundColor: '#fef3c7', color: '#b45309' } : 
                     isOpen === 'closing_soon' ? { backgroundColor: '#ffedd5', color: '#c2410c' } : 
                     isOpen === false ? { backgroundColor: '#f3f4f6', color: '#4b5563' } : 
@@ -1201,401 +1204,408 @@ export default function App() {
         `}
       </style>
 
-      {/* 🌟 【新增】動態生態背景層 */}
-      <div className="fixed inset-0 w-full max-w-md mx-auto z-0 pointer-events-none overflow-hidden flex items-center justify-center">
-        <img 
-          src={`/${villageData[selectedVillage]?.bgFile}`} 
-          alt="Village Background" 
-          className="w-full h-full object-cover opacity-[0.08] mix-blend-multiply"
-          style={{ animation: 'slowFloat 20s ease-in-out infinite' }}
-          onError={(e) => e.target.style.display = 'none'}
-        />
-      </div>
-
-      <div className="w-full max-w-md bg-white/95 min-h-[100dvh] relative z-10 shadow-2xl overflow-y-auto pb-32 no-scrollbar">
-        {selectedShop && <ShopDetailModal shop={selectedShop} onClose={() => setSelectedShop(null)} />}
-        {showFilterModal && <FilterModal />}
-        {showUserModal && <UserModal />}
-
-        {/* Sidebar */}
-        {isSidebarOpen && (
-          <div className="absolute inset-0 z-50 flex">
-             <div className="w-64 bg-white h-full shadow-2xl p-6 transform transition-transform duration-300 ease-in-out flex flex-col z-20">
-              <div className="flex justify-between items-center mb-8">
-                <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2">
-                  <MapPin className="text-gray-600" />
-                  {t('switchVillage')}
-                </h2>
-                <button onClick={() => setSidebarOpen(false)} className="p-2 hover:bg-gray-100 rounded-full">
-                  <X size={24} className="text-gray-500" />
-                </button>
-              </div>
-              <div className="space-y-3">
-                {Object.keys(villageData).map((vKey) => {
-                  const vData = villageData[vKey];
-                  const isSelected = selectedVillage === vKey;
-                  return (
-                    <button 
-                      key={vKey} 
-                      onClick={() => { setSelectedVillage(vKey); setSidebarOpen(false); setCurrentView('home'); setSortBy('default'); }} 
-                      style={isSelected ? { backgroundColor: hexToRgba(vData.color, 0.2), borderLeftColor: vData.color } : {}}
-                      className={`w-full text-left p-4 rounded-xl flex justify-between items-center transition-all border-l-4 ${ isSelected ? 'font-bold' : 'border-transparent hover:bg-gray-50 text-gray-600' }`}
-                    >
-                      <span style={{ color: isSelected ? vData.textDark : '' }}>{vData?.[language] || vKey}</span>
-                      <span className="text-xs font-normal" style={{ color: isSelected ? hexToRgba(vData.textDark, 0.7) : '#9ca3af' }}>
-                        {language === 'en' ? vData?.desc_en : vData?.desc_zh}
-                      </span>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-            <div className="flex-1 bg-black/20 backdrop-blur-sm" onClick={() => setSidebarOpen(false)}></div>
-          </div>
-        )}
-
-        {/* Header */}
-        <div className="px-6 pt-12 pb-4 flex justify-between items-center bg-white/90 sticky top-0 z-20 backdrop-blur-md border-b border-gray-100">
-          <div className="flex items-center gap-1">
-            <button 
-              onClick={() => {
-                 if (currentView === 'favorites') {
-                     setCurrentView('home');
-                 } else {
-                     setAppStarted(false);       
-                     setLandingStep('select');   
-                     setPreviewVillage(null);    
-                 }
-              }}
-              className="w-10 h-10 -ml-3 rounded-full flex items-center justify-center transition-colors hover:bg-gray-100 active:bg-gray-200"
-              style={{ color: currentPrimaryColor }}
-            >
-              <ChevronLeft size={28} />
-            </button>
-
-            <div 
-              onClick={() => setSidebarOpen(true)}
-              className="group flex flex-col items-start cursor-pointer"
-            >
-              <div className="flex items-center gap-1 mb-0.5" style={{ color: currentPrimaryColor }}>
-                <MapPin size={14} />
-                <span className="text-xs font-bold tracking-wide uppercase" style={{ color: currentDarkColor }}>{APP_CONFIG.subTitle}</span>
-              </div>
-              <div className="flex items-center gap-1.5 bg-gray-50/50 hover:bg-gray-100 px-2 py-1 -ml-2 rounded-lg transition-colors">
-                <h1 className="text-xl font-extrabold text-gray-900">
-                  {currentView === 'favorites' ? t('myFavorites') : (villageData[selectedVillage]?.[language] || selectedVillage)}
-                </h1>
-                <ChevronDown size={20} className="text-gray-400 group-hover:text-gray-700 transition-colors" />
-              </div>
-            </div>
-          </div>
-          <div className="flex items-center gap-2">
-            <button 
-              onClick={toggleLanguage} 
-              className="text-sm font-bold px-2 py-1 rounded-lg border hover:opacity-80 transition-opacity"
-              style={{ color: currentPrimaryColor, backgroundColor: hexToRgba(currentPrimaryColor, 0.1), borderColor: hexToRgba(currentPrimaryColor, 0.2) }}
-            >
-              {t('langSwitch')}
-            </button>
-            <button onClick={() => setShowUserModal(true)} className="w-10 h-10 rounded-full overflow-hidden border-2 border-white shadow-md bg-gray-100 flex items-center justify-center">
-               {userProfile?.pictureUrl ? (
-                 <img src={userProfile.pictureUrl} alt="User" className="w-full h-full object-cover" />
-               ) : (
-                 <User size={20} style={{ color: currentPrimaryColor }} />
-               )}
-            </button>
-          </div>
+      {/* 主畫面容器 */}
+      <div className="w-full max-w-md bg-gray-50 min-h-[100dvh] relative shadow-2xl overflow-y-auto pb-32 no-scrollbar">
+        
+        {/* 🌟 【修正】將背景圖直接放在主容器內，並提高透明度與移除混色，確保清晰可見 */}
+        <div className="fixed inset-y-0 w-full max-w-md z-0 pointer-events-none overflow-hidden">
+          <img 
+            src={`/${villageData[selectedVillage]?.bgFile}`} 
+            alt="Village Background" 
+            className="w-full h-full object-cover opacity-20"
+            style={{ animation: 'slowFloat 20s ease-in-out infinite' }}
+            onError={(e) => e.target.style.display = 'none'}
+          />
         </div>
 
-        {/* Main Content */}
-        {currentView === 'home' && (
-          <>
-            <div className="px-6 my-4 relative z-10">
-              <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-3 flex items-center gap-3 border border-transparent focus-within:bg-white focus-within:shadow-lg transition-all" style={{ outlineColor: currentPrimaryColor }}>
-                <Search className="text-gray-400" size={20} />
-                <input 
-                  type="text" 
-                  placeholder={t('searchPlaceholder')} 
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="bg-transparent border-none outline-none text-gray-700 placeholder-gray-400 flex-1 text-sm font-medium" 
-                />
-                {searchQuery && (
-                  <button onClick={() => setSearchQuery('')} className="text-gray-400 hover:text-gray-600 p-1">
-                    <X size={16} />
+        {/* 內容層：所有內容包在 z-10 內，確保浮在背景上 */}
+        <div className="relative z-10">
+          {selectedShop && <ShopDetailModal shop={selectedShop} onClose={() => setSelectedShop(null)} />}
+          {showFilterModal && <FilterModal />}
+          {showUserModal && <UserModal />}
+
+          {/* Sidebar */}
+          {isSidebarOpen && (
+            <div className="fixed inset-0 w-full max-w-md mx-auto z-50 flex">
+               <div className="w-64 bg-white h-full shadow-2xl p-6 transform transition-transform duration-300 ease-in-out flex flex-col z-20">
+                <div className="flex justify-between items-center mb-8">
+                  <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2">
+                    <MapPin className="text-gray-600" />
+                    {t('switchVillage')}
+                  </h2>
+                  <button onClick={() => setSidebarOpen(false)} className="p-2 hover:bg-gray-100 rounded-full">
+                    <X size={24} className="text-gray-500" />
                   </button>
-                )}
-              </div>
-            </div>
-
-            {(() => {
-               const announcements = shops.filter(s => 
-                 (s.categories.includes('活動') || s.categories.includes('公告') || s.categories.includes('announcement')) && 
-                 s.village === selectedVillage
-               );
-
-               if (announcements.length === 0) return null; 
-
-               return (
-                  <div className="px-6 mb-6 animate-fade-in relative z-10">
-                    <h3 className="text-sm font-bold mb-3 flex items-center gap-1" style={{ color: currentDarkColor }}>
-                      <Sparkles size={16} /> 最新消息 & 活動
-                    </h3>
-                    <div className="flex gap-3 overflow-x-auto no-scrollbar snap-x">
-                      {announcements.map(ann => {
-                         const link = ann.website || ann.fbLink || ann.line_url || ann.nav_link;
-                         return (
-                           <div key={ann.id} 
-                                onClick={() => link ? window.open(link, '_blank') : null}
-                                className={`snap-center shrink-0 w-full sm:w-[85%] h-32 rounded-2xl overflow-hidden relative shadow-md border ${link ? 'cursor-pointer group' : ''}`}
-                                style={{ borderColor: hexToRgba(currentPrimaryColor, 0.3), backgroundColor: 'rgba(255,255,255,0.8)' }}>
-                              
-                              {ann.images && ann.images.length > 0 ? (
-                                 <img src={ann.images[0]} alt={ann.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                              ) : (
-                                 <div className="w-full h-full flex items-center justify-center bg-gray-100">
-                                    <span className="text-gray-400 text-sm">尚無圖片</span>
-                                 </div>
-                              )}
-
-                              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"></div>
-                              <div className="absolute bottom-3 left-4 right-4 text-white">
-                                 <h4 className="font-bold text-sm truncate">{ann.name}</h4>
-                                 {ann.description && <p className="text-xs text-gray-200 truncate mt-0.5">{ann.description}</p>}
-                              </div>
-                           </div>
-                         );
-                      })}
-                    </div>
-                  </div>
-               );
-            })()}
-
-            <div className="px-6 mb-6 relative z-10">
-              <div className="flex gap-3 overflow-x-auto pb-2 no-scrollbar">
-                {availableCategories.map((catKey) => {
-                  const config = categoryConfig[catKey] || { labelKey: 'all', icon: <Tag size={18}/> };
-                  const isActive = activeCategory === catKey;
-                  return (
-                    <button 
-                      key={catKey} 
-                      onClick={() => setActiveCategory(catKey)} 
-                      className={`flex flex-col items-center justify-center min-w-[70px] h-16 rounded-2xl transition-all duration-300 border ${ 
-                        isActive 
-                          ? 'transform scale-105 border-transparent' 
-                          : 'bg-white/80 backdrop-blur-sm text-gray-400 border-gray-100 hover:bg-gray-50 shadow-sm' 
-                      }`}
-                      style={isActive ? {
-                        backgroundColor: currentPrimaryColor,
-                        color: currentBadgeColor,
-                        boxShadow: `0 10px 15px -3px ${hexToRgba(currentPrimaryColor, 0.4)}`
-                      } : {}}
-                    >
-                      <div className="mb-1">{config.icon}</div>
-                      <span className="text-[10px] font-medium capitalize">{t(config.labelKey) || catKey}</span>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          </>
-        )}
-
-        <div className="px-6 mb-4 flex justify-between items-center relative z-10">
-            <h2 className="text-lg font-bold text-gray-800">
-              {currentView === 'favorites' ? t('favoritesList') : t('featured')}
-            </h2>
-            <div className="flex items-center gap-2">
-              {filterOpenOnly && (
-                <span className="text-xs font-medium px-2 py-1 rounded-lg flex items-center gap-1 border"
-                      style={{ backgroundColor: hexToRgba(currentPrimaryColor, 0.1), color: currentDarkColor, borderColor: hexToRgba(currentPrimaryColor, 0.2) }}>
-                  <Clock size={12} /> {t('openNow')}
-                </span>
-              )}
-              {userLocation && (
-                <span className="text-xs font-medium px-2 py-1 rounded-lg flex items-center gap-1"
-                      style={{ backgroundColor: hexToRgba(currentPrimaryColor, 0.1), color: currentDarkColor }}>
-                  <LocateFixed size={12} /> {t('distance')}
-                </span>
-              )}
-              <div className="flex items-center gap-1 text-xs px-2 py-1 rounded-lg"
-                   style={{ backgroundColor: hexToRgba(currentPrimaryColor, 0.1), color: currentDarkColor }}>
-                  <Star size={12} style={{ fill: currentDarkColor }} />
-                  <span>{processedShops.length} {t('shopsCount')}</span>
-              </div>
-            </div>
-        </div>
-
-        <div className="px-6 space-y-6 relative z-10">
-          {loading ? (
-             <div className="flex flex-col items-center justify-center py-20 bg-white/50 backdrop-blur-sm rounded-3xl">
-               <Mascot size={64} animation="spin" className="mb-4" />
-               <p className="font-bold tracking-widest animate-pulse" style={{ color: currentDarkColor }}>{t('loading')}</p>
-             </div>
-          ) : processedShops.length > 0 ? (
-            processedShops.map((shop) => {
-              const isOpen = checkIsOpen(shop.hours);
-              const isFav = favorites.includes(shop.id);
-              const displayName = getDynamicText(shop, 'name');
-              const displayAddress = getDynamicText(shop, 'address');
-              
-              const isAccommodation = shop.categories && shop.categories.includes('accommodation');
-              const hasHours = !!shop.hours;
-              const showAccommodationBadge = isAccommodation && !hasHours;
-              const accBadgeText = shop.bookings && shop.bookings.length > 0 ? t('bookNow') : t('byAppointment');
-              
-              const hideCardHours = !shop.hours || shop.hours.trim().toLowerCase() === 'google' || shop.hours.trim().toLowerCase() === 'fb' || shop.hours.includes('預約制');
-
-              const shopCardColor = villageData[shop.village]?.color || '#059669';
-
-              return (
-                <div key={shop.id} className="group relative bg-white/95 backdrop-blur-md rounded-[24px] overflow-hidden shadow-[0_8px_30px_rgb(0,0,0,0.06)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.12)] transition-shadow border border-white">
-                  <div className="h-48 w-full relative overflow-hidden bg-gray-100">
-                    <ImageCarousel images={shop.images} onClick={() => setSelectedShop(shop)} />
-                    
-                    <button onClick={(e) => { e.preventDefault(); toggleFavorite(shop.id); }} className="absolute top-3 right-3 bg-white/90 backdrop-blur-md p-2 rounded-full shadow-sm hover:scale-110 transition-all z-10">
-                      <Heart size={18} className={isFav ? "fill-rose-500 text-rose-500" : "text-gray-400"} />
-                    </button>
-                    
-                    <div 
-                      className="absolute top-3 left-3 px-2 py-1 rounded-lg z-10 pointer-events-none shadow-sm"
-                      style={{ 
-                        backgroundColor: shopCardColor, 
-                        color: villageData[shop.village]?.textBadge || '#ffffff' 
-                      }}
-                    >
-                        <span className="text-xs font-bold tracking-wide">{villageData[shop.village]?.[language] || shop.village}</span>
-                    </div>
-
-                    {showAccommodationBadge || isOpen === 'appointment' ? (
-                      <div className="absolute bottom-3 left-3 backdrop-blur-md pl-2 pr-3 py-1 rounded-full flex items-center gap-1.5 shadow-lg z-10 pointer-events-none" style={{ backgroundColor: hexToRgba(shopCardColor, 0.9) }}>
-                        <CalendarCheck size={12} className="text-white" />
-                        <span className="text-xs font-bold text-white tracking-wide">{showAccommodationBadge ? accBadgeText : t('byAppointment')}</span>
-                      </div>
-                    ) : isOpen === 'google' ? (
-                       <div className="absolute bottom-3 left-3 bg-blue-500/90 backdrop-blur-md pl-2 pr-3 py-1 rounded-full flex items-center gap-1.5 shadow-lg z-10 pointer-events-none">
-                        <Info size={12} className="text-white" />
-                        <span className="text-xs font-bold text-white tracking-wide">{t('googleInfo')}</span>
-                      </div>
-                    ) : isOpen === 'fb' ? (
-                      <div className="absolute bottom-3 left-3 bg-indigo-500/90 backdrop-blur-md pl-2 pr-3 py-1 rounded-full flex items-center gap-1.5 shadow-lg z-10 pointer-events-none">
-                       <Facebook size={12} className="text-white" />
-                       <span className="text-xs font-bold text-white tracking-wide">{t('fbAnnouncement')}</span>
-                      </div>
-                    ) : isOpen === true ? (
-                      <div className="absolute bottom-3 left-3 backdrop-blur-md pl-2 pr-3 py-1 rounded-full flex items-center gap-1.5 shadow-lg z-10 pointer-events-none" style={{ backgroundColor: hexToRgba(shopCardColor, 0.95) }}>
-                        <span className="relative flex h-2.5 w-2.5">
-                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75" style={{ backgroundColor: '#fff' }}></span>
-                          <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-white"></span>
-                        </span>
-                        <span className="text-xs font-bold text-white tracking-wide">{t('openNow')}</span>
-                      </div>
-                    ) : isOpen === 'opening_soon' ? (
-                      <div className="absolute bottom-3 left-3 bg-amber-500/90 backdrop-blur-md pl-2 pr-3 py-1 rounded-full flex items-center gap-1.5 shadow-lg z-10 pointer-events-none">
-                        <span className="relative flex h-2.5 w-2.5">
-                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-200 opacity-75"></span>
-                          <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-white"></span>
-                        </span>
-                        <span className="text-xs font-bold text-white tracking-wide">{t('openingSoon')}</span>
-                      </div>
-                    ) : isOpen === 'closing_soon' ? (
-                      <div className="absolute bottom-3 left-3 bg-orange-500/90 backdrop-blur-md pl-2 pr-3 py-1 rounded-full flex items-center gap-1.5 shadow-lg z-10 pointer-events-none">
-                        <span className="relative flex h-2.5 w-2.5">
-                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-200 opacity-75"></span>
-                          <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-white"></span>
-                        </span>
-                        <span className="text-xs font-bold text-white tracking-wide">{t('closingSoon')}</span>
-                      </div>
-                    ) : isOpen === false ? (
-                       <div className="absolute bottom-3 left-3 bg-gray-600/90 backdrop-blur-md pl-2 pr-3 py-1 rounded-full flex items-center gap-1.5 shadow-lg z-10 pointer-events-none">
-                        <span className="h-2.5 w-2.5 rounded-full bg-gray-400"></span>
-                        <span className="text-xs font-bold text-white tracking-wide">{t('closed')}</span>
-                      </div>
-                    ) : null}
-                  </div>
-
-                  <div className="p-5 cursor-pointer" onClick={() => setSelectedShop(shop)}>
-                    <div className="flex justify-between items-start mb-2">
-                      <h3 className="text-xl font-bold text-gray-900 leading-tight">{displayName}</h3>
-                      {shop.distance && (
-                          <span className="text-xs font-bold px-2 py-1 rounded-md" style={{ backgroundColor: hexToRgba(shopCardColor, 0.1), color: villageData[shop.village]?.textDark }}>
-                            {shop.distance} km
-                          </span>
-                       )}
-                    </div>
-                    
-                    <div className="flex flex-wrap items-center gap-2 mb-3">
-                        {shop.rating && (
-                          <div className="flex items-center gap-1 text-xs font-bold text-gray-800 bg-yellow-50 px-2 py-1 rounded-md border border-yellow-100">
-                             <Star size={10} className="text-yellow-500 fill-yellow-500" />
-                             {shop.rating}
-                          </div>
-                        )}
-                        {!hideCardHours && (
-                          <div className="flex items-center gap-1.5 text-xs px-2 py-1 rounded-md border border-gray-100 bg-gray-50 text-gray-500 max-w-full overflow-hidden">
-                            <Clock size={10} className="flex-shrink-0" />
-                            <span className="truncate">
-                                {shop.hours.trim().toLowerCase() === 'google' ? t('googleInfo') : 
-                                 shop.hours.trim().toLowerCase() === 'fb' ? t('fbAnnouncement') : 
-                                 shop.hours.split('|')[0]}
-                            </span>
-                          </div>
-                        )}
-                    </div>
-
-                    <div className="flex flex-wrap gap-2 mb-3">
-                      {shop.services.slice(0, 3).map((service, idx) => (
-                        <span key={idx} className="text-[10px] bg-gray-100 text-gray-600 px-2 py-1 rounded-md font-medium">
-                          {service}
-                        </span>
-                      ))}
-                      {shop.services.length > 3 && <span className="text-[10px] text-gray-400 px-1 py-1">+{shop.services.length - 3}</span>}
-                    </div>
-                    
-                    <div className="flex items-center text-xs mb-5" style={{ color: villageData[shop.village]?.textDark || '#4b5563' }}>
-                      <MapPin size={12} className="mr-1" style={{ color: shopCardColor }} />
-                      <span className="truncate">{displayAddress}</span>
-                    </div>
-
-                    <div className="flex flex-wrap gap-2 mt-auto pt-2" onClick={(e) => e.stopPropagation()}>
-                      <a href={shop.nav_link || getGoogleMapLink(shop.name, shop.address)} target="_blank" rel="noopener noreferrer" 
-                         className="flex-1 min-w-[100px] text-white py-2.5 rounded-xl flex items-center justify-center gap-2 transition-colors font-medium shadow-lg hover:opacity-90"
-                         style={{ backgroundColor: shopCardColor, boxShadow: `0 4px 14px 0 ${hexToRgba(shopCardColor, 0.4)}` }}>
-                        <Navigation size={16} />
-                        <span className="text-sm">{t('navigate')}</span>
-                      </a>
-                      {shop.tel && (
-                        <a href={`tel:${shop.tel}`} className="w-11 h-11 rounded-xl flex items-center justify-center transition-colors border hover:opacity-80"
-                           style={{ backgroundColor: hexToRgba(shopCardColor, 0.05), borderColor: hexToRgba(shopCardColor, 0.2), color: shopCardColor }}>
-                          <Phone size={18} />
-                        </a>
-                      )}
-                      {shop.line_url && (
-                        <a href={shop.line_url} target="_blank" rel="noopener noreferrer" className="w-11 h-11 bg-green-500 hover:bg-green-600 text-white rounded-xl flex items-center justify-center transition-colors shadow-sm">
-                          <span className="font-extrabold text-[10px]">LINE</span>
-                        </a>
-                      )}
-                      {shop.fbLink && (
-                        <a href={shop.fbLink} target="_blank" rel="noopener noreferrer" className="w-11 h-11 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-xl flex items-center justify-center transition-colors">
-                          <Facebook size={18} />
-                        </a>
-                      )}
-                    </div>
-                  </div>
                 </div>
-              );
-            })
-          ) : (
-             <div className="text-center py-10 bg-white/50 backdrop-blur-sm rounded-3xl">
-                <Mascot size={72} animation="bounce" className="mx-auto mb-4 opacity-60 grayscale" />
-                <p className="text-gray-500 font-medium">
-                  {currentView === 'favorites' ? t('noFavorites') : t('noShops')}
-                </p>
-                <button onClick={() => {setCurrentView('home'); setActiveCategory('all'); setSearchQuery('');}} className="text-sm mt-2 font-bold hover:underline" style={{ color: currentPrimaryColor }}>
-                  {currentView === 'favorites' ? t('goToExplore') : t('showAll')}
-                </button>
-             </div>
+                <div className="space-y-3">
+                  {Object.keys(villageData).map((vKey) => {
+                    const vData = villageData[vKey];
+                    const isSelected = selectedVillage === vKey;
+                    return (
+                      <button 
+                        key={vKey} 
+                        onClick={() => { setSelectedVillage(vKey); setSidebarOpen(false); setCurrentView('home'); setSortBy('default'); }} 
+                        style={isSelected ? { backgroundColor: hexToRgba(vData.color, 0.2), borderLeftColor: vData.color } : {}}
+                        className={`w-full text-left p-4 rounded-xl flex justify-between items-center transition-all border-l-4 ${ isSelected ? 'font-bold' : 'border-transparent hover:bg-gray-50 text-gray-600' }`}
+                      >
+                        <span style={{ color: isSelected ? vData.textDark : '' }}>{vData?.[language] || vKey}</span>
+                        <span className="text-xs font-normal" style={{ color: isSelected ? hexToRgba(vData.textDark, 0.7) : '#9ca3af' }}>
+                          {language === 'en' ? vData?.desc_en : vData?.desc_zh}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+              <div className="flex-1 bg-black/20 backdrop-blur-sm" onClick={() => setSidebarOpen(false)}></div>
+            </div>
           )}
+
+          {/* Header */}
+          <div className="px-6 pt-12 pb-4 flex justify-between items-center bg-white/80 sticky top-0 z-20 backdrop-blur-md border-b border-gray-100">
+            <div className="flex items-center gap-1">
+              <button 
+                onClick={() => {
+                   if (currentView === 'favorites') {
+                       setCurrentView('home');
+                   } else {
+                       setAppStarted(false);       
+                       setLandingStep('select');   
+                       setPreviewVillage(null);    
+                   }
+                }}
+                className="w-10 h-10 -ml-3 rounded-full flex items-center justify-center transition-colors hover:bg-white/50 active:bg-gray-200"
+                style={{ color: currentPrimaryColor }}
+              >
+                <ChevronLeft size={28} />
+              </button>
+
+              <div 
+                onClick={() => setSidebarOpen(true)}
+                className="group flex flex-col items-start cursor-pointer"
+              >
+                <div className="flex items-center gap-1 mb-0.5" style={{ color: currentPrimaryColor }}>
+                  <MapPin size={14} />
+                  <span className="text-xs font-bold tracking-wide uppercase" style={{ color: currentDarkColor }}>{APP_CONFIG.subTitle}</span>
+                </div>
+                <div className="flex items-center gap-1.5 hover:bg-white/50 px-2 py-1 -ml-2 rounded-lg transition-colors">
+                  <h1 className="text-xl font-extrabold text-gray-900">
+                    {currentView === 'favorites' ? t('myFavorites') : (villageData[selectedVillage]?.[language] || selectedVillage)}
+                  </h1>
+                  <ChevronDown size={20} className="text-gray-400 group-hover:text-gray-700 transition-colors" />
+                </div>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <button 
+                onClick={toggleLanguage} 
+                className="text-sm font-bold px-2 py-1 rounded-lg border hover:opacity-80 transition-opacity bg-white"
+                style={{ color: currentPrimaryColor, borderColor: hexToRgba(currentPrimaryColor, 0.2) }}
+              >
+                {t('langSwitch')}
+              </button>
+              <button onClick={() => setShowUserModal(true)} className="w-10 h-10 rounded-full overflow-hidden border-2 border-white shadow-md bg-white flex items-center justify-center">
+                 {userProfile?.pictureUrl ? (
+                   <img src={userProfile.pictureUrl} alt="User" className="w-full h-full object-cover" />
+                 ) : (
+                   <User size={20} style={{ color: currentPrimaryColor }} />
+                 )}
+              </button>
+            </div>
+          </div>
+
+          {/* Main Content */}
+          {currentView === 'home' && (
+            <>
+              <div className="px-6 my-4">
+                <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-3 flex items-center gap-3 border border-transparent focus-within:bg-white focus-within:shadow-lg transition-all" style={{ outlineColor: currentPrimaryColor }}>
+                  <Search className="text-gray-400" size={20} />
+                  <input 
+                    type="text" 
+                    placeholder={t('searchPlaceholder')} 
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="bg-transparent border-none outline-none text-gray-700 placeholder-gray-400 flex-1 text-sm font-medium" 
+                  />
+                  {searchQuery && (
+                    <button onClick={() => setSearchQuery('')} className="text-gray-400 hover:text-gray-600 p-1">
+                      <X size={16} />
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {(() => {
+                 const announcements = shops.filter(s => 
+                   (s.categories.includes('活動') || s.categories.includes('公告') || s.categories.includes('announcement')) && 
+                   s.village === selectedVillage
+                 );
+
+                 if (announcements.length === 0) return null; 
+
+                 return (
+                    <div className="px-6 mb-6 animate-fade-in">
+                      <h3 className="text-sm font-bold mb-3 flex items-center gap-1" style={{ color: currentDarkColor }}>
+                        <Sparkles size={16} /> 最新消息 & 活動
+                      </h3>
+                      <div className="flex gap-3 overflow-x-auto no-scrollbar snap-x">
+                        {announcements.map(ann => {
+                           const link = ann.website || ann.fbLink || ann.line_url || ann.nav_link;
+                           return (
+                             <div key={ann.id} 
+                                  onClick={() => link ? window.open(link, '_blank') : null}
+                                  className={`snap-center shrink-0 w-full sm:w-[85%] h-32 rounded-2xl overflow-hidden relative shadow-md border ${link ? 'cursor-pointer group' : ''}`}
+                                  style={{ borderColor: hexToRgba(currentPrimaryColor, 0.3), backgroundColor: 'rgba(255,255,255,0.9)' }}>
+                                
+                                {ann.images && ann.images.length > 0 ? (
+                                   <img src={ann.images[0]} alt={ann.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                                ) : (
+                                   <div className="w-full h-full flex items-center justify-center bg-gray-100">
+                                      <span className="text-gray-400 text-sm">尚無圖片</span>
+                                   </div>
+                                )}
+
+                                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"></div>
+                                <div className="absolute bottom-3 left-4 right-4 text-white">
+                                   <h4 className="font-bold text-sm truncate">{ann.name}</h4>
+                                   {ann.description && <p className="text-xs text-gray-200 truncate mt-0.5">{ann.description}</p>}
+                                </div>
+                             </div>
+                           );
+                        })}
+                      </div>
+                    </div>
+                 );
+              })()}
+
+              <div className="px-6 mb-6">
+                <div className="flex gap-3 overflow-x-auto pb-2 no-scrollbar">
+                  {availableCategories.map((catKey) => {
+                    const config = categoryConfig[catKey] || { labelKey: 'all', icon: <Tag size={18}/> };
+                    const isActive = activeCategory === catKey;
+                    return (
+                      <button 
+                        key={catKey} 
+                        onClick={() => setActiveCategory(catKey)} 
+                        className={`flex flex-col items-center justify-center min-w-[70px] h-16 rounded-2xl transition-all duration-300 border ${ 
+                          isActive 
+                            ? 'transform scale-105 border-transparent' 
+                            : 'bg-white/90 backdrop-blur-sm text-gray-400 border-gray-100 hover:bg-white shadow-sm' 
+                        }`}
+                        style={isActive ? {
+                          backgroundColor: currentPrimaryColor,
+                          color: currentBadgeColor,
+                          boxShadow: `0 10px 15px -3px ${hexToRgba(currentPrimaryColor, 0.4)}`
+                        } : {}}
+                      >
+                        <div className="mb-1">{config.icon}</div>
+                        <span className="text-[10px] font-medium capitalize">{t(config.labelKey) || catKey}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            </>
+          )}
+
+          <div className="px-6 mb-4 flex justify-between items-center">
+              <h2 className="text-lg font-bold text-gray-800 bg-white/50 px-2 rounded-lg backdrop-blur-sm">
+                {currentView === 'favorites' ? t('favoritesList') : t('featured')}
+              </h2>
+              <div className="flex items-center gap-2">
+                {filterOpenOnly && (
+                  <span className="text-xs font-medium px-2 py-1 rounded-lg flex items-center gap-1 border bg-white/80 backdrop-blur-sm"
+                        style={{ color: currentDarkColor, borderColor: hexToRgba(currentPrimaryColor, 0.2) }}>
+                    <Clock size={12} /> {t('openNow')}
+                  </span>
+                )}
+                {userLocation && (
+                  <span className="text-xs font-medium px-2 py-1 rounded-lg flex items-center gap-1 bg-white/80 backdrop-blur-sm"
+                        style={{ color: currentDarkColor }}>
+                    <LocateFixed size={12} /> {t('distance')}
+                  </span>
+                )}
+                <div className="flex items-center gap-1 text-xs px-2 py-1 rounded-lg bg-white/80 backdrop-blur-sm"
+                     style={{ color: currentDarkColor }}>
+                    <Star size={12} style={{ fill: currentDarkColor }} />
+                    <span>{processedShops.length} {t('shopsCount')}</span>
+                </div>
+              </div>
+          </div>
+
+          <div className="px-6 space-y-6">
+            {loading ? (
+               <div className="flex flex-col items-center justify-center py-20 bg-white/60 backdrop-blur-md rounded-3xl border border-white">
+                 <Mascot size={64} animation="spin" className="mb-4" />
+                 <p className="font-bold tracking-widest animate-pulse" style={{ color: currentDarkColor }}>{t('loading')}</p>
+               </div>
+            ) : processedShops.length > 0 ? (
+              processedShops.map((shop) => {
+                const isOpen = checkIsOpen(shop.hours);
+                const isFav = favorites.includes(shop.id);
+                const displayName = getDynamicText(shop, 'name');
+                const displayAddress = getDynamicText(shop, 'address');
+                
+                const isAccommodation = shop.categories && shop.categories.includes('accommodation');
+                const hasHours = !!shop.hours;
+                const showAccommodationBadge = isAccommodation && !hasHours;
+                const accBadgeText = shop.bookings && shop.bookings.length > 0 ? t('bookNow') : t('byAppointment');
+                
+                const hideCardHours = !shop.hours || shop.hours.trim().toLowerCase() === 'google' || shop.hours.trim().toLowerCase() === 'fb' || shop.hours.includes('預約制');
+
+                const shopCardColor = villageData[shop.village]?.color || '#059669';
+                const shopDarkColor = villageData[shop.village]?.textDark || '#047857';
+
+                return (
+                  <div key={shop.id} className="group relative bg-white/95 backdrop-blur-md rounded-[24px] overflow-hidden shadow-[0_8px_30px_rgb(0,0,0,0.06)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.12)] transition-shadow border border-white">
+                    <div className="h-48 w-full relative overflow-hidden bg-gray-100">
+                      <ImageCarousel images={shop.images} onClick={() => setSelectedShop(shop)} />
+                      
+                      <button onClick={(e) => { e.preventDefault(); toggleFavorite(shop.id); }} className="absolute top-3 right-3 bg-white/90 backdrop-blur-md p-2 rounded-full shadow-sm hover:scale-110 transition-all z-10">
+                        <Heart size={18} className={isFav ? "fill-rose-500 text-rose-500" : "text-gray-400"} />
+                      </button>
+                      
+                      <div 
+                        className="absolute top-3 left-3 px-2 py-1 rounded-lg z-10 pointer-events-none shadow-sm"
+                        style={{ 
+                          backgroundColor: shopCardColor, 
+                          color: villageData[shop.village]?.textBadge || '#ffffff' 
+                        }}
+                      >
+                          <span className="text-xs font-bold tracking-wide">{villageData[shop.village]?.[language] || shop.village}</span>
+                      </div>
+
+                      {/* 🎨【修正】營業中標籤套用深色 */}
+                      {showAccommodationBadge || isOpen === 'appointment' ? (
+                        <div className="absolute bottom-3 left-3 backdrop-blur-md pl-2 pr-3 py-1 rounded-full flex items-center gap-1.5 shadow-lg z-10 pointer-events-none" style={{ backgroundColor: hexToRgba(shopDarkColor, 0.95) }}>
+                          <CalendarCheck size={12} className="text-white" />
+                          <span className="text-xs font-bold text-white tracking-wide">{showAccommodationBadge ? accBadgeText : t('byAppointment')}</span>
+                        </div>
+                      ) : isOpen === 'google' ? (
+                         <div className="absolute bottom-3 left-3 bg-blue-500/90 backdrop-blur-md pl-2 pr-3 py-1 rounded-full flex items-center gap-1.5 shadow-lg z-10 pointer-events-none">
+                          <Info size={12} className="text-white" />
+                          <span className="text-xs font-bold text-white tracking-wide">{t('googleInfo')}</span>
+                        </div>
+                      ) : isOpen === 'fb' ? (
+                        <div className="absolute bottom-3 left-3 bg-indigo-500/90 backdrop-blur-md pl-2 pr-3 py-1 rounded-full flex items-center gap-1.5 shadow-lg z-10 pointer-events-none">
+                         <Facebook size={12} className="text-white" />
+                         <span className="text-xs font-bold text-white tracking-wide">{t('fbAnnouncement')}</span>
+                        </div>
+                      ) : isOpen === true ? (
+                        <div className="absolute bottom-3 left-3 backdrop-blur-md pl-2 pr-3 py-1 rounded-full flex items-center gap-1.5 shadow-lg z-10 pointer-events-none" style={{ backgroundColor: shopDarkColor }}>
+                          <span className="relative flex h-2.5 w-2.5">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 bg-white"></span>
+                            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-white"></span>
+                          </span>
+                          <span className="text-xs font-bold text-white tracking-wide">{t('openNow')}</span>
+                        </div>
+                      ) : isOpen === 'opening_soon' ? (
+                        <div className="absolute bottom-3 left-3 bg-amber-500/90 backdrop-blur-md pl-2 pr-3 py-1 rounded-full flex items-center gap-1.5 shadow-lg z-10 pointer-events-none">
+                          <span className="relative flex h-2.5 w-2.5">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-200 opacity-75"></span>
+                            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-white"></span>
+                          </span>
+                          <span className="text-xs font-bold text-white tracking-wide">{t('openingSoon')}</span>
+                        </div>
+                      ) : isOpen === 'closing_soon' ? (
+                        <div className="absolute bottom-3 left-3 bg-orange-500/90 backdrop-blur-md pl-2 pr-3 py-1 rounded-full flex items-center gap-1.5 shadow-lg z-10 pointer-events-none">
+                          <span className="relative flex h-2.5 w-2.5">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-200 opacity-75"></span>
+                            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-white"></span>
+                          </span>
+                          <span className="text-xs font-bold text-white tracking-wide">{t('closingSoon')}</span>
+                        </div>
+                      ) : isOpen === false ? (
+                         <div className="absolute bottom-3 left-3 bg-gray-600/90 backdrop-blur-md pl-2 pr-3 py-1 rounded-full flex items-center gap-1.5 shadow-lg z-10 pointer-events-none">
+                          <span className="h-2.5 w-2.5 rounded-full bg-gray-400"></span>
+                          <span className="text-xs font-bold text-white tracking-wide">{t('closed')}</span>
+                        </div>
+                      ) : null}
+                    </div>
+
+                    <div className="p-5 cursor-pointer" onClick={() => setSelectedShop(shop)}>
+                      <div className="flex justify-between items-start mb-2">
+                        <h3 className="text-xl font-bold text-gray-900 leading-tight">{displayName}</h3>
+                        {shop.distance && (
+                            <span className="text-xs font-bold px-2 py-1 rounded-md" style={{ backgroundColor: hexToRgba(shopCardColor, 0.1), color: villageData[shop.village]?.textDark }}>
+                              {shop.distance} km
+                            </span>
+                         )}
+                      </div>
+                      
+                      <div className="flex flex-wrap items-center gap-2 mb-3">
+                          {shop.rating && (
+                            <div className="flex items-center gap-1 text-xs font-bold text-gray-800 bg-yellow-50 px-2 py-1 rounded-md border border-yellow-100">
+                               <Star size={10} className="text-yellow-500 fill-yellow-500" />
+                               {shop.rating}
+                            </div>
+                          )}
+                          {!hideCardHours && (
+                            <div className="flex items-center gap-1.5 text-xs px-2 py-1 rounded-md border border-gray-100 bg-gray-50 text-gray-500 max-w-full overflow-hidden">
+                              <Clock size={10} className="flex-shrink-0" />
+                              <span className="truncate">
+                                  {shop.hours.trim().toLowerCase() === 'google' ? t('googleInfo') : 
+                                   shop.hours.trim().toLowerCase() === 'fb' ? t('fbAnnouncement') : 
+                                   shop.hours.split('|')[0]}
+                              </span>
+                            </div>
+                          )}
+                      </div>
+
+                      <div className="flex flex-wrap gap-2 mb-3">
+                        {shop.services.slice(0, 3).map((service, idx) => (
+                          <span key={idx} className="text-[10px] bg-gray-100 text-gray-600 px-2 py-1 rounded-md font-medium">
+                            {service}
+                          </span>
+                        ))}
+                        {shop.services.length > 3 && <span className="text-[10px] text-gray-400 px-1 py-1">+{shop.services.length - 3}</span>}
+                      </div>
+                      
+                      <div className="flex items-center text-xs mb-5" style={{ color: villageData[shop.village]?.textDark || '#4b5563' }}>
+                        <MapPin size={12} className="mr-1" style={{ color: shopCardColor }} />
+                        <span className="truncate">{displayAddress}</span>
+                      </div>
+
+                      <div className="flex flex-wrap gap-2 mt-auto pt-2" onClick={(e) => e.stopPropagation()}>
+                        <a href={shop.nav_link || getGoogleMapLink(shop.name, shop.address)} target="_blank" rel="noopener noreferrer" 
+                           className="flex-1 min-w-[100px] text-white py-2.5 rounded-xl flex items-center justify-center gap-2 transition-colors font-medium shadow-lg hover:opacity-90"
+                           style={{ backgroundColor: shopCardColor, boxShadow: `0 4px 14px 0 ${hexToRgba(shopCardColor, 0.4)}` }}>
+                          <Navigation size={16} />
+                          <span className="text-sm">{t('navigate')}</span>
+                        </a>
+                        {shop.tel && (
+                          <a href={`tel:${shop.tel}`} className="w-11 h-11 rounded-xl flex items-center justify-center transition-colors border hover:opacity-80"
+                             style={{ backgroundColor: hexToRgba(shopCardColor, 0.05), borderColor: hexToRgba(shopCardColor, 0.2), color: shopCardColor }}>
+                            <Phone size={18} />
+                          </a>
+                        )}
+                        {shop.line_url && (
+                          <a href={shop.line_url} target="_blank" rel="noopener noreferrer" className="w-11 h-11 bg-green-500 hover:bg-green-600 text-white rounded-xl flex items-center justify-center transition-colors shadow-sm">
+                            <span className="font-extrabold text-[10px]">LINE</span>
+                          </a>
+                        )}
+                        {shop.fbLink && (
+                          <a href={shop.fbLink} target="_blank" rel="noopener noreferrer" className="w-11 h-11 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-xl flex items-center justify-center transition-colors">
+                            <Facebook size={18} />
+                          </a>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })
+            ) : (
+               <div className="text-center py-10 bg-white/60 backdrop-blur-md rounded-3xl border border-white">
+                  <Mascot size={72} animation="bounce" className="mx-auto mb-4 opacity-60 grayscale" />
+                  <p className="text-gray-500 font-medium">
+                    {currentView === 'favorites' ? t('noFavorites') : t('noShops')}
+                  </p>
+                  <button onClick={() => {setCurrentView('home'); setActiveCategory('all'); setSearchQuery('');}} className="text-sm mt-2 font-bold hover:underline" style={{ color: currentPrimaryColor }}>
+                    {currentView === 'favorites' ? t('goToExplore') : t('showAll')}
+                  </button>
+               </div>
+            )}
+          </div>
         </div>
 
         {/* 底層導航列 */}
