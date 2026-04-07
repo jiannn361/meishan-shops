@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Search, MapPin, Phone, Navigation, Facebook, Star, Home, Coffee, Gift, User, Filter, Heart, Menu, X, Mountain, Loader2, Camera, Ticket, Tag, Clock, ChevronLeft, ChevronRight, Info, LocateFixed, Globe, MessageCircle, Map as MapIcon, ExternalLink, CalendarCheck, Banknote, AlertCircle, Bus, ChevronDown, Play, ArrowRight, Sparkles, Cloud, Bird, Leaf, Flower2, Sunrise, Trees } from 'lucide-react';
 
 // 【安全修正】讀取環境變數
+// ⚠️ 註：由於預覽環境限制，目前先以空字串代替。
+// 在您的電腦本地或 Vercel 上正式部署時，請修改為： const AIRTABLE_API_KEY = import.meta.env.VITE_AIRTABLE_API_KEY || "";
 const AIRTABLE_API_KEY = import.meta.env.VITE_AIRTABLE_API_KEY || "";
 
 // 【網站設定區】
@@ -44,7 +46,7 @@ const translations = {
     shopsCount: '間',
     loading: '快到了再等一下...',
     noFavorites: '您的口袋名單還是空的喔！',
-    noShops: '哎呀，找不到符合的店家...',
+    noShops: '這個村落暫時沒有符合的店家',
     goToExplore: '去探索店家',
     showAll: '顯示全部',
     googleInfo: 'Google 資訊',
@@ -191,7 +193,6 @@ const Mascot = ({ size = 60, className = "", animation = "", imageUrl = null }) 
   if (animation === "bounce") animClass = "animate-bounce"; 
   if (animation === "pulse") animClass = "animate-pulse";
   
-  // 🌟 【更新】將 run 改為使用平穩震動的機車專用動畫
   if (animation === "run") animClass = "animate-ride";   
 
   return (
@@ -209,6 +210,7 @@ const Mascot = ({ size = 60, className = "", animation = "", imageUrl = null }) 
   );
 };
 
+// 【文字美化元件】
 const FormattedText = ({ text, className = "" }) => {
   if (!text) return null;
   const strText = Array.isArray(text) ? text.join('\n') : String(text);
@@ -246,30 +248,46 @@ const DefaultShopImage = () => (
   </div>
 );
 
-// 🍃 新增：飄落物元件 (支援自訂圖片 fall-xxx.png，找不到則退回內建圖示)
+// 🍃 飄落物元件 (使用 React 狀態安全切換，防止白畫面當機)
 const FallingItem = ({ vData, size, left, animationClass }) => {
+  const [imgError, setImgError] = useState(false);
   const plantPrefix = vData.plantPrefix || 'default';
   const AnimIcon = vData.animIcon || Leaf;
   const animColor = vData.animColor || 'text-emerald-500/30';
 
   return (
     <div className={`absolute top-[-10%] ${left} ${animationClass}`}>
-      <img 
-         src={`/fall-${plantPrefix}.png`} 
-         alt=""
-         style={{ width: size, height: size }}
-         className="object-contain drop-shadow-sm opacity-80"
-         onError={(e) => { 
-             e.target.style.display = 'none'; 
-             if (e.target.nextElementSibling) {
-                 e.target.nextElementSibling.style.display = 'block'; 
-             }
-         }} 
-      />
-      <div style={{ display: 'none' }}>
-         <AnimIcon className={animColor} size={size} />
-      </div>
+      {!imgError ? (
+        <img 
+           src={`/fall-${plantPrefix}.png`} 
+           alt=""
+           style={{ width: size, height: size }}
+           className="object-contain drop-shadow-sm opacity-80"
+           onError={() => setImgError(true)} 
+        />
+      ) : (
+        <AnimIcon className={animColor} size={size} />
+      )}
     </div>
+  );
+};
+
+// 🌿 植物元件 (安全處理找不到圖檔的狀況)
+const PlantImage = ({ prefix, side, className, style }) => {
+  const [errorCount, setErrorCount] = useState(0);
+  
+  if (errorCount >= 2) return null; 
+  
+  const src = errorCount === 0 ? `/plant-${prefix}-${side}.png` : `/plant-${side}.png`;
+
+  return (
+    <img 
+       src={src} 
+       alt="" 
+       className={className} 
+       style={style}
+       onError={() => setErrorCount(prev => prev + 1)} 
+    />
   );
 };
 
@@ -1266,7 +1284,6 @@ export default function App() {
             0% { transform: translateX(-100%); }
             100% { transform: translateX(200%); }
           }
-          /* 🌟 新增：平穩騎車的細微震動動畫，取代原本的大幅跳躍 */
           @keyframes ride {
             0%, 100% { transform: translateY(0) rotate(0deg); }
             50% { transform: translateY(-2px) rotate(1deg); }
@@ -1285,7 +1302,8 @@ export default function App() {
       <div className="w-full max-w-md bg-gray-50 min-h-[100dvh] relative shadow-2xl overflow-y-auto pb-32 no-scrollbar">
         
         {/* 🌟 背景圖層 (底層 z-0) */}
-        <div className="fixed inset-y-0 w-full max-w-md z-0 pointer-events-none overflow-hidden">
+        {/* 【修正】加上 left-1/2 -translate-x-1/2 確保固定時永遠與畫面置中對齊 */}
+        <div className="fixed inset-y-0 left-1/2 -translate-x-1/2 w-full max-w-md z-0 pointer-events-none overflow-hidden">
           <img 
             src={`/${villageData[selectedVillage]?.bgFile}`} 
             alt="Village Background" 
@@ -1296,7 +1314,8 @@ export default function App() {
         </div>
 
         {/* 🌟 前景動態植物與落葉層 (z-30，浮在店家卡片上方) */}
-        <div className="fixed inset-y-0 w-full max-w-md z-30 pointer-events-none overflow-hidden">
+        {/* 【修正】加上 left-1/2 -translate-x-1/2 確保固定時永遠與畫面置中對齊 */}
+        <div className="fixed inset-y-0 left-1/2 -translate-x-1/2 w-full max-w-md z-30 pointer-events-none overflow-hidden">
           {(() => {
              const vData = villageData[selectedVillage];
              if (!vData) return null;
@@ -1305,49 +1324,27 @@ export default function App() {
 
              return (
                <>
-                 {/* 🍃 飄落物區塊 (改用新的 FallingItem 元件，支援自訂) */}
+                 {/* 🍃 飄落物區塊 (完全防止當機) */}
                  <FallingItem vData={vData} size={24} left="left-[10%]" animationClass="animate-fall-1" />
                  <FallingItem vData={vData} size={32} left="left-[50%]" animationClass="animate-fall-2" />
                  <FallingItem vData={vData} size={20} left="left-[80%]" animationClass="animate-fall-3" />
 
                  {/* 🌿 左側第一株植物 (往外移 -60px 消除留白，並稍微放大) */}
                  <div className="absolute bottom-[-10px] left-[-60px] animate-sway">
-                    <img 
-                       src={`/plant-${plantPrefix}-left.png`} 
-                       alt="" 
-                       className="h-44 object-contain opacity-90 drop-shadow-lg scale-110 origin-bottom-left" 
-                       onError={(e)=>{ e.target.onerror = null; e.target.src='/plant-left.png'; e.target.onerror = (e2)=>e2.target.style.display='none'; }} 
-                    />
+                    <PlantImage prefix={plantPrefix} side="left" className="h-44 object-contain opacity-90 drop-shadow-lg scale-110 origin-bottom-left" />
                  </div>
                  {/* 🌿 左側第二株植物 (水平翻轉，增加滿版層次感) */}
                  <div className="absolute bottom-[-20px] left-[10px] animate-sway-reverse">
-                    <img 
-                       src={`/plant-${plantPrefix}-left.png`} 
-                       alt="" 
-                       className="h-32 object-contain opacity-70 drop-shadow-md" 
-                       style={{ transform: 'scaleX(-1)' }}
-                       onError={(e)=>{ e.target.onerror = null; e.target.src='/plant-left.png'; e.target.onerror = (e2)=>e2.target.style.display='none'; }} 
-                    />
+                    <PlantImage prefix={plantPrefix} side="left" className="h-32 object-contain opacity-70 drop-shadow-md" style={{ transform: 'scaleX(-1)' }} />
                  </div>
 
                  {/* 🌿 右側第一株植物 (往外移 -60px 消除留白，並稍微放大) */}
                  <div className="absolute bottom-[-10px] right-[-60px] animate-sway-reverse">
-                    <img 
-                       src={`/plant-${plantPrefix}-right.png`} 
-                       alt="" 
-                       className="h-48 object-contain opacity-90 drop-shadow-lg scale-110 origin-bottom-right" 
-                       onError={(e)=>{ e.target.onerror = null; e.target.src='/plant-right.png'; e.target.onerror = (e2)=>e2.target.style.display='none'; }} 
-                    />
+                    <PlantImage prefix={plantPrefix} side="right" className="h-48 object-contain opacity-90 drop-shadow-lg scale-110 origin-bottom-right" />
                  </div>
                  {/* 🌿 右側第二株植物 (水平翻轉，增加滿版層次感) */}
                  <div className="absolute bottom-[-15px] right-[20px] animate-sway">
-                    <img 
-                       src={`/plant-${plantPrefix}-right.png`} 
-                       alt="" 
-                       className="h-36 object-contain opacity-70 drop-shadow-md" 
-                       style={{ transform: 'scaleX(-1)' }}
-                       onError={(e)=>{ e.target.onerror = null; e.target.src='/plant-right.png'; e.target.onerror = (e2)=>e2.target.style.display='none'; }} 
-                    />
+                    <PlantImage prefix={plantPrefix} side="right" className="h-36 object-contain opacity-70 drop-shadow-md" style={{ transform: 'scaleX(-1)' }} />
                  </div>
                </>
              );
@@ -1737,13 +1734,13 @@ export default function App() {
               })
             ) : (
                <div className="text-center py-10 bg-white/60 backdrop-blur-md rounded-3xl border border-white">
-                  {/* 🌟 找不到店家：使用迎賓的預設吉祥物 (移除 imageUrl 與 grayscale) */}
-                  <Mascot size={72} animation="bounce" className="mx-auto mb-4 opacity-90" />
+                  {/* 🌟 找不到店家：加入灰階 (grayscale) 與半透明效果 */}
+                  <Mascot size={72} animation="bounce" className="mx-auto mb-4 opacity-60 grayscale" />
                   <p className="text-gray-500 font-medium">
                     {currentView === 'favorites' ? '您還沒有收藏任何店家喔！' : '這個村落暫時沒有符合的店家'}
                   </p>
                   <button onClick={() => {setCurrentView('home'); setActiveCategory('all');}} className="text-emerald-600 text-sm mt-2 font-bold hover:underline">
-                    {currentView === 'favorites' ? t('goToExplore') : t('showAll')}
+                    {currentView === 'favorites' ? '去探索店家' : '顯示全部'}
                   </button>
                </div>
             )}
