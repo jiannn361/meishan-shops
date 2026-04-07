@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { Search, MapPin, Phone, Navigation, Facebook, Star, Home, Coffee, Gift, User, Filter, Heart, Menu, X, Mountain, Loader2, Camera, Ticket, Tag, Clock, ChevronLeft, ChevronRight, Info, LocateFixed, Globe, MessageCircle, Map as MapIcon, ExternalLink, CalendarCheck, Banknote, AlertCircle, Bus, ChevronDown, Play, ArrowRight, Sparkles, Cloud, Bird, Leaf, Flower2, Sunrise, Trees } from 'lucide-react';
 
-// 【安全修正】讀取環境變數
-// ⚠️ 註：由於預覽環境限制，目前先以空字串代替。
-// 在您的電腦本地或 Vercel 上正式部署時，請修改為： const AIRTABLE_API_KEY = import.meta.env.VITE_AIRTABLE_API_KEY || "";
+// ==========================================
+// 【網站核心設定】
+// ==========================================
+// 🚨 🚨 🚨 【非常重要：請手動修改這行】 🚨 🚨 🚨
+// 為了避免 GitHub 阻擋上傳，並且防止 AI 預覽器當機截斷程式碼，這裡先填空字串。
+// 請複製到您的電腦後，將下面這行改成： const AIRTABLE_API_KEY = import.meta.env.VITE_AIRTABLE_API_KEY || "";
 const AIRTABLE_API_KEY = import.meta.env.VITE_AIRTABLE_API_KEY || "";
 
-// 【網站設定區】
 const APP_CONFIG = {
   appName: "Meishan Taiping",
   subTitle: "Meishan, Chiayi",
@@ -19,7 +21,9 @@ const APP_CONFIG = {
   contactLineUrl: "https://line.me/R/ti/p/@your_line_id_here", 
 };
 
-// 【多國語言字典 - 系統介面】
+// ==========================================
+// 🌍 多國語言字典 
+// ==========================================
 const translations = {
   zh: {
     explore: '探索',
@@ -45,7 +49,7 @@ const translations = {
     distance: '距離',
     shopsCount: '間',
     loading: '快到了再等一下...',
-    noFavorites: '您的口袋名單還是空的喔！',
+    noFavorites: '您還沒有收藏任何店家喔！',
     noShops: '這個村落暫時沒有符合的店家',
     goToExplore: '去探索店家',
     showAll: '顯示全部',
@@ -182,17 +186,17 @@ const hexToRgba = (hex, alpha) => {
 };
 
 // ==========================================
-// 🐻 專屬吉祥物元件 (Mascot)
+// 🐻 吉祥物元件 (具備防呆機制)
 // ==========================================
 const Mascot = ({ size = 60, className = "", animation = "", imageUrl = null }) => {
-  const defaultMascotUrl = "/mascot.png";
-  const mascotSrc = imageUrl || defaultMascotUrl;
+  const [error, setError] = useState(false);
+  const fallbackUrl = "https://cdn-icons-png.flaticon.com/512/3466/3466395.png";
+  const mascotSrc = error ? fallbackUrl : (imageUrl || "/mascot.png");
 
   let animClass = "";
   if (animation === "spin") animClass = "animate-spin";     
   if (animation === "bounce") animClass = "animate-bounce"; 
   if (animation === "pulse") animClass = "animate-pulse";
-  
   if (animation === "run") animClass = "animate-ride";   
 
   return (
@@ -201,11 +205,7 @@ const Mascot = ({ size = 60, className = "", animation = "", imageUrl = null }) 
       alt="Mascot"
       style={{ width: size, height: size }}
       className={`object-contain drop-shadow-md ${animClass} ${className}`}
-      onError={(e) => {
-        if (e.target.src !== "https://cdn-icons-png.flaticon.com/512/3466/3466395.png") {
-            e.target.src = "https://cdn-icons-png.flaticon.com/512/3466/3466395.png";
-        }
-      }}
+      onError={() => setError(true)}
     />
   );
 };
@@ -222,7 +222,6 @@ const FormattedText = ({ text, className = "" }) => {
         if (line.trim() === '') {
           return <div key={lineIdx} className="h-3 md:h-4"></div>; 
         }
-
         const parts = line.split(/([（(].*?[)）])/g);
         return (
           <div key={lineIdx} className="leading-relaxed">
@@ -239,7 +238,6 @@ const FormattedText = ({ text, className = "" }) => {
   );
 };
 
-// 【預設商家圖片】 (山形圖示)
 const DefaultShopImage = () => (
   <div className="w-full h-full bg-emerald-50 flex items-center justify-center">
     <div className="w-24 h-24 rounded-full bg-emerald-100 flex items-center justify-center">
@@ -248,7 +246,11 @@ const DefaultShopImage = () => (
   </div>
 );
 
-// 🍃 飄落物元件 (使用 React 狀態安全切換，防止白畫面當機)
+// ==========================================
+// 🌿 全新架構：獨立出的功能元件 (確保系統極度穩定)
+// ==========================================
+
+// 🍃 飄落物元件
 const FallingItem = ({ vData, size, left, animationClass }) => {
   const [imgError, setImgError] = useState(false);
   const plantPrefix = vData.plantPrefix || 'default';
@@ -272,25 +274,67 @@ const FallingItem = ({ vData, size, left, animationClass }) => {
   );
 };
 
-// 🌿 植物元件 (安全處理找不到圖檔的狀況)
-const PlantImage = ({ prefix, side, className, style }) => {
+// 🌿 植物元件 (支援左右滿版與水平翻轉)
+const PlantImage = ({ prefix, side, className, flipped }) => {
   const [errorCount, setErrorCount] = useState(0);
-  
   if (errorCount >= 2) return null; 
   
   const src = errorCount === 0 ? `/plant-${prefix}-${side}.png` : `/plant-${side}.png`;
+  const transformStyle = flipped ? { transform: 'scaleX(-1)' } : {};
 
   return (
     <img 
        src={src} 
        alt="" 
        className={className} 
-       style={style}
+       style={transformStyle}
        onError={() => setErrorCount(prev => prev + 1)} 
     />
   );
 };
 
+// 🖼️ 輪播圖元件
+const ImageCarousel = ({ images, onClick }) => {
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [imgError, setImgError] = useState(false);
+
+  useEffect(() => {
+    if (!images || images.length <= 1) return;
+    const interval = setInterval(() => {
+      setCurrentIndex((prev) => (prev + 1) % images.length);
+    }, 4000); 
+    return () => clearInterval(interval);
+  }, [images?.length]);
+
+  if (!images || images.length === 0 || imgError) {
+     return <div onClick={onClick} className="w-full h-full cursor-pointer"><DefaultShopImage /></div>;
+  }
+  if (images.length === 1) {
+      return (
+          <img src={images[0]} alt="shop" onClick={onClick}
+             className="w-full h-full object-cover transition-transform duration-700 hover:scale-110 cursor-pointer"
+             onError={() => setImgError(true)} />
+      );
+  }
+
+  const nextSlide = (e) => { e.stopPropagation(); setCurrentIndex((prev) => (prev + 1) % images.length); };
+  const prevSlide = (e) => { e.stopPropagation(); setCurrentIndex((prev) => (prev - 1 + images.length) % images.length); };
+
+  return (
+    <div className="relative w-full h-full group cursor-pointer" onClick={onClick}>
+      <img src={images[currentIndex]} alt={`slide-${currentIndex}`} 
+           className="w-full h-full object-cover transition-all duration-500" onError={() => setImgError(true)} />
+      <button onClick={prevSlide} className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/30 hover:bg-black/50 text-white p-1 rounded-full backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity"><ChevronLeft size={20} /></button>
+      <button onClick={nextSlide} className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/30 hover:bg-black/50 text-white p-1 rounded-full backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity"><ChevronRight size={20} /></button>
+      <div className="absolute bottom-3 right-3 bg-black/50 backdrop-blur-md px-2 py-1 rounded-lg text-xs text-white font-medium">{currentIndex + 1} / {images.length}</div>
+    </div>
+  );
+};
+
+
+// ==========================================
+// 🚀 主程式 App
+// ==========================================
 export default function App() {
   const [activeCategory, setActiveCategory] = useState('all');
   const [selectedVillage, setSelectedVillage] = useState('太平村');
@@ -313,6 +357,8 @@ export default function App() {
   const [filterOpenOnly, setFilterOpenOnly] = useState(false); 
   const [searchQuery, setSearchQuery] = useState(''); 
 
+  const [viewTrailMap, setViewTrailMap] = useState(false);
+
   const currentPrimaryColor = villageData[selectedVillage]?.color || '#059669';
   const currentDarkColor = villageData[selectedVillage]?.textDark || '#047857';
   const currentBadgeColor = villageData[selectedVillage]?.textBadge || '#ffffff';
@@ -328,8 +374,10 @@ export default function App() {
 
   useEffect(() => {
     document.title = APP_CONFIG.appName;
-    const savedFavs = localStorage.getItem('meishan_favorites');
-    if (savedFavs) setFavorites(JSON.parse(savedFavs));
+    try {
+      const savedFavs = localStorage.getItem('meishan_favorites');
+      if (savedFavs) setFavorites(JSON.parse(savedFavs));
+    } catch (e) {}
 
     const savedLang = localStorage.getItem('meishan_language');
     if (savedLang === 'en' || savedLang === 'zh') setLanguage(savedLang);
@@ -563,14 +611,14 @@ export default function App() {
     }
 
     const bookingPlatforms = [
-        { key: 'booking', label: 'Booking.com' },
-        { key: 'agoda', label: 'Agoda' },
-        { key: 'airbnb', label: 'Airbnb' },
-        { key: 'asiayo', label: 'AsiaYo' },
-        { key: 'klook', label: 'Klook' },
-        { key: 'kkday', label: 'KKday' },
-        { key: '訂房連結', label: language === 'en' ? 'Book Now' : '線上預約' },
-        { key: 'booking_url', label: language === 'en' ? 'Book Now' : '預約' }
+        { key: 'booking', labelKey: 'bookNow' },
+        { key: 'agoda', labelKey: 'bookNow' },
+        { key: 'airbnb', labelKey: 'bookNow' },
+        { key: 'asiayo', labelKey: 'bookNow' },
+        { key: 'klook', labelKey: 'bookNow' },
+        { key: 'kkday', labelKey: 'bookNow' },
+        { key: '訂房連結', labelKey: 'bookNow' },
+        { key: 'booking_url', labelKey: 'bookNow' }
     ];
     
     const shopBookings = [];
@@ -578,7 +626,7 @@ export default function App() {
         const keys = Object.keys(f);
         const matchedKey = keys.find(k => k.toLowerCase().includes(platform.key));
         if (matchedKey && f[matchedKey]) {
-            shopBookings.push({ name: platform.label, url: f[matchedKey] });
+            shopBookings.push({ labelKey: platform.labelKey, url: f[matchedKey] });
         }
     });
 
@@ -618,7 +666,7 @@ export default function App() {
   useEffect(() => {
     const fetchAirtableData = async () => {
       if (!APP_CONFIG.airtableApiKey) {
-        console.log("Airtable API Key 未設定");
+        console.error("Airtable API Key 遺失！系統無法抓取資料。");
         setLoading(false);
         return;
       }
@@ -627,14 +675,21 @@ export default function App() {
       const CACHE_TIME_KEY = 'meishan_airtable_time';
       const CACHE_DURATION = 1000 * 60 * 5; 
 
-      const cachedData = localStorage.getItem(CACHE_KEY);
-      const cachedTime = localStorage.getItem(CACHE_TIME_KEY);
-      const now = new Date().getTime();
+      try {
+        const cachedData = localStorage.getItem(CACHE_KEY);
+        const cachedTime = localStorage.getItem(CACHE_TIME_KEY);
+        const now = new Date().getTime();
 
-      if (cachedData && cachedTime && (now - parseInt(cachedTime)) < CACHE_DURATION) {
-        setShops(JSON.parse(cachedData));
-        setLoading(false);
-        return;
+        if (cachedData && cachedTime && (now - parseInt(cachedTime)) < CACHE_DURATION) {
+          const parsedData = JSON.parse(cachedData);
+          if (Array.isArray(parsedData)) {
+            setShops(parsedData);
+            setLoading(false);
+            return;
+          }
+        }
+      } catch (e) {
+        localStorage.removeItem(CACHE_KEY);
       }
 
       setLoading(true);
@@ -661,10 +716,10 @@ export default function App() {
         setShops(processedShops);
 
         localStorage.setItem(CACHE_KEY, JSON.stringify(processedShops));
-        localStorage.setItem(CACHE_TIME_KEY, now.toString());
+        localStorage.setItem(CACHE_TIME_KEY, new Date().getTime().toString());
 
       } catch (error) {
-        console.log("Airtable 讀取失敗:", error);
+        console.error("Airtable 讀取失敗:", error);
       } finally {
         setLoading(false);
       }
@@ -760,363 +815,6 @@ export default function App() {
 
   const processedShops = getProcessedShops();
   const availableCategories = getDynamicCategories();
-
-  const ImageCarousel = ({ images, onClick }) => {
-    const [currentIndex, setCurrentIndex] = useState(0);
-    const [imgError, setImgError] = useState(false);
-
-    useEffect(() => {
-      if (!images || images.length <= 1) return;
-      const interval = setInterval(() => {
-        setCurrentIndex((prev) => (prev + 1) % images.length);
-      }, 4000); 
-      return () => clearInterval(interval);
-    }, [images?.length]);
-
-    if (!images || images.length === 0 || imgError) {
-       return <div onClick={onClick} className="w-full h-full cursor-pointer"><DefaultShopImage /></div>;
-    }
-
-    if (images.length === 1) {
-        return (
-            <img src={images[0]} alt="shop" onClick={onClick}
-               className="w-full h-full object-cover transition-transform duration-700 hover:scale-110 cursor-pointer"
-               onError={() => setImgError(true)} />
-        );
-    }
-
-    const nextSlide = (e) => { e.stopPropagation(); setCurrentIndex((prev) => (prev + 1) % images.length); };
-    const prevSlide = (e) => { e.stopPropagation(); setCurrentIndex((prev) => (prev - 1 + images.length) % images.length); };
-
-    return (
-      <div className="relative w-full h-full group cursor-pointer" onClick={onClick}>
-        <img src={images[currentIndex]} alt={`slide-${currentIndex}`} 
-             className="w-full h-full object-cover transition-all duration-500" onError={() => setImgError(true)} />
-        <button onClick={prevSlide} className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/30 hover:bg-black/50 text-white p-1 rounded-full backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity"><ChevronLeft size={20} /></button>
-        <button onClick={nextSlide} className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/30 hover:bg-black/50 text-white p-1 rounded-full backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity"><ChevronRight size={20} /></button>
-        <div className="absolute bottom-3 right-3 bg-black/50 backdrop-blur-md px-2 py-1 rounded-lg text-xs text-white font-medium">{currentIndex + 1} / {images.length}</div>
-      </div>
-    );
-  };
-
-  const ShopDetailModal = ({ shop, onClose }) => {
-    const [viewTrailMap, setViewTrailMap] = useState(false);
-
-    if (!shop) return null;
-    const isOpen = checkIsOpen(shop.hours);
-
-    const displayName = getDynamicText(shop, 'name');
-    const displayDesc = getDynamicText(shop, 'description');
-    const displayAddress = getDynamicText(shop, 'address');
-    const displayPayment = getDynamicText(shop, 'payment');
-    const displayNotice = getDynamicText(shop, 'notice');
-
-    const isAccommodation = shop.categories && shop.categories.includes('accommodation');
-    const hasHours = !!shop.hours;
-    const showAccommodationBadge = isAccommodation && !hasHours;
-    const accBadgeText = shop.bookings && shop.bookings.length > 0 ? t('bookNow') : t('byAppointment');
-    
-    const hideHoursText = !shop.hours || shop.hours.trim().toLowerCase() === 'google' || shop.hours.trim().toLowerCase() === 'fb' || shop.hours.includes('預約制');
-
-    const shopColor = villageData[shop.village]?.color || '#059669';
-    const shopDarkColor = villageData[shop.village]?.textDark || '#047857';
-
-    return (
-      <div className="fixed inset-0 z-[60] flex items-center justify-center px-4 animate-fade-in">
-        <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose}></div>
-
-        {viewTrailMap && (
-           <div className="fixed inset-0 z-[70] bg-black/90 backdrop-blur-sm flex flex-col items-center justify-center p-4 animate-fade-in" onClick={() => setViewTrailMap(false)}>
-              <button className="absolute top-6 right-6 text-white bg-black/50 p-2 rounded-full hover:bg-white/20 transition-colors">
-                 <X size={24} />
-              </button>
-              <h3 className="absolute top-6 left-6 text-white font-bold text-lg drop-shadow-md">步道簡圖</h3>
-              <img src={shop.trail_map} alt="步道簡圖" className="max-w-full max-h-[80vh] object-contain rounded-xl shadow-2xl" onClick={e => e.stopPropagation()} />
-           </div>
-        )}
-
-        <div className="relative w-full max-w-sm bg-white rounded-3xl overflow-hidden shadow-2xl animate-scale-up max-h-[85vh] overflow-y-auto">
-          <button onClick={onClose} className="absolute top-4 right-4 z-10 bg-black/30 hover:bg-black/50 text-white p-2 rounded-full backdrop-blur-md transition-colors">
-            <X size={20} />
-          </button>
-
-          <div className="h-64 relative">
-            <ImageCarousel images={shop.images} onClick={(e) => e.stopPropagation()} />
-
-            <div className="absolute bottom-0 inset-x-0 h-24 bg-gradient-to-t from-black/80 to-transparent pointer-events-none"></div>
-            <div className="absolute bottom-4 left-5 right-5 text-white pointer-events-none">
-              <h3 className="text-2xl font-bold mb-1 pointer-events-auto">{displayName}</h3>
-              <div className="flex items-center gap-3 text-sm pointer-events-auto">
-                {shop.rating && (
-                  <div className="flex items-center gap-1 text-yellow-400">
-                     <Star size={16} className="fill-yellow-400" />
-                     <span className="font-bold text-lg">{shop.rating}</span>
-                  </div>
-                )}
-                <a 
-                  href={shop.google_url || getGoogleMapLink(shop.name, shop.address)}
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="text-gray-200 hover:text-white underline decoration-white/50 underline-offset-4 flex items-center gap-1 transition-colors"
-                >
-                  {t('googleReviews')} <ExternalLink size={12} />
-                </a>
-              </div>
-            </div>
-          </div>
-
-          <div className="p-6 space-y-6">
-            <div className="flex flex-col gap-3 items-start">
-               {showAccommodationBadge ? (
-                 <div 
-                  className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold self-start"
-                  style={{ backgroundColor: hexToRgba(shopDarkColor, 0.15), color: shopDarkColor }}
-                 >
-                   <CalendarCheck size={14} />
-                   {accBadgeText}
-                 </div>
-               ) : isOpen === 'appointment' ? (
-                 <div 
-                  className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold self-start"
-                  style={{ backgroundColor: hexToRgba(shopDarkColor, 0.15), color: shopDarkColor }}
-                 >
-                   <CalendarCheck size={14} />
-                   {t('byAppointment')}
-                 </div>
-               ) : (
-                 <div 
-                  className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold self-start`}
-                  style={
-                    isOpen === true ? { backgroundColor: hexToRgba(shopDarkColor, 0.15), color: shopDarkColor } : 
-                    isOpen === 'opening_soon' ? { backgroundColor: '#fef3c7', color: '#b45309' } : 
-                    isOpen === 'closing_soon' ? { backgroundColor: '#ffedd5', color: '#c2410c' } : 
-                    isOpen === false ? { backgroundColor: '#f3f4f6', color: '#4b5563' } : 
-                    { backgroundColor: '#eff6ff', color: '#2563eb' }
-                  }
-                 >
-                   <Clock size={14} />
-                   {isOpen === true ? t('openNow') : isOpen === 'opening_soon' ? t('openingSoon') : isOpen === 'closing_soon' ? t('closingSoon') : isOpen === false ? t('closed') : t('checkAnnouncement')}
-                 </div>
-               )}
-
-               {!hideHoursText && (
-                 <div className="w-full bg-gray-50 rounded-xl p-3 text-sm text-gray-600">
-                    <FormattedText text={shop.hours} />
-                 </div>
-               )}
-            </div>
-
-            {(displayPayment || displayNotice) && (
-              <div className="space-y-3">
-                {displayPayment && (
-                  <div className="bg-amber-50 p-3 rounded-2xl border border-amber-200 flex items-start gap-3">
-                    <div className="bg-amber-100 p-2 rounded-full text-amber-600 shrink-0">
-                      <Banknote size={18} />
-                    </div>
-                    <div className="w-full">
-                      <h4 className="text-[13px] font-bold text-amber-800 mb-0.5">{t('paymentMethod')}</h4>
-                      <FormattedText text={displayPayment} className="text-sm text-amber-700 font-medium" />
-                    </div>
-                  </div>
-                )}
-                {displayNotice && (
-                  <div className="bg-rose-50 p-3 rounded-2xl border border-rose-200 flex items-start gap-3">
-                    <div className="bg-rose-100 p-2 rounded-full text-rose-600 shrink-0">
-                      <AlertCircle size={18} />
-                    </div>
-                    <div className="w-full">
-                      <h4 className="text-[13px] font-bold text-rose-800 mb-0.5">{t('notice')}</h4>
-                      <FormattedText text={displayNotice} className="text-sm text-rose-700 font-medium" />
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
-
-            <div className="p-4 rounded-2xl border" style={{ backgroundColor: hexToRgba(shopColor, 0.05), borderColor: hexToRgba(shopColor, 0.15) }}>
-              <h4 className="text-sm font-bold mb-2 flex items-center gap-1" style={{ color: shopDarkColor }}>
-                <Info size={14} /> {t('shopIntro')}
-              </h4>
-              <div className="text-sm text-gray-600 text-justify">
-                <FormattedText text={displayDesc} />
-              </div>
-            </div>
-
-            <div className="space-y-3">
-              <div className="flex items-start gap-3 text-sm text-gray-600">
-                <MapPin size={18} className="mt-0.5 shrink-0" style={{ color: shopColor }} />
-                <span>{displayAddress}</span>
-              </div>
-              {shop.tel && (
-                <div className="flex items-center gap-3 text-sm text-gray-600">
-                  <Phone size={18} className="shrink-0" style={{ color: shopColor }} />
-                  <span>{shop.tel}</span>
-                </div>
-              )}
-            </div>
-
-            <div className="flex flex-wrap gap-2">
-              {shop.services.map((s, i) => (
-                <span key={i} className="px-2 py-1 bg-gray-100 text-gray-500 text-xs rounded-md">
-                  #{s}
-                </span>
-              ))}
-            </div>
-
-            {shop.trail_map && (
-              <button 
-                 onClick={() => setViewTrailMap(true)}
-                 className="w-full py-3 mb-2 rounded-2xl flex items-center justify-center gap-2 font-bold shadow-sm transition-transform active:scale-95 mt-4"
-                 style={{ backgroundColor: hexToRgba(shopColor, 0.1), color: shopDarkColor, border: `1px solid ${hexToRgba(shopColor, 0.3)}` }}
-              >
-                 <MapIcon size={18} /> 查看步道簡圖
-              </button>
-            )}
-
-            <div className="flex gap-3 pt-2 flex-wrap">
-              <a 
-                href={shop.nav_link || getGoogleMapLink(shop.name, shop.address)} 
-                target="_blank" rel="noopener noreferrer" 
-                className="flex-1 min-w-[100px] text-white py-3 rounded-xl flex items-center justify-center gap-2 hover:opacity-90 transition-opacity font-medium shadow-lg"
-                style={{ backgroundColor: shopColor, boxShadow: `0 4px 14px 0 ${hexToRgba(shopColor, 0.4)}` }}
-              >
-                <Navigation size={18} /> {t('navigate')}
-              </a>
-              {shop.tel && (
-                <a 
-                  href={`tel:${shop.tel}`} 
-                  className="w-12 h-12 flex items-center justify-center rounded-xl border hover:opacity-80 transition-opacity flex-shrink-0"
-                  style={{ backgroundColor: hexToRgba(shopColor, 0.05), borderColor: hexToRgba(shopColor, 0.2), color: shopColor }}
-                >
-                  <Phone size={20} />
-                </a>
-              )}
-              {shop.fbLink && (
-                <a href={shop.fbLink} target="_blank" rel="noopener noreferrer" className="w-12 h-12 flex items-center justify-center rounded-xl border border-blue-200 text-blue-600 hover:bg-blue-50 transition-colors flex-shrink-0">
-                  <Facebook size={20} />
-                </a>
-              )}
-              {shop.line_url && (
-                <a href={shop.line_url} target="_blank" rel="noopener noreferrer" className="w-12 h-12 flex items-center justify-center rounded-xl border border-green-200 text-green-600 hover:bg-green-50 transition-colors flex-shrink-0">
-                  <span className="font-extrabold text-xs">LINE</span>
-                </a>
-              )}
-              {shop.website && (
-                <a href={shop.website} target="_blank" rel="noopener noreferrer" className="w-12 h-12 flex items-center justify-center rounded-xl border border-purple-200 text-purple-600 hover:bg-purple-50 transition-colors flex-shrink-0">
-                  <Globe size={20} />
-                </a>
-              )}
-              
-              {shop.bookings && shop.bookings.length > 0 && (
-                shop.bookings.map((booking, idx) => (
-                  <a 
-                    key={idx}
-                    href={booking.url} 
-                    target="_blank" 
-                    rel="noopener noreferrer" 
-                    className="flex-1 min-w-[120px] px-3 py-3 rounded-xl border text-white transition-opacity hover:opacity-90 flex items-center justify-center gap-2 font-bold text-sm"
-                    style={{ backgroundColor: shopDarkColor, boxShadow: `0 4px 14px 0 ${hexToRgba(shopDarkColor, 0.3)}` }}
-                  >
-                    <CalendarCheck size={18} />
-                    <span>{booking.name}</span>
-                  </a>
-                ))
-              )}
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  };
-
-  const FilterModal = () => (
-    <div className="fixed inset-0 z-[60] flex items-end justify-center sm:items-center p-4 animate-fade-in">
-      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setShowFilterModal(false)}></div>
-      <div className="relative w-full max-w-sm bg-white rounded-t-3xl sm:rounded-3xl p-6 space-y-6 animate-slide-up">
-        <div className="flex justify-between items-center">
-          <h3 className="text-lg font-bold text-gray-800">{t('quickFilter')}</h3>
-          <button onClick={() => setShowFilterModal(false)}><X size={20} className="text-gray-400" /></button>
-        </div>
-        <div className="space-y-4">
-          <label className="flex items-center justify-between p-4 bg-gray-50 rounded-xl cursor-pointer hover:bg-opacity-80 transition-colors" style={{ hover: { backgroundColor: hexToRgba(currentPrimaryColor, 0.05) } }}>
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ backgroundColor: hexToRgba(currentPrimaryColor, 0.15), color: currentPrimaryColor }}>
-                <Clock size={20} />
-              </div>
-              <span className="font-medium text-gray-700">{t('onlyOpenNow')}</span>
-            </div>
-            <div className={`w-12 h-6 rounded-full p-1 transition-colors ${filterOpenOnly ? '' : 'bg-gray-300'}`}
-                 style={filterOpenOnly ? { backgroundColor: currentPrimaryColor } : {}}
-                 onClick={(e) => { e.preventDefault(); setFilterOpenOnly(!filterOpenOnly); }}>
-              <div className={`w-4 h-4 bg-white rounded-full shadow-sm transition-transform ${filterOpenOnly ? 'translate-x-6' : 'translate-x-0'}`}></div>
-            </div>
-          </label>
-        </div>
-        <button 
-          onClick={() => setShowFilterModal(false)} 
-          className="w-full text-white py-3 rounded-xl font-bold hover:opacity-90 transition-opacity"
-          style={{ backgroundColor: currentPrimaryColor }}
-        >
-          {t('confirm')}
-        </button>
-      </div>
-    </div>
-  );
-
-  const UserModal = () => (
-    <div className="fixed inset-0 z-[60] flex items-end justify-center sm:items-center p-4 animate-fade-in">
-      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setShowUserModal(false)}></div>
-      <div className="relative w-full max-w-sm bg-white rounded-t-3xl sm:rounded-3xl p-6 space-y-6 animate-slide-up">
-        <div className="text-center">
-          <div 
-            className="w-20 h-20 mx-auto rounded-full overflow-hidden border-4 shadow-lg mb-4 flex items-center justify-center"
-            style={{ borderColor: hexToRgba(currentPrimaryColor, 0.2), backgroundColor: hexToRgba(currentPrimaryColor, 0.05) }}
-          >
-            {userProfile?.pictureUrl ? (
-              <img src={userProfile.pictureUrl} alt="User" className="w-full h-full object-cover" />
-            ) : (
-              <div className="relative w-full h-full flex items-center justify-center">
-                 <Mountain size={40} className="relative z-10" strokeWidth={1.5} style={{ color: currentPrimaryColor }} />
-                 <div className="absolute bottom-0 w-full h-1/3" style={{ backgroundColor: hexToRgba(currentPrimaryColor, 0.2) }}></div>
-              </div>
-            )}
-          </div>
-          <h3 className="text-xl font-bold text-gray-800">
-            {userProfile?.displayName || t('guest')}
-          </h3>
-          <p className="text-sm text-gray-500">{t('welcome')}</p>
-        </div>
-        <div className="space-y-2">
-          {APP_CONFIG.notionUrl && (
-            <button 
-              className="w-full flex items-center justify-between p-4 hover:opacity-80 rounded-xl transition-colors text-left border" 
-              style={{ backgroundColor: hexToRgba(currentPrimaryColor, 0.05), borderColor: hexToRgba(currentPrimaryColor, 0.2) }}
-              onClick={() => window.open(APP_CONFIG.notionUrl, '_blank')}
-            >
-              <span className="flex items-center gap-3 font-bold" style={{ color: currentDarkColor }}><MapIcon size={18} /> {t('trailGuide')}</span>
-              <ChevronRight size={16} style={{ color: currentPrimaryColor }} />
-            </button>
-          )}
-          <button className="w-full flex items-center justify-between p-4 bg-gray-50 hover:bg-gray-100 rounded-xl transition-colors text-left" onClick={() => {
-              if (APP_CONFIG.aboutUsUrl) window.open(APP_CONFIG.aboutUsUrl, '_blank');
-              else alert(t('aboutUsText'));
-            }}>
-            <span className="flex items-center gap-3 text-gray-700"><Info size={18} /> {t('aboutUs')}</span>
-            <ChevronRight size={16} className="text-gray-400" />
-          </button>
-          <button className="w-full flex items-center justify-between p-4 bg-gray-50 hover:bg-gray-100 rounded-xl transition-colors text-left" onClick={() => window.open(APP_CONFIG.contactLineUrl, '_blank')}>
-            <span className="flex items-center gap-3 text-gray-700"><MessageCircle size={18} /> {t('contactSupport')}</span>
-            <ChevronRight size={16} className="text-gray-400" />
-          </button>
-        </div>
-        {favorites.length > 0 && (
-          <button onClick={() => { if(confirm(t('confirmClearFav'))) { setFavorites([]); localStorage.removeItem('meishan_favorites'); } }} className="w-full text-center text-rose-500 text-sm py-2 hover:bg-rose-50 rounded-lg transition-colors">
-            {t('clearFavorites')}
-          </button>
-        )}
-      </div>
-    </div>
-  );
 
   // ==========================================
   // 🎮 遊戲風迎賓畫面 (多步驟探索)
@@ -1302,7 +1000,6 @@ export default function App() {
       <div className="w-full max-w-md bg-gray-50 min-h-[100dvh] relative shadow-2xl overflow-y-auto pb-32 no-scrollbar">
         
         {/* 🌟 背景圖層 (底層 z-0) */}
-        {/* 【修正】加上 left-1/2 -translate-x-1/2 確保固定時永遠與畫面置中對齊 */}
         <div className="fixed inset-y-0 left-1/2 -translate-x-1/2 w-full max-w-md z-0 pointer-events-none overflow-hidden">
           <img 
             src={`/${villageData[selectedVillage]?.bgFile}`} 
@@ -1314,37 +1011,35 @@ export default function App() {
         </div>
 
         {/* 🌟 前景動態植物與落葉層 (z-30，浮在店家卡片上方) */}
-        {/* 【修正】加上 left-1/2 -translate-x-1/2 確保固定時永遠與畫面置中對齊 */}
         <div className="fixed inset-y-0 left-1/2 -translate-x-1/2 w-full max-w-md z-30 pointer-events-none overflow-hidden">
           {(() => {
              const vData = villageData[selectedVillage];
              if (!vData) return null;
-             
              const plantPrefix = vData.plantPrefix || 'default';
 
              return (
                <>
-                 {/* 🍃 飄落物區塊 (完全防止當機) */}
+                 {/* 🍃 飄落物區塊 */}
                  <FallingItem vData={vData} size={24} left="left-[10%]" animationClass="animate-fall-1" />
                  <FallingItem vData={vData} size={32} left="left-[50%]" animationClass="animate-fall-2" />
                  <FallingItem vData={vData} size={20} left="left-[80%]" animationClass="animate-fall-3" />
 
-                 {/* 🌿 左側第一株植物 (往外移 -60px 消除留白，並稍微放大) */}
+                 {/* 🌿 左側第一株植物 (往外移消除留白，放大) */}
                  <div className="absolute bottom-[-10px] left-[-60px] animate-sway">
                     <PlantImage prefix={plantPrefix} side="left" className="h-44 object-contain opacity-90 drop-shadow-lg scale-110 origin-bottom-left" />
                  </div>
                  {/* 🌿 左側第二株植物 (水平翻轉，增加滿版層次感) */}
                  <div className="absolute bottom-[-20px] left-[10px] animate-sway-reverse">
-                    <PlantImage prefix={plantPrefix} side="left" className="h-32 object-contain opacity-70 drop-shadow-md" style={{ transform: 'scaleX(-1)' }} />
+                    <PlantImage prefix={plantPrefix} side="left" className="h-32 object-contain opacity-70 drop-shadow-md" flipped={true} />
                  </div>
 
-                 {/* 🌿 右側第一株植物 (往外移 -60px 消除留白，並稍微放大) */}
+                 {/* 🌿 右側第一株植物 (往外移消除留白，放大) */}
                  <div className="absolute bottom-[-10px] right-[-60px] animate-sway-reverse">
                     <PlantImage prefix={plantPrefix} side="right" className="h-48 object-contain opacity-90 drop-shadow-lg scale-110 origin-bottom-right" />
                  </div>
                  {/* 🌿 右側第二株植物 (水平翻轉，增加滿版層次感) */}
                  <div className="absolute bottom-[-15px] right-[20px] animate-sway">
-                    <PlantImage prefix={plantPrefix} side="right" className="h-36 object-contain opacity-70 drop-shadow-md" style={{ transform: 'scaleX(-1)' }} />
+                    <PlantImage prefix={plantPrefix} side="right" className="h-36 object-contain opacity-70 drop-shadow-md" flipped={true} />
                  </div>
                </>
              );
@@ -1353,9 +1048,259 @@ export default function App() {
 
         {/* 內容層：所有內容包在 z-10 內，確保浮在背景上 */}
         <div className="relative z-10">
-          {selectedShop && <ShopDetailModal shop={selectedShop} onClose={() => setSelectedShop(null)} />}
-          {showFilterModal && <FilterModal />}
-          {showUserModal && <UserModal />}
+          
+          {/* 🌟 獨立彈出視窗：店家詳細資訊 */}
+          {selectedShop && (() => {
+            const shop = selectedShop;
+            const isOpen = checkIsOpen(shop.hours);
+            const displayName = getDynamicText(shop, 'name');
+            const displayDesc = getDynamicText(shop, 'description');
+            const displayAddress = getDynamicText(shop, 'address');
+            const displayPayment = getDynamicText(shop, 'payment');
+            const displayNotice = getDynamicText(shop, 'notice');
+            const isAccommodation = shop.categories && shop.categories.includes('accommodation');
+            const showAccommodationBadge = isAccommodation && !shop.hours;
+            const accBadgeText = shop.bookings && shop.bookings.length > 0 ? t('bookNow') : t('byAppointment');
+            const hideHoursText = !shop.hours || shop.hours.trim().toLowerCase() === 'google' || shop.hours.trim().toLowerCase() === 'fb' || shop.hours.includes('預約制');
+            const shopColor = villageData[shop.village]?.color || '#059669';
+            const shopDarkColor = villageData[shop.village]?.textDark || '#047857';
+
+            return (
+              <div className="fixed inset-0 z-[60] flex items-center justify-center px-4 animate-fade-in">
+                <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setSelectedShop(null)}></div>
+                
+                {/* 🗺️ 步道簡圖全螢幕燈箱 */}
+                {viewTrailMap && (
+                   <div className="fixed inset-0 z-[70] bg-black/90 backdrop-blur-sm flex flex-col items-center justify-center p-4 animate-fade-in" onClick={() => setViewTrailMap(false)}>
+                      <button className="absolute top-6 right-6 text-white bg-black/50 p-2 rounded-full hover:bg-white/20 transition-colors">
+                         <X size={24} />
+                      </button>
+                      <h3 className="absolute top-6 left-6 text-white font-bold text-lg drop-shadow-md">步道簡圖</h3>
+                      <img src={shop.trail_map} alt="步道簡圖" className="max-w-full max-h-[80vh] object-contain rounded-xl shadow-2xl" onClick={e => e.stopPropagation()} />
+                   </div>
+                )}
+
+                <div className="relative w-full max-w-sm bg-white rounded-3xl overflow-hidden shadow-2xl animate-scale-up max-h-[85vh] overflow-y-auto">
+                  <button onClick={() => setSelectedShop(null)} className="absolute top-4 right-4 z-10 bg-black/30 hover:bg-black/50 text-white p-2 rounded-full backdrop-blur-md transition-colors">
+                    <X size={20} />
+                  </button>
+
+                  <div className="h-64 relative">
+                    <ImageCarousel images={shop.images} onClick={(e) => e.stopPropagation()} />
+                    <div className="absolute bottom-0 inset-x-0 h-24 bg-gradient-to-t from-black/80 to-transparent pointer-events-none"></div>
+                    <div className="absolute bottom-4 left-5 right-5 text-white pointer-events-none">
+                      <h3 className="text-2xl font-bold mb-1 pointer-events-auto">{displayName}</h3>
+                      <div className="flex items-center gap-3 text-sm pointer-events-auto">
+                        {shop.rating && (
+                          <div className="flex items-center gap-1 text-yellow-400">
+                             <Star size={16} className="fill-yellow-400" />
+                             <span className="font-bold text-lg">{shop.rating}</span>
+                          </div>
+                        )}
+                        <a 
+                          href={shop.google_url || getGoogleMapLink(shop.name, shop.address)}
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="text-gray-200 hover:text-white underline decoration-white/50 underline-offset-4 flex items-center gap-1 transition-colors"
+                        >
+                          {t('googleReviews')} <ExternalLink size={12} />
+                        </a>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="p-6 space-y-6">
+                    <div className="flex flex-col gap-3 items-start">
+                       {showAccommodationBadge ? (
+                         <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold self-start" style={{ backgroundColor: hexToRgba(shopDarkColor, 0.15), color: shopDarkColor }}>
+                           <CalendarCheck size={14} />{accBadgeText}
+                         </div>
+                       ) : isOpen === 'appointment' ? (
+                         <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold self-start" style={{ backgroundColor: hexToRgba(shopDarkColor, 0.15), color: shopDarkColor }}>
+                           <CalendarCheck size={14} />{t('byAppointment')}
+                         </div>
+                       ) : (
+                         <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold self-start`} style={isOpen === true ? { backgroundColor: hexToRgba(shopDarkColor, 0.15), color: shopDarkColor } : isOpen === 'opening_soon' ? { backgroundColor: '#fef3c7', color: '#b45309' } : isOpen === 'closing_soon' ? { backgroundColor: '#ffedd5', color: '#c2410c' } : isOpen === false ? { backgroundColor: '#f3f4f6', color: '#4b5563' } : { backgroundColor: '#eff6ff', color: '#2563eb' }}>
+                           <Clock size={14} />
+                           {isOpen === true ? t('openNow') : isOpen === 'opening_soon' ? t('openingSoon') : isOpen === 'closing_soon' ? t('closingSoon') : isOpen === false ? t('closed') : t('checkAnnouncement')}
+                         </div>
+                       )}
+
+                       {!hideHoursText && (
+                         <div className="w-full bg-gray-50 rounded-xl p-3 text-sm text-gray-600">
+                            <FormattedText text={shop.hours} />
+                         </div>
+                       )}
+                    </div>
+
+                    {(displayPayment || displayNotice) && (
+                      <div className="space-y-3">
+                        {displayPayment && (
+                          <div className="bg-amber-50 p-3 rounded-2xl border border-amber-200 flex items-start gap-3">
+                            <div className="bg-amber-100 p-2 rounded-full text-amber-600 shrink-0"><Banknote size={18} /></div>
+                            <div className="w-full">
+                              <h4 className="text-[13px] font-bold text-amber-800 mb-0.5">{t('paymentMethod')}</h4>
+                              <FormattedText text={displayPayment} className="text-sm text-amber-700 font-medium" />
+                            </div>
+                          </div>
+                        )}
+                        {displayNotice && (
+                          <div className="bg-rose-50 p-3 rounded-2xl border border-rose-200 flex items-start gap-3">
+                            <div className="bg-rose-100 p-2 rounded-full text-rose-600 shrink-0"><AlertCircle size={18} /></div>
+                            <div className="w-full">
+                              <h4 className="text-[13px] font-bold text-rose-800 mb-0.5">{t('notice')}</h4>
+                              <FormattedText text={displayNotice} className="text-sm text-rose-700 font-medium" />
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    <div className="p-4 rounded-2xl border" style={{ backgroundColor: hexToRgba(shopColor, 0.05), borderColor: hexToRgba(shopColor, 0.15) }}>
+                      <h4 className="text-sm font-bold mb-2 flex items-center gap-1" style={{ color: shopDarkColor }}><Info size={14} /> {t('shopIntro')}</h4>
+                      <div className="text-sm text-gray-600 text-justify">
+                        <FormattedText text={displayDesc} />
+                      </div>
+                    </div>
+
+                    <div className="space-y-3">
+                      <div className="flex items-start gap-3 text-sm text-gray-600">
+                        <MapPin size={18} className="mt-0.5 shrink-0" style={{ color: shopColor }} />
+                        <span>{displayAddress}</span>
+                      </div>
+                      {shop.tel && (
+                        <div className="flex items-center gap-3 text-sm text-gray-600">
+                          <Phone size={18} className="shrink-0" style={{ color: shopColor }} />
+                          <span>{shop.tel}</span>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="flex flex-wrap gap-2">
+                      {shop.services.map((s, i) => (
+                        <span key={i} className="px-2 py-1 bg-gray-100 text-gray-500 text-xs rounded-md">#{s}</span>
+                      ))}
+                    </div>
+
+                    {shop.trail_map && (
+                      <button onClick={() => setViewTrailMap(true)} className="w-full py-3 mb-2 rounded-2xl flex items-center justify-center gap-2 font-bold shadow-sm transition-transform active:scale-95 mt-4" style={{ backgroundColor: hexToRgba(shopColor, 0.1), color: shopDarkColor, border: `1px solid ${hexToRgba(shopColor, 0.3)}` }}>
+                         <MapIcon size={18} /> 查看步道簡圖
+                      </button>
+                    )}
+
+                    <div className="flex gap-3 pt-2 flex-wrap">
+                      <a href={shop.nav_link || getGoogleMapLink(shop.name, shop.address)} target="_blank" rel="noopener noreferrer" className="flex-1 min-w-[100px] text-white py-3 rounded-xl flex items-center justify-center gap-2 hover:opacity-90 transition-opacity font-medium shadow-lg" style={{ backgroundColor: shopColor, boxShadow: `0 4px 14px 0 ${hexToRgba(shopColor, 0.4)}` }}>
+                        <Navigation size={18} /> {t('navigate')}
+                      </a>
+                      {shop.tel && (
+                        <a href={`tel:${shop.tel}`} className="w-12 h-12 flex items-center justify-center rounded-xl border hover:opacity-80 transition-opacity flex-shrink-0" style={{ backgroundColor: hexToRgba(shopColor, 0.05), borderColor: hexToRgba(shopColor, 0.2), color: shopColor }}>
+                          <Phone size={20} />
+                        </a>
+                      )}
+                      {shop.fbLink && (
+                        <a href={shop.fbLink} target="_blank" rel="noopener noreferrer" className="w-12 h-12 flex items-center justify-center rounded-xl border border-blue-200 text-blue-600 hover:bg-blue-50 transition-colors flex-shrink-0">
+                          <Facebook size={20} />
+                        </a>
+                      )}
+                      {shop.line_url && (
+                        <a href={shop.line_url} target="_blank" rel="noopener noreferrer" className="w-12 h-12 flex items-center justify-center rounded-xl border border-green-200 text-green-600 hover:bg-green-50 transition-colors flex-shrink-0">
+                          <span className="font-extrabold text-xs">LINE</span>
+                        </a>
+                      )}
+                      {shop.website && (
+                        <a href={shop.website} target="_blank" rel="noopener noreferrer" className="w-12 h-12 flex items-center justify-center rounded-xl border border-purple-200 text-purple-600 hover:bg-purple-50 transition-colors flex-shrink-0">
+                          <Globe size={20} />
+                        </a>
+                      )}
+                      {shop.bookings && shop.bookings.length > 0 && (
+                        shop.bookings.map((booking, idx) => (
+                          <a key={idx} href={booking.url} target="_blank" rel="noopener noreferrer" className="flex-1 min-w-[120px] px-3 py-3 rounded-xl border text-white transition-opacity hover:opacity-90 flex items-center justify-center gap-2 font-bold text-sm" style={{ backgroundColor: shopDarkColor, boxShadow: `0 4px 14px 0 ${hexToRgba(shopDarkColor, 0.3)}` }}>
+                            <CalendarCheck size={18} /><span>{t(booking.labelKey)}</span>
+                          </a>
+                        ))
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            );
+          })()}
+
+          {/* 🌟 獨立彈出視窗：快速篩選 */}
+          {showFilterModal && (
+            <div className="fixed inset-0 z-[60] flex items-end justify-center sm:items-center p-4 animate-fade-in">
+              <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setShowFilterModal(false)}></div>
+              <div className="relative w-full max-w-sm bg-white rounded-t-3xl sm:rounded-3xl p-6 space-y-6 animate-slide-up">
+                <div className="flex justify-between items-center">
+                  <h3 className="text-lg font-bold text-gray-800">{t('quickFilter')}</h3>
+                  <button onClick={() => setShowFilterModal(false)}><X size={20} className="text-gray-400" /></button>
+                </div>
+                <div className="space-y-4">
+                  <label className="flex items-center justify-between p-4 bg-gray-50 rounded-xl cursor-pointer hover:bg-opacity-80 transition-colors" style={{ hover: { backgroundColor: hexToRgba(currentPrimaryColor, 0.05) } }}>
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ backgroundColor: hexToRgba(currentPrimaryColor, 0.15), color: currentPrimaryColor }}>
+                        <Clock size={20} />
+                      </div>
+                      <span className="font-medium text-gray-700">{t('onlyOpenNow')}</span>
+                    </div>
+                    <div className={`w-12 h-6 rounded-full p-1 transition-colors ${filterOpenOnly ? '' : 'bg-gray-300'}`} style={filterOpenOnly ? { backgroundColor: currentPrimaryColor } : {}} onClick={(e) => { e.preventDefault(); setFilterOpenOnly(!filterOpenOnly); }}>
+                      <div className={`w-4 h-4 bg-white rounded-full shadow-sm transition-transform ${filterOpenOnly ? 'translate-x-6' : 'translate-x-0'}`}></div>
+                    </div>
+                  </label>
+                </div>
+                <button onClick={() => setShowFilterModal(false)} className="w-full text-white py-3 rounded-xl font-bold hover:opacity-90 transition-opacity" style={{ backgroundColor: currentPrimaryColor }}>
+                  {t('confirm')}
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* 🌟 獨立彈出視窗：個人中心 */}
+          {showUserModal && (
+            <div className="fixed inset-0 z-[60] flex items-end justify-center sm:items-center p-4 animate-fade-in">
+              <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setShowUserModal(false)}></div>
+              <div className="relative w-full max-w-sm bg-white rounded-t-3xl sm:rounded-3xl p-6 space-y-6 animate-slide-up">
+                <div className="text-center">
+                  <div className="w-20 h-20 mx-auto rounded-full overflow-hidden border-4 shadow-lg mb-4 flex items-center justify-center" style={{ borderColor: hexToRgba(currentPrimaryColor, 0.2), backgroundColor: hexToRgba(currentPrimaryColor, 0.05) }}>
+                    {userProfile?.pictureUrl ? (
+                      <img src={userProfile.pictureUrl} alt="User" className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="relative w-full h-full flex items-center justify-center">
+                         <Mountain size={40} className="relative z-10" strokeWidth={1.5} style={{ color: currentPrimaryColor }} />
+                         <div className="absolute bottom-0 w-full h-1/3" style={{ backgroundColor: hexToRgba(currentPrimaryColor, 0.2) }}></div>
+                      </div>
+                    )}
+                  </div>
+                  <h3 className="text-xl font-bold text-gray-800">{userProfile?.displayName || t('guest')}</h3>
+                  <p className="text-sm text-gray-500">{t('welcome')}</p>
+                </div>
+                <div className="space-y-2">
+                  {APP_CONFIG.notionUrl && (
+                    <button className="w-full flex items-center justify-between p-4 hover:opacity-80 rounded-xl transition-colors text-left border" style={{ backgroundColor: hexToRgba(currentPrimaryColor, 0.05), borderColor: hexToRgba(currentPrimaryColor, 0.2) }} onClick={() => window.open(APP_CONFIG.notionUrl, '_blank')}>
+                      <span className="flex items-center gap-3 font-bold" style={{ color: currentDarkColor }}><MapIcon size={18} /> {t('trailGuide')}</span>
+                      <ChevronRight size={16} style={{ color: currentPrimaryColor }} />
+                    </button>
+                  )}
+                  <button className="w-full flex items-center justify-between p-4 bg-gray-50 hover:bg-gray-100 rounded-xl transition-colors text-left" onClick={() => {
+                      if (APP_CONFIG.aboutUsUrl) window.open(APP_CONFIG.aboutUsUrl, '_blank');
+                      else alert(t('aboutUsText'));
+                    }}>
+                    <span className="flex items-center gap-3 text-gray-700"><Info size={18} /> {t('aboutUs')}</span>
+                    <ChevronRight size={16} className="text-gray-400" />
+                  </button>
+                  <button className="w-full flex items-center justify-between p-4 bg-gray-50 hover:bg-gray-100 rounded-xl transition-colors text-left" onClick={() => window.open(APP_CONFIG.contactLineUrl, '_blank')}>
+                    <span className="flex items-center gap-3 text-gray-700"><MessageCircle size={18} /> {t('contactSupport')}</span>
+                    <ChevronRight size={16} className="text-gray-400" />
+                  </button>
+                </div>
+                {favorites.length > 0 && (
+                  <button onClick={() => { if(confirm(t('confirmClearFav'))) { setFavorites([]); localStorage.removeItem('meishan_favorites'); } }} className="w-full text-center text-rose-500 text-sm py-2 hover:bg-rose-50 rounded-lg transition-colors">
+                    {t('clearFavorites')}
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
 
           {/* Sidebar */}
           {isSidebarOpen && (
@@ -1569,7 +1514,6 @@ export default function App() {
           <div className="px-6 space-y-6">
             {loading ? (
                <div className="flex flex-col items-center justify-center py-16 bg-white/70 backdrop-blur-md rounded-3xl border border-white shadow-xl mx-2">
-                 {/* 🌟 載入中：使用機車/奔跑的吉祥物 */}
                  <Mascot size={80} imageUrl="/mascot-run.png" animation="run" className="mb-2" />
                  
                  <div className="w-48 h-2 bg-gray-200 rounded-full overflow-hidden mt-2 mb-4 relative">
@@ -1733,14 +1677,13 @@ export default function App() {
                 );
               })
             ) : (
-               <div className="text-center py-10 bg-white/60 backdrop-blur-md rounded-3xl border border-white">
-                  {/* 🌟 找不到店家：加入灰階 (grayscale) 與半透明效果 */}
+               <div className="text-center py-10 bg-white/60 backdrop-blur-md rounded-3xl border border-white mx-4 shadow-sm">
                   <Mascot size={72} animation="bounce" className="mx-auto mb-4 opacity-60 grayscale" />
                   <p className="text-gray-500 font-medium">
-                    {currentView === 'favorites' ? '您還沒有收藏任何店家喔！' : '這個村落暫時沒有符合的店家'}
+                    {currentView === 'favorites' ? t('noFavorites') : t('noShops')}
                   </p>
-                  <button onClick={() => {setCurrentView('home'); setActiveCategory('all');}} className="text-emerald-600 text-sm mt-2 font-bold hover:underline">
-                    {currentView === 'favorites' ? '去探索店家' : '顯示全部'}
+                  <button onClick={() => {setCurrentView('home'); setActiveCategory('all'); setSearchQuery('');}} className="text-sm mt-3 font-bold hover:underline text-emerald-600">
+                    {currentView === 'favorites' ? t('goToExplore') : t('showAll')}
                   </button>
                </div>
             )}
