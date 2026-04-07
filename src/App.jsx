@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, MapPin, Phone, Navigation, Facebook, Star, Home, Coffee, Gift, User, Filter, Heart, Menu, X, Mountain, Loader2, Camera, Ticket, Tag, Clock, ChevronLeft, ChevronRight, Info, LocateFixed, Globe, MessageCircle, Map as MapIcon, ExternalLink, CalendarCheck, Banknote, AlertCircle, Bus, ChevronDown, Play, ArrowRight, Sparkles, Cloud, Bird, Leaf, Flower2, Sunrise, Trees } from 'lucide-react';
+import { Search, MapPin, Phone, Navigation, Facebook, Star, Home, Coffee, Gift, User, Filter, Heart, Menu, X, Mountain, Loader2, Camera, Ticket, Tag, Clock, ChevronLeft, ChevronRight, Info, LocateFixed, Globe, MessageCircle, Map as MapIcon, ExternalLink, CalendarCheck, Banknote, AlertCircle, Bus, ChevronDown, Play, ArrowRight, Sparkles, Cloud, Bird, Leaf, Flower2, Sunrise, Trees, ArrowUpSquare } from 'lucide-react';
 
 // 【安全修正】讀取環境變數
 const AIRTABLE_API_KEY = import.meta.env.VITE_AIRTABLE_API_KEY || "";
@@ -56,6 +56,7 @@ const translations = {
     clearFavorites: '清空收藏紀錄',
     quickFilter: '快速篩選',
     onlyOpenNow: '只顯示營業中',
+    onlyElevator: '只顯示有電梯/無障礙',
     confirm: '確認',
     shopIntro: '店家介紹',
     googleReviews: '查看 Google 評論',
@@ -107,6 +108,7 @@ const translations = {
     clearFavorites: 'Clear Favorites',
     quickFilter: 'Quick Filter',
     onlyOpenNow: 'Open Now Only',
+    onlyElevator: 'Elevator/Accessible Only',
     confirm: 'Apply',
     shopIntro: 'About',
     googleReviews: 'Google Reviews',
@@ -180,9 +182,10 @@ const hexToRgba = (hex, alpha) => {
 };
 
 // ==========================================
-// 🐻 專屬吉祥物元件 (Mascot)
+// 🐻 專屬吉祥物元件 (Mascot) 
 // ==========================================
 const Mascot = ({ size = 60, className = "", animation = "", imageUrl = null }) => {
+  // 若沒有指定 imageUrl，預設為微彈跳的 mascot.png
   const defaultMascotUrl = "/mascot.png";
   const mascotSrc = imageUrl || defaultMascotUrl;
 
@@ -190,9 +193,7 @@ const Mascot = ({ size = 60, className = "", animation = "", imageUrl = null }) 
   if (animation === "spin") animClass = "animate-spin";     
   if (animation === "bounce") animClass = "animate-bounce"; 
   if (animation === "pulse") animClass = "animate-pulse";
-  
-  // 🌟 【更新】將 run 改為使用平穩震動的機車專用動畫
-  if (animation === "run") animClass = "animate-ride";   
+  if (animation === "ride") animClass = "animate-ride"; // 騎車專用平穩震動   
 
   return (
     <img
@@ -266,6 +267,7 @@ export default function App() {
   const [showFilterModal, setShowFilterModal] = useState(false); 
   const [showUserModal, setShowUserModal] = useState(false); 
   const [filterOpenOnly, setFilterOpenOnly] = useState(false); 
+  const [filterElevator, setFilterElevator] = useState(false); // 新增電梯篩選狀態
   const [searchQuery, setSearchQuery] = useState(''); 
 
   const currentPrimaryColor = villageData[selectedVillage]?.color || '#059669';
@@ -517,6 +519,9 @@ export default function App() {
       services = String(rawSvc).split(/[,，]/).map(s => s.trim());
     }
 
+    // 檢查電梯欄位 (多種常見命名)
+    const hasElevator = f['電梯'] === true || f['Elevator'] === true || f['有電梯'] === true || String(f['電梯']).toLowerCase() === 'true';
+
     const bookingPlatforms = [
         { key: 'booking', label: 'Booking.com' },
         { key: 'agoda', label: 'Agoda' },
@@ -549,6 +554,7 @@ export default function App() {
       lat: parseFloat(f['lat'] || f['Lat'] || f['緯度']) || null,
       lng: parseFloat(f['lng'] || f['Lng'] || f['經度']) || null,
       services: services,
+      hasElevator: hasElevator, // 新增電梯屬性
       trail_map: trailMap,
       rating: (f['rating'] || f['Rating'] || f['星等']) ? parseFloat(f['rating'] || f['Rating'] || f['星等']) : null,
       reviews: parseInt(f['reviews'] || f['Reviews'] || f['評論數'] || 0),
@@ -682,6 +688,11 @@ export default function App() {
       });
     }
     
+    // 電梯篩選邏輯
+    if (filterElevator) {
+      result = result.filter(shop => shop.hasElevator);
+    }
+
     if (filterOpenOnly) {
       result = result.filter(shop => {
         const isOpen = checkIsOpen(shop.hours);
@@ -911,6 +922,12 @@ export default function App() {
             </div>
 
             <div className="flex flex-wrap gap-2">
+              {/* 電梯 Badge */}
+              {shop.hasElevator && (
+                <span className="px-2 py-1 bg-blue-50 text-blue-600 border border-blue-200 text-xs rounded-md font-bold flex items-center gap-1">
+                  <ArrowUpSquare size={14} /> 有電梯
+                </span>
+              )}
               {shop.services.map((s, i) => (
                 <span key={i} className="px-2 py-1 bg-gray-100 text-gray-500 text-xs rounded-md">
                   #{s}
@@ -1004,6 +1021,20 @@ export default function App() {
                  style={filterOpenOnly ? { backgroundColor: currentPrimaryColor } : {}}
                  onClick={(e) => { e.preventDefault(); setFilterOpenOnly(!filterOpenOnly); }}>
               <div className={`w-4 h-4 bg-white rounded-full shadow-sm transition-transform ${filterOpenOnly ? 'translate-x-6' : 'translate-x-0'}`}></div>
+            </div>
+          </label>
+          
+          <label className="flex items-center justify-between p-4 bg-gray-50 rounded-xl cursor-pointer hover:bg-opacity-80 transition-colors" style={{ hover: { backgroundColor: hexToRgba(currentPrimaryColor, 0.05) } }}>
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full flex items-center justify-center bg-blue-100 text-blue-600">
+                <ArrowUpSquare size={20} />
+              </div>
+              <span className="font-medium text-gray-700">{t('onlyElevator')}</span>
+            </div>
+            <div className={`w-12 h-6 rounded-full p-1 transition-colors ${filterElevator ? '' : 'bg-gray-300'}`}
+                 style={filterElevator ? { backgroundColor: '#2563eb' } : {}}
+                 onClick={(e) => { e.preventDefault(); setFilterElevator(!filterElevator); }}>
+              <div className={`w-4 h-4 bg-white rounded-full shadow-sm transition-transform ${filterElevator ? 'translate-x-6' : 'translate-x-0'}`}></div>
             </div>
           </label>
         </div>
@@ -1228,21 +1259,21 @@ export default function App() {
             100% { transform: translateY(110vh) rotate(360deg) translateX(40px); opacity: 0; }
           }
           @keyframes sway {
-            0%, 100% { transform: rotate(-3deg); transform-origin: bottom center; }
-            50% { transform: rotate(3deg); transform-origin: bottom center; }
+            0%, 100% { transform: rotate(-3deg); transform-origin: bottom left; }
+            50% { transform: rotate(3deg); transform-origin: bottom left; }
           }
           @keyframes swayReverse {
-            0%, 100% { transform: rotate(3deg); transform-origin: bottom center; }
-            50% { transform: rotate(-3deg); transform-origin: bottom center; }
+            0%, 100% { transform: rotate(3deg); transform-origin: bottom right; }
+            50% { transform: rotate(-3deg); transform-origin: bottom right; }
           }
           @keyframes loadingBar {
             0% { transform: translateX(-100%); }
             100% { transform: translateX(200%); }
           }
-          /* 🌟 新增：平穩騎車的細微震動動畫，取代原本的大幅跳躍 */
+          /* 🌟 騎車平穩動畫：輕微震動即可 */
           @keyframes ride {
             0%, 100% { transform: translateY(0) rotate(0deg); }
-            50% { transform: translateY(-2px) rotate(1deg); }
+            50% { transform: translateY(-3px) rotate(1deg); }
           }
           .animate-fall-1 { animation: fall 8s linear infinite; }
           .animate-fall-2 { animation: fall 11s linear infinite 2s; }
@@ -1250,7 +1281,7 @@ export default function App() {
           .animate-sway { animation: sway 6s ease-in-out infinite; }
           .animate-sway-reverse { animation: swayReverse 7s ease-in-out infinite; }
           .animate-loading-bar { animation: loadingBar 1.5s infinite linear; }
-          .animate-ride { animation: ride 0.3s ease-in-out infinite; }
+          .animate-ride { animation: ride 0.4s ease-in-out infinite; }
         `}
       </style>
 
@@ -1284,19 +1315,20 @@ export default function App() {
                  <div className="absolute top-[-10%] left-[50%] animate-fall-2"><AnimIcon className={animColor} size={32} /></div>
                  <div className="absolute top-[-10%] left-[80%] animate-fall-3"><AnimIcon className={animColor} size={20} /></div>
 
-                 <div className="absolute bottom-[-10px] left-[-20px] animate-sway">
+                 {/* 🌟 修改為緊貼左下、右下滿版設計，無留白 */}
+                 <div className="absolute bottom-0 left-0 w-[45%] origin-bottom-left animate-sway pointer-events-none">
                     <img 
                        src={`/plant-${plantPrefix}-left.png`} 
                        alt="" 
-                       className="h-40 object-contain opacity-90 drop-shadow-lg" 
+                       className="w-full h-auto object-bottom object-contain opacity-95 drop-shadow-xl" 
                        onError={(e)=>{ e.target.onerror = null; e.target.src='/plant-left.png'; e.target.onerror = (e2)=>e2.target.style.display='none'; }} 
                     />
                  </div>
-                 <div className="absolute bottom-[-10px] right-[-20px] animate-sway-reverse">
+                 <div className="absolute bottom-0 right-0 w-[45%] origin-bottom-right animate-sway-reverse pointer-events-none">
                     <img 
                        src={`/plant-${plantPrefix}-right.png`} 
                        alt="" 
-                       className="h-48 object-contain opacity-90 drop-shadow-lg" 
+                       className="w-full h-auto object-bottom object-contain opacity-95 drop-shadow-xl" 
                        onError={(e)=>{ e.target.onerror = null; e.target.src='/plant-right.png'; e.target.onerror = (e2)=>e2.target.style.display='none'; }} 
                     />
                  </div>
@@ -1500,6 +1532,11 @@ export default function App() {
                 {currentView === 'favorites' ? t('favoritesList') : t('featured')}
               </h2>
               <div className="flex items-center gap-2">
+                {filterElevator && (
+                  <span className="text-xs font-medium px-2 py-1 rounded-lg flex items-center gap-1 border bg-blue-50 text-blue-700 border-blue-200 backdrop-blur-sm">
+                    <ArrowUpSquare size={12} /> 有電梯
+                  </span>
+                )}
                 {filterOpenOnly && (
                   <span className="text-xs font-medium px-2 py-1 rounded-lg flex items-center gap-1 border bg-white/80 backdrop-blur-sm"
                         style={{ color: currentDarkColor, borderColor: hexToRgba(currentPrimaryColor, 0.2) }}>
@@ -1523,8 +1560,8 @@ export default function App() {
           <div className="px-6 space-y-6">
             {loading ? (
                <div className="flex flex-col items-center justify-center py-16 bg-white/70 backdrop-blur-md rounded-3xl border border-white shadow-xl mx-2">
-                 {/* 🌟 統一使用預設吉祥物，移除 imageUrl */}
-                 <Mascot size={80} animation="run" className="mb-2" />
+                 {/* 🌟 載入中：使用機車圖與騎車動畫 */}
+                 <Mascot imageUrl="/mascot-run.png" size={80} animation="ride" className="mb-2" />
                  
                  <div className="w-48 h-2 bg-gray-200 rounded-full overflow-hidden mt-2 mb-4 relative">
                     <div className="absolute top-0 left-0 h-full w-1/2 rounded-full animate-loading-bar" style={{ backgroundColor: currentPrimaryColor }}></div>
@@ -1645,6 +1682,12 @@ export default function App() {
                       </div>
 
                       <div className="flex flex-wrap gap-2 mb-3">
+                        {/* 電梯 Badge 顯示在列表上 */}
+                        {shop.hasElevator && (
+                          <span className="text-[10px] bg-blue-50 text-blue-600 border border-blue-200 px-2 py-1 rounded-md font-bold flex items-center gap-1">
+                            <ArrowUpSquare size={12} /> 有電梯
+                          </span>
+                        )}
                         {shop.services.slice(0, 3).map((service, idx) => (
                           <span key={idx} className="text-[10px] bg-gray-100 text-gray-600 px-2 py-1 rounded-md font-medium">
                             {service}
@@ -1688,14 +1731,14 @@ export default function App() {
               })
             ) : (
                <div className="text-center py-10 bg-white/60 backdrop-blur-md rounded-3xl border border-white">
-                  {/* 🌟 統一使用預設吉祥物，移除 imageUrl */}
-                  <Mascot size={72} animation="bounce" className="mx-auto mb-4 opacity-60 grayscale" />
-                  <p className="text-gray-500 font-medium">
-                    {currentView === 'favorites' ? t('noFavorites') : t('noShops')}
-                  </p>
-                  <button onClick={() => {setCurrentView('home'); setActiveCategory('all'); setSearchQuery('');}} className="text-sm mt-2 font-bold hover:underline" style={{ color: currentPrimaryColor }}>
-                    {currentView === 'favorites' ? t('goToExplore') : t('showAll')}
-                  </button>
+                 {/* 🌟 找不到店家時：使用一般吉祥物、灰階、微彈跳 */}
+                 <Mascot size={72} animation="bounce" className="mx-auto mb-4 opacity-60 grayscale" />
+                 <p className="text-gray-500 font-medium">
+                   {currentView === 'favorites' ? t('noFavorites') : t('noShops')}
+                 </p>
+                 <button onClick={() => {setCurrentView('home'); setActiveCategory('all'); setSearchQuery('');}} className="text-sm mt-2 font-bold hover:underline" style={{ color: currentPrimaryColor }}>
+                   {currentView === 'favorites' ? t('goToExplore') : t('showAll')}
+                 </button>
                </div>
             )}
           </div>
@@ -1717,7 +1760,7 @@ export default function App() {
                 {userLocation && <div className="absolute top-3 right-4 w-2 h-2 bg-green-300 rounded-full animate-ping"></div>}
              </button>
              
-             <button onClick={() => setShowFilterModal(true)} className={`flex flex-col items-center gap-1 group transition-colors`} style={{ color: filterOpenOnly ? currentPrimaryColor : '#9ca3af' }}>
+             <button onClick={() => setShowFilterModal(true)} className={`flex flex-col items-center gap-1 group transition-colors`} style={{ color: (filterOpenOnly || filterElevator) ? currentPrimaryColor : '#9ca3af' }}>
                 <Filter size={24} />
              </button>
              <button onClick={() => setShowUserModal(true)} className="flex flex-col items-center gap-1 group text-gray-400 hover:text-gray-600 transition-colors" style={{ color: showUserModal ? currentPrimaryColor : '#9ca3af' }}>
