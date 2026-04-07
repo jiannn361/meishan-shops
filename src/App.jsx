@@ -2,8 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { Search, MapPin, Phone, Navigation, Facebook, Star, Home, Coffee, Gift, User, Filter, Heart, Menu, X, Mountain, Loader2, Camera, Ticket, Tag, Clock, ChevronLeft, ChevronRight, Info, LocateFixed, Globe, MessageCircle, Map as MapIcon, ExternalLink, CalendarCheck, Banknote, AlertCircle, Bus, ChevronDown, Play, ArrowRight, Sparkles, Cloud, Bird, Leaf, Flower2, Sunrise, Trees } from 'lucide-react';
 
 // 【安全修正】讀取環境變數
-// ⚠️ 註：為了讓預覽環境能順利編譯，目前先將 AIRTABLE_API_KEY 暫時設為空字串。
-// 在您的電腦本地端或 Vercel 上部署時，請將這行改回： const AIRTABLE_API_KEY = import.meta.env.VITE_AIRTABLE_API_KEY || "";
 const AIRTABLE_API_KEY = import.meta.env.VITE_AIRTABLE_API_KEY || "";
 
 // 【網站設定區】
@@ -44,7 +42,7 @@ const translations = {
     bookNow: '線上預約',
     distance: '距離',
     shopsCount: '間',
-    loading: '快到了再等一下...', // 🌟 修改 Loading 文字
+    loading: '快到了再等一下...',
     noFavorites: '您的口袋名單還是空的喔！',
     noShops: '哎呀，找不到符合的店家...',
     goToExplore: '去探索店家',
@@ -126,49 +124,49 @@ const translations = {
 };
 
 // ==========================================
-// 🎨 村落資料字典 (加入專屬圖示 icon 與自訂圖片檔名 iconFile)
+// 🎨 村落資料字典 
 // ==========================================
 const villageData = {
   '太平村': { 
     zh: '太平村', en: 'Taiping', desc_zh: '雲梯與老街', desc_en: 'Sky Bridge & Old Street', 
     color: '#b8caa5', textDark: '#506638', textBadge: '#ffffff',
-    bgFile: 'bg-taiping.png', iconFile: 'icon-taiping.png', icon: Cloud, // ☁️ 雲朵代表雲梯
-    animIcon: Cloud, animColor: 'text-gray-400/50', plantPrefix: 'taiping', // 🌟 動畫設定
+    bgFile: 'bg-taiping.png', iconFile: 'icon-taiping.png', icon: Cloud,
+    animIcon: Cloud, animColor: 'text-gray-400/50', plantPrefix: 'taiping',
     intro: '漫步在雲端上的太平雲梯，俯瞰嘉南平原的壯麗景色，並在充滿歷史韻味的太平老街品嚐在地茶香與美食，感受雲霧繚繞的茶鄉風情。'
   },
   '太興村': { 
     zh: '太興村', en: 'Taixing', desc_zh: '萬鷺朝鳳', desc_en: 'Herons Migration', 
     color: '#ea994d', textDark: '#a35a0f', textBadge: '#ffffff',
-    bgFile: 'bg-taixing.png', iconFile: 'icon-taixing.png', icon: Bird, // 🐦 飛鳥代表萬鷺朝鳳
-    animIcon: Bird, animColor: 'text-amber-700/40', plantPrefix: 'taixing', // 🌟 動畫設定
+    bgFile: 'bg-taixing.png', iconFile: 'icon-taixing.png', icon: Bird,
+    animIcon: Bird, animColor: 'text-amber-700/40', plantPrefix: 'taixing',
     intro: '每年秋季限定的「萬鷺朝鳳」奇景令人嘆為觀止。這裡有著豐富的生態與優美的步道，適合喜愛大自然與深度生態旅遊的您。'
   },
   '碧湖/龍眼村': { 
     zh: '碧湖/龍眼村', en: 'Bihu / Longyan', desc_zh: '觀光茶園', desc_en: 'Tea Gardens', 
     color: '#80a4aa', textDark: '#3a595e', textBadge: '#ffffff',
-    bgFile: 'bg-bihu.png', iconFile: 'icon-bihu.png', icon: Leaf, // 🍃 葉子代表茶園
-    animIcon: Leaf, animColor: 'text-emerald-600/40', plantPrefix: 'bihu', // 🌟 動畫設定
+    bgFile: 'bg-bihu.png', iconFile: 'icon-bihu.png', icon: Leaf,
+    animIcon: Leaf, animColor: 'text-emerald-600/40', plantPrefix: 'bihu',
     intro: '被群山環繞的翠綠觀光茶園，層層疊疊的茶樹宛如綠色地毯。來到這裡，點一杯好茶，靜靜享受遠離塵囂的寧靜與茶香。'
   },
   '瑞里村': { 
     zh: '瑞里村', en: 'Ruili', desc_zh: '紫色山城', desc_en: 'Purple Mountain Town', 
     color: '#d2cbe3', textDark: '#5a5270', textBadge: '#413a54',
-    bgFile: 'bg-ruili.png', iconFile: 'icon-ruili.png', icon: Flower2, // 🌸 花朵代表紫藤花
-    animIcon: Flower2, animColor: 'text-purple-500/50', plantPrefix: 'ruili', // 🌟 動畫設定
+    bgFile: 'bg-ruili.png', iconFile: 'icon-ruili.png', icon: Flower2,
+    animIcon: Flower2, animColor: 'text-purple-500/50', plantPrefix: 'ruili',
     intro: '著名的浪漫紫色山城，春季紫藤花盛開時如夢似幻。擁有燕子崖、蝙蝠洞等壯麗的自然地質景觀，是登山健行的絕佳勝地。'
   },
   '瑞峰村': { 
     zh: '瑞峰村', en: 'Ruifeng', desc_zh: '日出與步道', desc_en: 'Sunrise & Trails', 
     color: '#dd785b', textDark: '#8a371c', textBadge: '#ffffff',
-    bgFile: 'bg-ruifeng.png', iconFile: 'icon-ruifeng.png', icon: Sunrise, // 🌅 日出代表日出勝地
-    animIcon: Sparkles, animColor: 'text-orange-500/50', plantPrefix: 'ruifeng', // 🌟 動畫設定
+    bgFile: 'bg-ruifeng.png', iconFile: 'icon-ruifeng.png', icon: Sunrise,
+    animIcon: Sparkles, animColor: 'text-orange-500/50', plantPrefix: 'ruifeng',
     intro: '坐擁絕美的日出勝地與竹坑溪步道，清晨的雲海與壯闊的山林景緻交織。非常適合熱愛早起迎接第一道曙光與親近森林的旅人。'
   },
   '太和村': { 
     zh: '太和村', en: 'Taihe', desc_zh: '茶園秘境', desc_en: 'Hidden Tea Farms', 
     color: '#c4b28e', textDark: '#70603d', textBadge: '#ffffff',
-    bgFile: 'bg-taihe.png', iconFile: 'icon-taihe.png', icon: Trees, // 🌲 樹林代表秘境
-    animIcon: Leaf, animColor: 'text-lime-700/40', plantPrefix: 'taihe', // 🌟 動畫設定
+    bgFile: 'bg-taihe.png', iconFile: 'icon-taihe.png', icon: Trees,
+    animIcon: Leaf, animColor: 'text-lime-700/40', plantPrefix: 'taihe',
     intro: '隱藏在深山中的茶園秘境，保留了最原始純粹的自然風貌。漫步在茶園小徑，感受山林間最清新的空氣與獨特靜謐。'
   },
 };
@@ -192,8 +190,9 @@ const Mascot = ({ size = 60, className = "", animation = "", imageUrl = null }) 
   if (animation === "spin") animClass = "animate-spin";     
   if (animation === "bounce") animClass = "animate-bounce"; 
   if (animation === "pulse") animClass = "animate-pulse";
-  // 🌟 新增奔跑動畫類別
-  if (animation === "run") animClass = "animate-[bounce_0.4s_infinite]";   
+  
+  // 🌟 【更新】將 run 改為使用平穩震動的機車專用動畫
+  if (animation === "run") animClass = "animate-ride";   
 
   return (
     <img
@@ -581,7 +580,7 @@ export default function App() {
 
       const CACHE_KEY = 'meishan_airtable_data';
       const CACHE_TIME_KEY = 'meishan_airtable_time';
-      const CACHE_DURATION = 1000 * 60 * 1; 
+      const CACHE_DURATION = 1000 * 60 * 5; 
 
       const cachedData = localStorage.getItem(CACHE_KEY);
       const cachedTime = localStorage.getItem(CACHE_TIME_KEY);
@@ -1137,7 +1136,6 @@ export default function App() {
                       >
                         <div className="absolute -right-6 -top-6 w-20 h-20 rounded-full opacity-10 group-hover:opacity-20 transition-opacity" style={{ backgroundColor: vData.color }}></div>
                         
-                        {/* 🌟 【更新】村落按鈕支援自訂圖示 (會先嘗試讀取 iconFile，若沒有則顯示預設 icon) */}
                         <div className="w-10 h-10 rounded-full mb-4 flex items-center justify-center shadow-sm relative overflow-hidden" style={{ backgroundColor: vData.color, color: vData.textBadge }}>
                            <img 
                              src={`/${vData.iconFile}`} 
@@ -1215,7 +1213,7 @@ export default function App() {
   return (
     <div className="min-h-[100dvh] bg-gray-50 text-gray-800 font-sans flex justify-center overflow-hidden animate-fade-in relative">
       
-      {/* 🌟 【新增】定義動態生態背景與 Loading 動畫 */}
+      {/* 🌟 定義動態生態背景與 Loading 動畫 */}
       <style>
         {`
           @keyframes slowFloat {
@@ -1241,21 +1239,26 @@ export default function App() {
             0% { transform: translateX(-100%); }
             100% { transform: translateX(200%); }
           }
+          /* 🌟 新增：平穩騎車的細微震動動畫，取代原本的大幅跳躍 */
+          @keyframes ride {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-2px) rotate(1deg); }
+          }
           .animate-fall-1 { animation: fall 8s linear infinite; }
           .animate-fall-2 { animation: fall 11s linear infinite 2s; }
           .animate-fall-3 { animation: fall 9s linear infinite 4s; }
           .animate-sway { animation: sway 6s ease-in-out infinite; }
           .animate-sway-reverse { animation: swayReverse 7s ease-in-out infinite; }
           .animate-loading-bar { animation: loadingBar 1.5s infinite linear; }
+          .animate-ride { animation: ride 0.3s ease-in-out infinite; }
         `}
       </style>
 
       {/* 主畫面容器 */}
       <div className="w-full max-w-md bg-gray-50 min-h-[100dvh] relative shadow-2xl overflow-y-auto pb-32 no-scrollbar">
         
-        {/* 🌟 【更新】飽和且帶有動畫的背景圖層 */}
+        {/* 🌟 背景圖層 (底層 z-0) */}
         <div className="fixed inset-y-0 w-full max-w-md z-0 pointer-events-none overflow-hidden">
-          {/* 主背景圖 - 將透明度調高至 80% (讓色彩更飽和) */}
           <img 
             src={`/${villageData[selectedVillage]?.bgFile}`} 
             alt="Village Background" 
@@ -1263,13 +1266,14 @@ export default function App() {
             style={{ animation: 'slowFloat 20s ease-in-out infinite' }}
             onError={(e) => e.target.style.display = 'none'}
           />
+        </div>
 
-          {/* 🍃 動態飄落物 (依照村落專屬圖示與顏色變換) */}
+        {/* 🌟 前景動態植物與落葉層 (z-30，浮在店家卡片上方) */}
+        <div className="fixed inset-y-0 w-full max-w-md z-30 pointer-events-none overflow-hidden">
           {(() => {
              const vData = villageData[selectedVillage];
              if (!vData) return null;
              
-             // 🛡️ 防呆機制：如果忘記設定動畫屬性，自動退回預設的葉子與顏色，防止白畫面當機！
              const AnimIcon = vData.animIcon || Leaf; 
              const animColor = vData.animColor || 'text-emerald-500/30';
              const plantPrefix = vData.plantPrefix || 'default';
@@ -1280,7 +1284,6 @@ export default function App() {
                  <div className="absolute top-[-10%] left-[50%] animate-fall-2"><AnimIcon className={animColor} size={32} /></div>
                  <div className="absolute top-[-10%] left-[80%] animate-fall-3"><AnimIcon className={animColor} size={20} /></div>
 
-                 {/* 🌿 底部搖曳的植物 (支援村落專屬: plant-taiping-left.png, 找不到會自動退回 plant-left.png) */}
                  <div className="absolute bottom-[-10px] left-[-20px] animate-sway">
                     <img 
                        src={`/plant-${plantPrefix}-left.png`} 
@@ -1519,11 +1522,10 @@ export default function App() {
 
           <div className="px-6 space-y-6">
             {loading ? (
-               // 🌟 【更新】載入中的機車奔跑吉祥物與進度條
                <div className="flex flex-col items-center justify-center py-16 bg-white/70 backdrop-blur-md rounded-3xl border border-white shadow-xl mx-2">
+                 {/* 🌟 載入中的機車奔跑吉祥物 */}
                  <Mascot size={80} imageUrl="/mascot-run.png" animation="run" className="mb-2" />
                  
-                 {/* 動態 Loading 進度條 */}
                  <div className="w-48 h-2 bg-gray-200 rounded-full overflow-hidden mt-2 mb-4 relative">
                     <div className="absolute top-0 left-0 h-full w-1/2 rounded-full animate-loading-bar" style={{ backgroundColor: currentPrimaryColor }}></div>
                  </div>
@@ -1717,7 +1719,7 @@ export default function App() {
              <button onClick={() => setShowFilterModal(true)} className={`flex flex-col items-center gap-1 group transition-colors`} style={{ color: filterOpenOnly ? currentPrimaryColor : '#9ca3af' }}>
                 <Filter size={24} />
              </button>
-             <button onClick={() => setShowUserModal(true)} className="flex flex-col items-center gap-1 group hover:text-gray-600 transition-colors" style={{ color: showUserModal ? currentPrimaryColor : '#9ca3af' }}>
+             <button onClick={() => setShowUserModal(true)} className="flex flex-col items-center gap-1 group text-gray-400 hover:text-gray-600 transition-colors" style={{ color: showUserModal ? currentPrimaryColor : '#9ca3af' }}>
                 <User size={24} />
              </button>
           </div>
