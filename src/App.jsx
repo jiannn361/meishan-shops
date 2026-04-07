@@ -1299,43 +1299,46 @@ export default function App() {
           />
         </div>
 
-        {/* 🌟 前景動態植物與落葉層 (z-30，浮在店家卡片上方) */}
-        <div className="fixed inset-y-0 w-full max-w-md z-30 pointer-events-none overflow-hidden">
-          {(() => {
-             const vData = villageData[selectedVillage];
-             if (!vData) return null;
-             
-             const AnimIcon = vData.animIcon || Leaf; 
-             const animColor = vData.animColor || 'text-emerald-500/30';
-             const plantPrefix = vData.plantPrefix || 'default';
+        {/* 🌟 前景動態植物與落葉層 (z-30，浮在店家卡片上方，進入店家時隱藏) */}
+        {!selectedShop && (
+          <div className="fixed inset-y-0 w-full max-w-md z-30 pointer-events-none">
+            {(() => {
+               const vData = villageData[selectedVillage];
+               if (!vData) return null;
+               
+               const AnimIcon = vData.animIcon || Leaf; 
+               const animColor = vData.animColor || 'text-emerald-500/30';
+               const plantPrefix = vData.plantPrefix || 'default';
 
-             return (
-               <>
-                 <div className="absolute top-[-10%] left-[10%] animate-fall-1"><AnimIcon className={animColor} size={24} /></div>
-                 <div className="absolute top-[-10%] left-[50%] animate-fall-2"><AnimIcon className={animColor} size={32} /></div>
-                 <div className="absolute top-[-10%] left-[80%] animate-fall-3"><AnimIcon className={animColor} size={20} /></div>
+               return (
+                 <>
+                   {/* 落葉 */}
+                   <div className="absolute top-[-10%] left-[10%] animate-fall-1"><AnimIcon className={animColor} size={24} /></div>
+                   <div className="absolute top-[-10%] left-[50%] animate-fall-2"><AnimIcon className={animColor} size={32} /></div>
+                   <div className="absolute top-[-10%] left-[80%] animate-fall-3"><AnimIcon className={animColor} size={20} /></div>
 
-                 {/* 🌟 修改為緊貼左下、右下滿版設計，無留白 */}
-                 <div className="absolute bottom-0 left-0 w-[45%] origin-bottom-left animate-sway pointer-events-none">
-                    <img 
-                       src={`/plant-${plantPrefix}-left.png`} 
-                       alt="" 
-                       className="w-full h-auto object-bottom object-contain opacity-95 drop-shadow-xl" 
-                       onError={(e)=>{ e.target.onerror = null; e.target.src='/plant-left.png'; e.target.onerror = (e2)=>e2.target.style.display='none'; }} 
-                    />
-                 </div>
-                 <div className="absolute bottom-0 right-0 w-[45%] origin-bottom-right animate-sway-reverse pointer-events-none">
-                    <img 
-                       src={`/plant-${plantPrefix}-right.png`} 
-                       alt="" 
-                       className="w-full h-auto object-bottom object-contain opacity-95 drop-shadow-xl" 
-                       onError={(e)=>{ e.target.onerror = null; e.target.src='/plant-right.png'; e.target.onerror = (e2)=>e2.target.style.display='none'; }} 
-                    />
-                 </div>
-               </>
-             );
-          })()}
-        </div>
+                   {/* 🌟 修改為緊貼甚至稍微超出邊界，確保不留白 */}
+                   <div className="absolute bottom-0 -left-4 w-[45%] origin-bottom-left animate-sway pointer-events-none">
+                      <img 
+                         src={`/plant-${plantPrefix}-left.png`} 
+                         alt="" 
+                         className="w-full h-auto object-bottom object-contain opacity-95 drop-shadow-xl" 
+                         onError={(e)=>{ e.target.onerror = null; e.target.src='/plant-left.png'; e.target.onerror = (e2)=>e2.target.style.display='none'; }} 
+                      />
+                   </div>
+                   <div className="absolute bottom-0 -right-4 w-[45%] origin-bottom-right animate-sway-reverse pointer-events-none">
+                      <img 
+                         src={`/plant-${plantPrefix}-right.png`} 
+                         alt="" 
+                         className="w-full h-auto object-bottom object-contain opacity-95 drop-shadow-xl" 
+                         onError={(e)=>{ e.target.onerror = null; e.target.src='/plant-right.png'; e.target.onerror = (e2)=>e2.target.style.display='none'; }} 
+                      />
+                   </div>
+                 </>
+               );
+            })()}
+          </div>
+        )}
 
         {/* 內容層：所有內容包在 z-10 內，確保浮在背景上 */}
         <div className="relative z-10">
