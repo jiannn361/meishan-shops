@@ -237,20 +237,43 @@ const FormattedText = ({ text, className = "" }) => {
   );
 };
 
+// 【預設商家圖片】 (山形圖示)
 const DefaultShopImage = () => (
   <div className="w-full h-full bg-emerald-50 flex items-center justify-center">
-    <div className="w-24 h-24 rounded-full bg-emerald-100 flex items-center justify-center relative overflow-hidden">
-       <Mountain size={48} className="text-emerald-600 relative z-10" strokeWidth={2} />
+    <div className="w-24 h-24 rounded-full bg-emerald-100 flex items-center justify-center">
+      <Mountain size={48} className="text-emerald-600 opacity-80" strokeWidth={1.5} />
     </div>
   </div>
 );
 
-export default function App() {
-  const [appStarted, setAppStarted] = useState(false); 
-  const [landingStep, setLandingStep] = useState('welcome'); 
-  const [previewVillage, setPreviewVillage] = useState(null); 
+// 🍃 新增：飄落物元件 (支援自訂圖片 fall-xxx.png，找不到則退回內建圖示)
+const FallingItem = ({ vData, size, left, animationClass }) => {
+  const plantPrefix = vData.plantPrefix || 'default';
+  const AnimIcon = vData.animIcon || Leaf;
+  const animColor = vData.animColor || 'text-emerald-500/30';
 
-  const [language, setLanguage] = useState('zh');
+  return (
+    <div className={`absolute top-[-10%] ${left} ${animationClass}`}>
+      <img 
+         src={`/fall-${plantPrefix}.png`} 
+         alt=""
+         style={{ width: size, height: size }}
+         className="object-contain drop-shadow-sm opacity-80"
+         onError={(e) => { 
+             e.target.style.display = 'none'; 
+             if (e.target.nextElementSibling) {
+                 e.target.nextElementSibling.style.display = 'block'; 
+             }
+         }} 
+      />
+      <div style={{ display: 'none' }}>
+         <AnimIcon className={animColor} size={size} />
+      </div>
+    </div>
+  );
+};
+
+export default function App() {
   const [activeCategory, setActiveCategory] = useState('all');
   const [selectedVillage, setSelectedVillage] = useState('太平村');
   const [isSidebarOpen, setSidebarOpen] = useState(false);
@@ -261,6 +284,10 @@ export default function App() {
   const [userLocation, setUserLocation] = useState(null);
   const [userProfile, setUserProfile] = useState(null);
   const [sortBy, setSortBy] = useState('default');
+  
+  const [appStarted, setAppStarted] = useState(false); 
+  const [landingStep, setLandingStep] = useState('welcome'); 
+  const [previewVillage, setPreviewVillage] = useState(null); 
   
   const [selectedShop, setSelectedShop] = useState(null); 
   const [showFilterModal, setShowFilterModal] = useState(false); 
@@ -1274,29 +1301,51 @@ export default function App() {
              const vData = villageData[selectedVillage];
              if (!vData) return null;
              
-             const AnimIcon = vData.animIcon || Leaf; 
-             const animColor = vData.animColor || 'text-emerald-500/30';
              const plantPrefix = vData.plantPrefix || 'default';
 
              return (
                <>
-                 <div className="absolute top-[-10%] left-[10%] animate-fall-1"><AnimIcon className={animColor} size={24} /></div>
-                 <div className="absolute top-[-10%] left-[50%] animate-fall-2"><AnimIcon className={animColor} size={32} /></div>
-                 <div className="absolute top-[-10%] left-[80%] animate-fall-3"><AnimIcon className={animColor} size={20} /></div>
+                 {/* 🍃 飄落物區塊 (改用新的 FallingItem 元件，支援自訂) */}
+                 <FallingItem vData={vData} size={24} left="left-[10%]" animationClass="animate-fall-1" />
+                 <FallingItem vData={vData} size={32} left="left-[50%]" animationClass="animate-fall-2" />
+                 <FallingItem vData={vData} size={20} left="left-[80%]" animationClass="animate-fall-3" />
 
-                 <div className="absolute bottom-[-10px] left-[-20px] animate-sway">
+                 {/* 🌿 左側第一株植物 (往外移 -60px 消除留白，並稍微放大) */}
+                 <div className="absolute bottom-[-10px] left-[-60px] animate-sway">
                     <img 
                        src={`/plant-${plantPrefix}-left.png`} 
                        alt="" 
-                       className="h-40 object-contain opacity-90 drop-shadow-lg" 
+                       className="h-44 object-contain opacity-90 drop-shadow-lg scale-110 origin-bottom-left" 
                        onError={(e)=>{ e.target.onerror = null; e.target.src='/plant-left.png'; e.target.onerror = (e2)=>e2.target.style.display='none'; }} 
                     />
                  </div>
-                 <div className="absolute bottom-[-10px] right-[-20px] animate-sway-reverse">
+                 {/* 🌿 左側第二株植物 (水平翻轉，增加滿版層次感) */}
+                 <div className="absolute bottom-[-20px] left-[10px] animate-sway-reverse">
+                    <img 
+                       src={`/plant-${plantPrefix}-left.png`} 
+                       alt="" 
+                       className="h-32 object-contain opacity-70 drop-shadow-md" 
+                       style={{ transform: 'scaleX(-1)' }}
+                       onError={(e)=>{ e.target.onerror = null; e.target.src='/plant-left.png'; e.target.onerror = (e2)=>e2.target.style.display='none'; }} 
+                    />
+                 </div>
+
+                 {/* 🌿 右側第一株植物 (往外移 -60px 消除留白，並稍微放大) */}
+                 <div className="absolute bottom-[-10px] right-[-60px] animate-sway-reverse">
                     <img 
                        src={`/plant-${plantPrefix}-right.png`} 
                        alt="" 
-                       className="h-48 object-contain opacity-90 drop-shadow-lg" 
+                       className="h-48 object-contain opacity-90 drop-shadow-lg scale-110 origin-bottom-right" 
+                       onError={(e)=>{ e.target.onerror = null; e.target.src='/plant-right.png'; e.target.onerror = (e2)=>e2.target.style.display='none'; }} 
+                    />
+                 </div>
+                 {/* 🌿 右側第二株植物 (水平翻轉，增加滿版層次感) */}
+                 <div className="absolute bottom-[-15px] right-[20px] animate-sway">
+                    <img 
+                       src={`/plant-${plantPrefix}-right.png`} 
+                       alt="" 
+                       className="h-36 object-contain opacity-70 drop-shadow-md" 
+                       style={{ transform: 'scaleX(-1)' }}
                        onError={(e)=>{ e.target.onerror = null; e.target.src='/plant-right.png'; e.target.onerror = (e2)=>e2.target.style.display='none'; }} 
                     />
                  </div>
@@ -1523,8 +1572,8 @@ export default function App() {
           <div className="px-6 space-y-6">
             {loading ? (
                <div className="flex flex-col items-center justify-center py-16 bg-white/70 backdrop-blur-md rounded-3xl border border-white shadow-xl mx-2">
-                 {/* 🌟 統一使用預設吉祥物，移除 imageUrl */}
-                 <Mascot size={80} animation="run" className="mb-2" />
+                 {/* 🌟 載入中：使用機車/奔跑的吉祥物 */}
+                 <Mascot size={80} imageUrl="/mascot-run.png" animation="run" className="mb-2" />
                  
                  <div className="w-48 h-2 bg-gray-200 rounded-full overflow-hidden mt-2 mb-4 relative">
                     <div className="absolute top-0 left-0 h-full w-1/2 rounded-full animate-loading-bar" style={{ backgroundColor: currentPrimaryColor }}></div>
@@ -1688,12 +1737,12 @@ export default function App() {
               })
             ) : (
                <div className="text-center py-10 bg-white/60 backdrop-blur-md rounded-3xl border border-white">
-                  {/* 🌟 統一使用預設吉祥物，移除 imageUrl */}
-                  <Mascot size={72} animation="bounce" className="mx-auto mb-4 opacity-60 grayscale" />
+                  {/* 🌟 找不到店家：使用迎賓的預設吉祥物 (移除 imageUrl 與 grayscale) */}
+                  <Mascot size={72} animation="bounce" className="mx-auto mb-4 opacity-90" />
                   <p className="text-gray-500 font-medium">
-                    {currentView === 'favorites' ? t('noFavorites') : t('noShops')}
+                    {currentView === 'favorites' ? '您還沒有收藏任何店家喔！' : '這個村落暫時沒有符合的店家'}
                   </p>
-                  <button onClick={() => {setCurrentView('home'); setActiveCategory('all'); setSearchQuery('');}} className="text-sm mt-2 font-bold hover:underline" style={{ color: currentPrimaryColor }}>
+                  <button onClick={() => {setCurrentView('home'); setActiveCategory('all');}} className="text-emerald-600 text-sm mt-2 font-bold hover:underline">
                     {currentView === 'favorites' ? t('goToExplore') : t('showAll')}
                   </button>
                </div>
