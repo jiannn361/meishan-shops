@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Search, MapPin, Phone, Navigation, Facebook, Star, Home, Coffee, Gift, User, Filter, Heart, Menu, X, Mountain, Loader2, Camera, Ticket, Tag, Clock, ChevronLeft, ChevronRight, Info, LocateFixed, Globe, MessageCircle, Map as MapIcon, ExternalLink, CalendarCheck, Banknote, AlertCircle, Bus, ChevronDown, Play, ArrowRight, Sparkles } from 'lucide-react';
+import { Search, MapPin, Phone, Navigation, Facebook, Star, Home, Coffee, Gift, User, Filter, Heart, Menu, X, Mountain, Loader2, Camera, Ticket, Tag, Clock, ChevronLeft, ChevronRight, Info, LocateFixed, Globe, MessageCircle, Map as MapIcon, ExternalLink, CalendarCheck, Banknote, AlertCircle, Bus, ChevronDown, Play, ArrowRight, Sparkles, Cloud, Bird, Leaf, Flower2, Sunrise, Trees } from 'lucide-react';
 
 // 【安全修正】讀取環境變數
 // ⚠️ 註：為了讓預覽環境能順利編譯，目前先將 AIRTABLE_API_KEY 暫時設為空字串。
 // 在您的電腦本地端或 Vercel 上部署時，請將這行改回： const AIRTABLE_API_KEY = import.meta.env.VITE_AIRTABLE_API_KEY || "";
-const AIRTABLE_API_KEY = import.meta.env.VITE_AIRTABLE_API_KEY || "";
+const AIRTABLE_API_KEY = import.meta.env.VITE_AIRTABLE_API_KEY || ""; 
 
 // 【網站設定區】
 const APP_CONFIG = {
@@ -44,7 +44,7 @@ const translations = {
     bookNow: '線上預約',
     distance: '距離',
     shopsCount: '間',
-    loading: '努力為您尋找中...',
+    loading: '快到了再等一下...', // 🌟 修改 Loading 文字
     noFavorites: '您的口袋名單還是空的喔！',
     noShops: '哎呀，找不到符合的店家...',
     goToExplore: '去探索店家',
@@ -95,7 +95,7 @@ const translations = {
     bookNow: 'Book Now',
     distance: 'Dist',
     shopsCount: 'shops',
-    loading: 'Looking for best places...',
+    loading: 'Almost there, please wait...',
     noFavorites: 'You have no favorites yet!',
     noShops: 'Oops, no shops match your criteria.',
     goToExplore: 'Explore Shops',
@@ -126,43 +126,43 @@ const translations = {
 };
 
 // ==========================================
-// 🎨 村落資料字典
+// 🎨 村落資料字典 (加入專屬圖示 icon 與自訂圖片檔名 iconFile)
 // ==========================================
 const villageData = {
   '太平村': { 
     zh: '太平村', en: 'Taiping', desc_zh: '雲梯與老街', desc_en: 'Sky Bridge & Old Street', 
     color: '#b8caa5', textDark: '#506638', textBadge: '#ffffff',
-    bgFile: 'bg-taiping.png',
+    bgFile: 'bg-taiping.png', iconFile: 'icon-taiping.png', icon: Cloud, // ☁️ 雲朵代表雲梯
     intro: '漫步在雲端上的太平雲梯，俯瞰嘉南平原的壯麗景色，並在充滿歷史韻味的太平老街品嚐在地茶香與美食，感受雲霧繚繞的茶鄉風情。'
   },
   '太興村': { 
     zh: '太興村', en: 'Taixing', desc_zh: '萬鷺朝鳳', desc_en: 'Herons Migration', 
     color: '#ea994d', textDark: '#a35a0f', textBadge: '#ffffff',
-    bgFile: 'bg-taixing.png',
+    bgFile: 'bg-taixing.png', iconFile: 'icon-taixing.png', icon: Bird, // 🐦 飛鳥代表萬鷺朝鳳
     intro: '每年秋季限定的「萬鷺朝鳳」奇景令人嘆為觀止。這裡有著豐富的生態與優美的步道，適合喜愛大自然與深度生態旅遊的您。'
   },
   '碧湖/龍眼村': { 
     zh: '碧湖/龍眼村', en: 'Bihu / Longyan', desc_zh: '觀光茶園', desc_en: 'Tea Gardens', 
     color: '#80a4aa', textDark: '#3a595e', textBadge: '#ffffff',
-    bgFile: 'bg-bihu.png',
+    bgFile: 'bg-bihu.png', iconFile: 'icon-bihu.png', icon: Leaf, // 🍃 葉子代表茶園
     intro: '被群山環繞的翠綠觀光茶園，層層疊疊的茶樹宛如綠色地毯。來到這裡，點一杯好茶，靜靜享受遠離塵囂的寧靜與茶香。'
   },
   '瑞里村': { 
     zh: '瑞里村', en: 'Ruili', desc_zh: '紫色山城', desc_en: 'Purple Mountain Town', 
     color: '#d2cbe3', textDark: '#5a5270', textBadge: '#413a54',
-    bgFile: 'bg-ruili.png',
+    bgFile: 'bg-ruili.png', iconFile: 'icon-ruili.png', icon: Flower2, // 🌸 花朵代表紫藤花
     intro: '著名的浪漫紫色山城，春季紫藤花盛開時如夢似幻。擁有燕子崖、蝙蝠洞等壯麗的自然地質景觀，是登山健行的絕佳勝地。'
   },
   '瑞峰村': { 
     zh: '瑞峰村', en: 'Ruifeng', desc_zh: '日出與步道', desc_en: 'Sunrise & Trails', 
     color: '#dd785b', textDark: '#8a371c', textBadge: '#ffffff',
-    bgFile: 'bg-ruifeng.png',
+    bgFile: 'bg-ruifeng.png', iconFile: 'icon-ruifeng.png', icon: Sunrise, // 🌅 日出代表日出勝地
     intro: '坐擁絕美的日出勝地與竹坑溪步道，清晨的雲海與壯闊的山林景緻交織。非常適合熱愛早起迎接第一道曙光與親近森林的旅人。'
   },
   '太和村': { 
     zh: '太和村', en: 'Taihe', desc_zh: '茶園秘境', desc_en: 'Hidden Tea Farms', 
     color: '#c4b28e', textDark: '#70603d', textBadge: '#ffffff',
-    bgFile: 'bg-taihe.png',
+    bgFile: 'bg-taihe.png', iconFile: 'icon-taihe.png', icon: Trees, // 🌲 樹林代表秘境
     intro: '隱藏在深山中的茶園秘境，保留了最原始純粹的自然風貌。漫步在茶園小徑，感受山林間最清新的空氣與獨特靜謐。'
   },
 };
@@ -185,14 +185,16 @@ const Mascot = ({ size = 60, className = "", animation = "", imageUrl = null }) 
   let animClass = "";
   if (animation === "spin") animClass = "animate-spin";     
   if (animation === "bounce") animClass = "animate-bounce"; 
-  if (animation === "pulse") animClass = "animate-pulse";   
+  if (animation === "pulse") animClass = "animate-pulse";
+  // 🌟 新增奔跑動畫類別
+  if (animation === "run") animClass = "animate-[bounce_0.4s_infinite]";   
 
   return (
     <img
       src={mascotSrc}
       alt="Mascot"
       style={{ width: size, height: size }}
-      className={`object-contain drop-shadow-sm ${animClass} ${className}`}
+      className={`object-contain drop-shadow-md ${animClass} ${className}`}
       onError={(e) => {
         if (e.target.src !== "https://cdn-icons-png.flaticon.com/512/3466/3466395.png") {
             e.target.src = "https://cdn-icons-png.flaticon.com/512/3466/3466395.png";
@@ -815,7 +817,6 @@ export default function App() {
 
           <div className="p-6 space-y-6">
             <div className="flex flex-col gap-3 items-start">
-               {/* 🎨【修正】所有 Modal 內的狀態標籤均套用村落的 深色 (textDark) 增加識別度 */}
                {showAccommodationBadge ? (
                  <div 
                   className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold self-start"
@@ -1129,9 +1130,18 @@ export default function App() {
                         style={{ borderColor: hexToRgba(vData.color, 0.4) }}
                       >
                         <div className="absolute -right-6 -top-6 w-20 h-20 rounded-full opacity-10 group-hover:opacity-20 transition-opacity" style={{ backgroundColor: vData.color }}></div>
-                        <div className="w-10 h-10 rounded-full mb-4 flex items-center justify-center shadow-sm" style={{ backgroundColor: vData.color, color: vData.textBadge }}>
-                           <MapPin size={18} />
+                        
+                        {/* 🌟 【更新】村落按鈕支援自訂圖示 (會先嘗試讀取 iconFile，若沒有則顯示預設 icon) */}
+                        <div className="w-10 h-10 rounded-full mb-4 flex items-center justify-center shadow-sm relative overflow-hidden" style={{ backgroundColor: vData.color, color: vData.textBadge }}>
+                           <img 
+                             src={`/${vData.iconFile}`} 
+                             alt="icon"
+                             className="absolute inset-0 w-full h-full object-cover z-10"
+                             onError={(e) => { e.target.style.display = 'none'; }} 
+                           />
+                           <vData.icon size={20} className="relative z-0" />
                         </div>
+
                         <h3 className="font-extrabold text-lg mb-1" style={{ color: vData.textDark }}>{vData[language] || vKey}</h3>
                         <p className="text-xs font-bold" style={{ color: hexToRgba(vData.textDark, 0.6) }}>{language === 'en' ? vData.desc_en : vData.desc_zh}</p>
                       </button>
@@ -1153,8 +1163,14 @@ export default function App() {
                      </button>
                      
                      <div className="flex items-center gap-4">
-                        <div className="w-16 h-16 rounded-2xl flex items-center justify-center shadow-md" style={{ backgroundColor: hexToRgba(villageData[previewVillage].color, 0.15), color: villageData[previewVillage].textDark }}>
-                           <Mascot size={40} />
+                        <div className="w-16 h-16 rounded-2xl flex items-center justify-center shadow-md relative overflow-hidden" style={{ backgroundColor: hexToRgba(villageData[previewVillage].color, 0.15), color: villageData[previewVillage].textDark }}>
+                           <img 
+                             src={`/${villageData[previewVillage].iconFile}`} 
+                             alt="icon"
+                             className="absolute inset-0 w-full h-full object-cover z-10 p-2"
+                             onError={(e) => { e.target.style.display = 'none'; }} 
+                           />
+                           {React.createElement(villageData[previewVillage].icon, { size: 32, className: "relative z-0" })}
                         </div>
                         <div>
                            <h2 className="text-3xl font-extrabold" style={{ color: villageData[previewVillage].textDark }}>{villageData[previewVillage][language] || previewVillage}</h2>
@@ -1193,7 +1209,7 @@ export default function App() {
   return (
     <div className="min-h-[100dvh] bg-gray-50 text-gray-800 font-sans flex justify-center overflow-hidden animate-fade-in relative">
       
-      {/* 定義自訂動畫 (背景緩慢漂浮用) */}
+      {/* 🌟 【新增】定義動態生態背景與 Loading 動畫 */}
       <style>
         {`
           @keyframes slowFloat {
@@ -1201,21 +1217,78 @@ export default function App() {
             50% { transform: translateY(-15px) scale(1.02); }
             100% { transform: translateY(0) scale(1); }
           }
+          @keyframes fall {
+            0% { transform: translateY(-10vh) rotate(0deg) translateX(0); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { transform: translateY(110vh) rotate(360deg) translateX(40px); opacity: 0; }
+          }
+          @keyframes sway {
+            0%, 100% { transform: rotate(-3deg); transform-origin: bottom center; }
+            50% { transform: rotate(3deg); transform-origin: bottom center; }
+          }
+          @keyframes swayReverse {
+            0%, 100% { transform: rotate(3deg); transform-origin: bottom center; }
+            50% { transform: rotate(-3deg); transform-origin: bottom center; }
+          }
+          @keyframes loadingBar {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(200%); }
+          }
+          .animate-fall-1 { animation: fall 8s linear infinite; }
+          .animate-fall-2 { animation: fall 11s linear infinite 2s; }
+          .animate-fall-3 { animation: fall 9s linear infinite 4s; }
+          .animate-sway { animation: sway 6s ease-in-out infinite; }
+          .animate-sway-reverse { animation: swayReverse 7s ease-in-out infinite; }
+          .animate-loading-bar { animation: loadingBar 1.5s infinite linear; }
         `}
       </style>
 
       {/* 主畫面容器 */}
       <div className="w-full max-w-md bg-gray-50 min-h-[100dvh] relative shadow-2xl overflow-y-auto pb-32 no-scrollbar">
         
-        {/* 🌟 【修正】將背景圖直接放在主容器內，並提高透明度與移除混色，確保清晰可見 */}
+        {/* 🌟 【更新】飽和且帶有動畫的背景圖層 */}
         <div className="fixed inset-y-0 w-full max-w-md z-0 pointer-events-none overflow-hidden">
+          {/* 主背景圖 - 將透明度調高至 80% (讓色彩更飽和) */}
           <img 
             src={`/${villageData[selectedVillage]?.bgFile}`} 
             alt="Village Background" 
-            className="w-full h-full object-cover opacity-20"
+            className="w-full h-full object-cover opacity-80"
             style={{ animation: 'slowFloat 20s ease-in-out infinite' }}
             onError={(e) => e.target.style.display = 'none'}
           />
+
+          {/* 🍃 動態飄落物 (依照村落專屬圖示與顏色變換) */}
+          {(() => {
+             const vData = villageData[selectedVillage];
+             if (!vData) return null;
+             const AnimIcon = vData.animIcon;
+             return (
+               <>
+                 <div className="absolute top-[-10%] left-[10%] animate-fall-1"><AnimIcon className={vData.animColor} size={24} /></div>
+                 <div className="absolute top-[-10%] left-[50%] animate-fall-2"><AnimIcon className={vData.animColor} size={32} /></div>
+                 <div className="absolute top-[-10%] left-[80%] animate-fall-3"><AnimIcon className={vData.animColor} size={20} /></div>
+
+                 {/* 🌿 底部搖曳的植物 (支援村落專屬: plant-taiping-left.png, 找不到會自動退回 plant-left.png) */}
+                 <div className="absolute bottom-[-10px] left-[-20px] animate-sway">
+                    <img 
+                       src={`/plant-${vData.plantPrefix}-left.png`} 
+                       alt="" 
+                       className="h-40 object-contain opacity-90 drop-shadow-lg" 
+                       onError={(e)=>{ e.target.onerror = null; e.target.src='/plant-left.png'; e.target.onerror = (e2)=>e2.target.style.display='none'; }} 
+                    />
+                 </div>
+                 <div className="absolute bottom-[-10px] right-[-20px] animate-sway-reverse">
+                    <img 
+                       src={`/plant-${vData.plantPrefix}-right.png`} 
+                       alt="" 
+                       className="h-48 object-contain opacity-90 drop-shadow-lg" 
+                       onError={(e)=>{ e.target.onerror = null; e.target.src='/plant-right.png'; e.target.onerror = (e2)=>e2.target.style.display='none'; }} 
+                    />
+                 </div>
+               </>
+             );
+          })()}
         </div>
 
         {/* 內容層：所有內容包在 z-10 內，確保浮在背景上 */}
@@ -1435,9 +1508,16 @@ export default function App() {
 
           <div className="px-6 space-y-6">
             {loading ? (
-               <div className="flex flex-col items-center justify-center py-20 bg-white/60 backdrop-blur-md rounded-3xl border border-white">
-                 <Mascot size={64} animation="spin" className="mb-4" />
-                 <p className="font-bold tracking-widest animate-pulse" style={{ color: currentDarkColor }}>{t('loading')}</p>
+               // 🌟 【更新】載入中的機車奔跑吉祥物與進度條
+               <div className="flex flex-col items-center justify-center py-16 bg-white/70 backdrop-blur-md rounded-3xl border border-white shadow-xl mx-2">
+                 <Mascot size={80} imageUrl="/mascot-run.png" animation="run" className="mb-2" />
+                 
+                 {/* 動態 Loading 進度條 */}
+                 <div className="w-48 h-2 bg-gray-200 rounded-full overflow-hidden mt-2 mb-4 relative">
+                    <div className="absolute top-0 left-0 h-full w-1/2 rounded-full animate-loading-bar" style={{ backgroundColor: currentPrimaryColor }}></div>
+                 </div>
+
+                 <p className="font-bold tracking-widest" style={{ color: currentDarkColor }}>{t('loading')}</p>
                </div>
             ) : processedShops.length > 0 ? (
               processedShops.map((shop) => {
@@ -1475,7 +1555,6 @@ export default function App() {
                           <span className="text-xs font-bold tracking-wide">{villageData[shop.village]?.[language] || shop.village}</span>
                       </div>
 
-                      {/* 🎨【修正】營業中標籤套用深色 */}
                       {showAccommodationBadge || isOpen === 'appointment' ? (
                         <div className="absolute bottom-3 left-3 backdrop-blur-md pl-2 pr-3 py-1 rounded-full flex items-center gap-1.5 shadow-lg z-10 pointer-events-none" style={{ backgroundColor: hexToRgba(shopDarkColor, 0.95) }}>
                           <CalendarCheck size={12} className="text-white" />
@@ -1596,7 +1675,7 @@ export default function App() {
               })
             ) : (
                <div className="text-center py-10 bg-white/60 backdrop-blur-md rounded-3xl border border-white">
-                  <Mascot size={72} animation="bounce" className="mx-auto mb-4 opacity-60 grayscale" />
+                  <Mascot size={72} imageUrl="/mascot-sad.png" animation="bounce" className="mx-auto mb-4 opacity-60 grayscale" />
                   <p className="text-gray-500 font-medium">
                     {currentView === 'favorites' ? t('noFavorites') : t('noShops')}
                   </p>
@@ -1620,7 +1699,7 @@ export default function App() {
              
              <button onClick={handleGetLocation} className="-mt-10 w-16 h-16 rounded-full flex items-center justify-center shadow-lg border-[5px] border-white transform hover:scale-105 transition-transform text-white relative"
                      style={{ backgroundColor: currentPrimaryColor, boxShadow: `0 10px 15px -3px ${hexToRgba(currentPrimaryColor, 0.4)}` }}>
-                {loading && !userLocation ? (<Mascot size={28} animation="spin" />) : (<LocateFixed size={28} />)}
+                <LocateFixed size={28} />
                 {userLocation && <div className="absolute top-3 right-4 w-2 h-2 bg-green-300 rounded-full animate-ping"></div>}
              </button>
              
