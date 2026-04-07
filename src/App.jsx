@@ -4,7 +4,7 @@ import { Search, MapPin, Phone, Navigation, Facebook, Star, Home, Coffee, Gift, 
 // 【安全修正】讀取環境變數
 // ⚠️ 註：為了讓預覽環境能順利編譯，目前先將 AIRTABLE_API_KEY 暫時設為空字串。
 // 在您的電腦本地端或 Vercel 上部署時，請將這行改回： const AIRTABLE_API_KEY = import.meta.env.VITE_AIRTABLE_API_KEY || "";
-const AIRTABLE_API_KEY = import.meta.env.VITE_AIRTABLE_API_KEY || ""; 
+const AIRTABLE_API_KEY = import.meta.env.VITE_AIRTABLE_API_KEY || "";
 
 // 【網站設定區】
 const APP_CONFIG = {
@@ -133,36 +133,42 @@ const villageData = {
     zh: '太平村', en: 'Taiping', desc_zh: '雲梯與老街', desc_en: 'Sky Bridge & Old Street', 
     color: '#b8caa5', textDark: '#506638', textBadge: '#ffffff',
     bgFile: 'bg-taiping.png', iconFile: 'icon-taiping.png', icon: Cloud, // ☁️ 雲朵代表雲梯
+    animIcon: Cloud, animColor: 'text-gray-400/50', plantPrefix: 'taiping', // 🌟 動畫設定
     intro: '漫步在雲端上的太平雲梯，俯瞰嘉南平原的壯麗景色，並在充滿歷史韻味的太平老街品嚐在地茶香與美食，感受雲霧繚繞的茶鄉風情。'
   },
   '太興村': { 
     zh: '太興村', en: 'Taixing', desc_zh: '萬鷺朝鳳', desc_en: 'Herons Migration', 
     color: '#ea994d', textDark: '#a35a0f', textBadge: '#ffffff',
     bgFile: 'bg-taixing.png', iconFile: 'icon-taixing.png', icon: Bird, // 🐦 飛鳥代表萬鷺朝鳳
+    animIcon: Bird, animColor: 'text-amber-700/40', plantPrefix: 'taixing', // 🌟 動畫設定
     intro: '每年秋季限定的「萬鷺朝鳳」奇景令人嘆為觀止。這裡有著豐富的生態與優美的步道，適合喜愛大自然與深度生態旅遊的您。'
   },
   '碧湖/龍眼村': { 
     zh: '碧湖/龍眼村', en: 'Bihu / Longyan', desc_zh: '觀光茶園', desc_en: 'Tea Gardens', 
     color: '#80a4aa', textDark: '#3a595e', textBadge: '#ffffff',
     bgFile: 'bg-bihu.png', iconFile: 'icon-bihu.png', icon: Leaf, // 🍃 葉子代表茶園
+    animIcon: Leaf, animColor: 'text-emerald-600/40', plantPrefix: 'bihu', // 🌟 動畫設定
     intro: '被群山環繞的翠綠觀光茶園，層層疊疊的茶樹宛如綠色地毯。來到這裡，點一杯好茶，靜靜享受遠離塵囂的寧靜與茶香。'
   },
   '瑞里村': { 
     zh: '瑞里村', en: 'Ruili', desc_zh: '紫色山城', desc_en: 'Purple Mountain Town', 
     color: '#d2cbe3', textDark: '#5a5270', textBadge: '#413a54',
     bgFile: 'bg-ruili.png', iconFile: 'icon-ruili.png', icon: Flower2, // 🌸 花朵代表紫藤花
+    animIcon: Flower2, animColor: 'text-purple-500/50', plantPrefix: 'ruili', // 🌟 動畫設定
     intro: '著名的浪漫紫色山城，春季紫藤花盛開時如夢似幻。擁有燕子崖、蝙蝠洞等壯麗的自然地質景觀，是登山健行的絕佳勝地。'
   },
   '瑞峰村': { 
     zh: '瑞峰村', en: 'Ruifeng', desc_zh: '日出與步道', desc_en: 'Sunrise & Trails', 
     color: '#dd785b', textDark: '#8a371c', textBadge: '#ffffff',
     bgFile: 'bg-ruifeng.png', iconFile: 'icon-ruifeng.png', icon: Sunrise, // 🌅 日出代表日出勝地
+    animIcon: Sparkles, animColor: 'text-orange-500/50', plantPrefix: 'ruifeng', // 🌟 動畫設定
     intro: '坐擁絕美的日出勝地與竹坑溪步道，清晨的雲海與壯闊的山林景緻交織。非常適合熱愛早起迎接第一道曙光與親近森林的旅人。'
   },
   '太和村': { 
     zh: '太和村', en: 'Taihe', desc_zh: '茶園秘境', desc_en: 'Hidden Tea Farms', 
     color: '#c4b28e', textDark: '#70603d', textBadge: '#ffffff',
     bgFile: 'bg-taihe.png', iconFile: 'icon-taihe.png', icon: Trees, // 🌲 樹林代表秘境
+    animIcon: Leaf, animColor: 'text-lime-700/40', plantPrefix: 'taihe', // 🌟 動畫設定
     intro: '隱藏在深山中的茶園秘境，保留了最原始純粹的自然風貌。漫步在茶園小徑，感受山林間最清新的空氣與獨特靜謐。'
   },
 };
@@ -1262,17 +1268,22 @@ export default function App() {
           {(() => {
              const vData = villageData[selectedVillage];
              if (!vData) return null;
-             const AnimIcon = vData.animIcon;
+             
+             // 🛡️ 防呆機制：如果忘記設定動畫屬性，自動退回預設的葉子與顏色，防止白畫面當機！
+             const AnimIcon = vData.animIcon || Leaf; 
+             const animColor = vData.animColor || 'text-emerald-500/30';
+             const plantPrefix = vData.plantPrefix || 'default';
+
              return (
                <>
-                 <div className="absolute top-[-10%] left-[10%] animate-fall-1"><AnimIcon className={vData.animColor} size={24} /></div>
-                 <div className="absolute top-[-10%] left-[50%] animate-fall-2"><AnimIcon className={vData.animColor} size={32} /></div>
-                 <div className="absolute top-[-10%] left-[80%] animate-fall-3"><AnimIcon className={vData.animColor} size={20} /></div>
+                 <div className="absolute top-[-10%] left-[10%] animate-fall-1"><AnimIcon className={animColor} size={24} /></div>
+                 <div className="absolute top-[-10%] left-[50%] animate-fall-2"><AnimIcon className={animColor} size={32} /></div>
+                 <div className="absolute top-[-10%] left-[80%] animate-fall-3"><AnimIcon className={animColor} size={20} /></div>
 
                  {/* 🌿 底部搖曳的植物 (支援村落專屬: plant-taiping-left.png, 找不到會自動退回 plant-left.png) */}
                  <div className="absolute bottom-[-10px] left-[-20px] animate-sway">
                     <img 
-                       src={`/plant-${vData.plantPrefix}-left.png`} 
+                       src={`/plant-${plantPrefix}-left.png`} 
                        alt="" 
                        className="h-40 object-contain opacity-90 drop-shadow-lg" 
                        onError={(e)=>{ e.target.onerror = null; e.target.src='/plant-left.png'; e.target.onerror = (e2)=>e2.target.style.display='none'; }} 
@@ -1280,7 +1291,7 @@ export default function App() {
                  </div>
                  <div className="absolute bottom-[-10px] right-[-20px] animate-sway-reverse">
                     <img 
-                       src={`/plant-${vData.plantPrefix}-right.png`} 
+                       src={`/plant-${plantPrefix}-right.png`} 
                        alt="" 
                        className="h-48 object-contain opacity-90 drop-shadow-lg" 
                        onError={(e)=>{ e.target.onerror = null; e.target.src='/plant-right.png'; e.target.onerror = (e2)=>e2.target.style.display='none'; }} 
