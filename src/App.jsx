@@ -17,15 +17,20 @@ const APP_CONFIG = {
   contactLineUrl: "https://line.me/R/ti/p/@your_line_id_here", 
 };
 
-// 【特色活動圖示對照表】
-// 若 Airtable 中的服務或分類標籤包含以下關鍵字，就會自動顯示特色圖示
+// ==========================================
+// ⭐ 【特色活動圖示對照表】(您可以自由修改與新增)
+// ==========================================
+// 系統會自動比對 Airtable 裡的「分類」或「服務標籤」，若包含以下關鍵字就會顯示對應標籤
 const EVENT_CONFIG = {
+  // 寫法 1：使用系統內建圖示 (icon)
   '黃頭鷺': { icon: Bird, color: '#d97706', bg: '#fef3c7', label: '黃頭鷺季' },
   '紫藤花': { icon: Flower2, color: '#9333ea', bg: '#f3e8ff', label: '紫藤花季' },
-  '螢火蟲': { icon: Sparkles, color: '#ca8a04', bg: '#fef08a', label: '賞螢秘境' },
-  '賞螢': { icon: Sparkles, color: '#ca8a04', bg: '#fef08a', label: '賞螢秘境' },
   '日出': { icon: Sunrise, color: '#ea580c', bg: '#ffedd5', label: '絕美日出' },
   '雲海': { icon: Cloud, color: '#0284c7', bg: '#e0f2fe', label: '雲海勝地' },
+  '螢火蟲': { customImg: '/star-event.png', color: '#ca8a04', bg: '#fef08a', label: '賞螢秘境' }
+  
+  // 寫法 2：使用您自己客製化的圖檔 (customImg) - 把您的圖檔網址或路徑貼在 customImg
+  // '客製活動': { customImg: '/my-custom-icon.png', color: '#e11d48', bg: '#ffe4e6', label: '客製活動標題' },
 };
 
 // 【多國語言字典 - 系統介面】
@@ -276,12 +281,12 @@ export default function App() {
   const [sortBy, setSortBy] = useState('default');
   
   const [selectedShop, setSelectedShop] = useState(null); 
-  const [selectedAnnouncement, setSelectedAnnouncement] = useState(null); // 新增：公告彈窗狀態
+  const [selectedAnnouncement, setSelectedAnnouncement] = useState(null); 
   const [showFilterModal, setShowFilterModal] = useState(false); 
   const [showUserModal, setShowUserModal] = useState(false); 
   const [filterOpenOnly, setFilterOpenOnly] = useState(false); 
   const [filterElevator, setFilterElevator] = useState(false); 
-  const [filterEventOnly, setFilterEventOnly] = useState(false); // 新增：只看特色活動篩選
+  const [filterEventOnly, setFilterEventOnly] = useState(false); 
   const [searchQuery, setSearchQuery] = useState(''); 
 
   const currentPrimaryColor = villageData[selectedVillage]?.color || '#059669';
@@ -576,7 +581,7 @@ export default function App() {
       lat: parseFloat(f['lat'] || f['Lat'] || f['緯度']) || null,
       lng: parseFloat(f['lng'] || f['Lng'] || f['經度']) || null,
       services: services,
-      matchedEvents: matchedEvents, // 儲存找出的特色活動
+      matchedEvents: matchedEvents, 
       hasElevator: hasElevator, 
       trail_map: trailMap,
       rating: (f['rating'] || f['Rating'] || f['星等']) ? parseFloat(f['rating'] || f['Rating'] || f['星等']) : null,
@@ -916,12 +921,14 @@ export default function App() {
 
           <div className="p-6 space-y-6">
             <div className="flex flex-col gap-3 items-start">
-               {/* 顯示特殊活動標籤 */}
+               {/* 顯示特殊活動標籤 (圖文版) */}
                {shop.matchedEvents && shop.matchedEvents.length > 0 && (
                  <div className="flex flex-wrap gap-2 w-full border-b border-gray-100 pb-3 mb-1">
                    {shop.matchedEvents.map((evt, idx) => (
                       <div key={idx} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-bold shadow-sm" style={{ backgroundColor: evt.bg, color: evt.color }}>
-                         <evt.icon size={16} /> {evt.label}
+                         {evt.icon && <evt.icon size={16} />}
+                         {evt.customImg && <img src={evt.customImg} alt={evt.label} className="w-5 h-5 object-contain" />}
+                         {evt.label}
                       </div>
                    ))}
                  </div>
@@ -1711,12 +1718,17 @@ export default function App() {
                         <Heart size={18} className={isFav ? "fill-rose-500 text-rose-500" : "text-gray-400"} />
                       </button>
 
-                      {/* 顯眼的特色活動圖示（如果有設定） */}
+                      {/* 🌟 修改：顯眼的特色活動標籤 (膠囊形狀：圖示+文字) */}
                       {shop.matchedEvents && shop.matchedEvents.length > 0 && (
-                         <div className="absolute top-3 right-14 z-10 flex gap-1.5">
+                         <div className="absolute top-3 right-14 z-10 flex flex-col gap-1.5 items-end">
                            {shop.matchedEvents.map((evt, idx) => (
-                              <div key={idx} className="p-1.5 rounded-full shadow-sm backdrop-blur-md bg-white/90 animate-bounce" style={{ color: evt.color }}>
-                                 <evt.icon size={18} />
+                              <div key={idx} className="px-2.5 py-1 rounded-full shadow-[0_2px_8px_rgba(0,0,0,0.15)] backdrop-blur-md bg-white/95 flex items-center gap-1 border border-white" style={{ color: evt.color }}>
+                                 {/* 支援 Lucide Icon */}
+                                 {evt.icon && <evt.icon size={14} />}
+                                 {/* 支援 自訂圖片 */}
+                                 {evt.customImg && <img src={evt.customImg} alt={evt.label} className="w-4 h-4 object-contain" />}
+                                 {/* 顯示標題，一眼就看懂 */}
+                                 <span className="text-[10px] font-bold whitespace-nowrap">{evt.label}</span>
                               </div>
                            ))}
                          </div>
