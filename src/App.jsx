@@ -23,8 +23,8 @@ const APP_CONFIG = {
 // 系統會自動比對 Airtable 裡的「分類」或「服務標籤」，若包含以下關鍵字就會顯示對應標籤
 const EVENT_CONFIG = {
   // 寫法 1：使用系統內建圖示 (icon)
-  '黃頭鷺': { icon: Bird, color: '#d97706', bg: '#fef3c7', label: '黃頭鷺季' },
-  '紫藤花': { icon: Flower2, color: '#9333ea', bg: '#f3e8ff', label: '紫藤花季' },
+  '黃頭鷺': { icon: Bird, color: '#d97706', bg: '#fef3c7', label: '賞鷺點' },
+  '紫藤花': { icon: Flower2, color: '#9333ea', bg: '#f3e8ff', label: '賞花點' },
   '日出': { icon: Sunrise, color: '#ea580c', bg: '#ffedd5', label: '絕美日出' },
   '雲海': { icon: Cloud, color: '#0284c7', bg: '#e0f2fe', label: '雲海勝地' },
   '螢火蟲': { customImg: '/star-event.png', color: '#ca8a04', bg: '#fef08a', label: '賞螢秘境' }
@@ -921,13 +921,13 @@ export default function App() {
 
           <div className="p-6 space-y-6">
             <div className="flex flex-col gap-3 items-start">
-               {/* 顯示特殊活動標籤 (圖文版) */}
+               {/* 顯示特殊活動標籤 (圖文版) - 微調尺寸 */}
                {shop.matchedEvents && shop.matchedEvents.length > 0 && (
                  <div className="flex flex-wrap gap-2 w-full border-b border-gray-100 pb-3 mb-1">
                    {shop.matchedEvents.map((evt, idx) => (
                       <div key={idx} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-bold shadow-sm" style={{ backgroundColor: evt.bg, color: evt.color }}>
-                         {evt.icon && <evt.icon size={16} />}
-                         {evt.customImg && <img src={evt.customImg} alt={evt.label} className="w-5 h-5 object-contain" />}
+                         {evt.icon && <evt.icon size={18} />}
+                         {evt.customImg && <img src={evt.customImg} alt={evt.label} className="w-6 h-6 object-contain" />}
                          {evt.label}
                       </div>
                    ))}
@@ -1392,6 +1392,11 @@ export default function App() {
             0%, 100% { transform: translateY(0) rotate(0deg); }
             50% { transform: translateY(-3px) rotate(1deg); }
           }
+          /* 🌟 新增：探頭吉祥物緩慢上下浮動動畫 */
+          @keyframes floatMascot {
+            0%, 100% { transform: translate(-50%, 0); }
+            50% { transform: translate(-50%, -6px); }
+          }
           .animate-fall-1 { animation: fall 8s linear infinite; }
           .animate-fall-2 { animation: fall 11s linear infinite 2s; }
           .animate-fall-3 { animation: fall 9s linear infinite 4s; }
@@ -1399,6 +1404,7 @@ export default function App() {
           .animate-sway-reverse { animation: swayReverse 7s ease-in-out infinite; }
           .animate-loading-bar { animation: loadingBar 1.5s infinite linear; }
           .animate-ride { animation: ride 0.4s ease-in-out infinite; }
+          .animate-float-mascot { animation: floatMascot 4s ease-in-out infinite; }
         `}
       </style>
 
@@ -1718,17 +1724,17 @@ export default function App() {
                         <Heart size={18} className={isFav ? "fill-rose-500 text-rose-500" : "text-gray-400"} />
                       </button>
 
-                      {/* 🌟 修改：顯眼的特色活動標籤 (膠囊形狀：圖示+文字) */}
+                      {/* 🌟 修改：顯眼的特色活動標籤 (膠囊形狀：圖示+文字) - 加大圖示與字體 */}
                       {shop.matchedEvents && shop.matchedEvents.length > 0 && (
                          <div className="absolute top-3 right-14 z-10 flex flex-col gap-1.5 items-end">
                            {shop.matchedEvents.map((evt, idx) => (
-                              <div key={idx} className="px-2.5 py-1 rounded-full shadow-[0_2px_8px_rgba(0,0,0,0.15)] backdrop-blur-md bg-white/95 flex items-center gap-1 border border-white" style={{ color: evt.color }}>
+                              <div key={idx} className="px-3 py-1.5 rounded-full shadow-[0_2px_8px_rgba(0,0,0,0.15)] backdrop-blur-md bg-white/95 flex items-center gap-1.5 border border-white" style={{ color: evt.color }}>
                                  {/* 支援 Lucide Icon */}
-                                 {evt.icon && <evt.icon size={14} />}
-                                 {/* 支援 自訂圖片 */}
-                                 {evt.customImg && <img src={evt.customImg} alt={evt.label} className="w-4 h-4 object-contain" />}
-                                 {/* 顯示標題，一眼就看懂 */}
-                                 <span className="text-[10px] font-bold whitespace-nowrap">{evt.label}</span>
+                                 {evt.icon && <evt.icon size={16} />}
+                                 {/* 支援 自訂圖片 (從 w-4 提升至 w-5) */}
+                                 {evt.customImg && <img src={evt.customImg} alt={evt.label} className="w-5 h-5 object-contain" />}
+                                 {/* 顯示標題，從 text-[10px] 提升至 text-xs */}
+                                 <span className="text-xs font-bold whitespace-nowrap">{evt.label}</span>
                               </div>
                            ))}
                          </div>
@@ -1883,26 +1889,42 @@ export default function App() {
 
         {/* 底層導航列 */}
         <div className="fixed bottom-6 left-0 right-0 flex justify-center z-50 pointer-events-none">
-          <div className="bg-white/95 backdrop-blur-xl border border-gray-100 shadow-[0_10px_40px_-10px_rgba(0,0,0,0.15)] rounded-full px-6 py-3 flex items-center gap-8 pointer-events-auto">
-             <button onClick={() => { setCurrentView('home'); setSortBy('default'); }} className={`flex flex-col items-center gap-1 group transition-colors`} style={{ color: currentView === 'home' ? currentPrimaryColor : '#9ca3af' }}>
-                <Home size={24} />
-             </button>
-             <button onClick={() => setCurrentView('favorites')} className={`flex flex-col items-center gap-1 group transition-colors`} style={{ color: currentView === 'favorites' ? '#f43f5e' : '#9ca3af' }}>
-                <Heart size={24} className={currentView === 'favorites' ? "fill-rose-500 text-rose-500" : ""} />
-             </button>
+          <div className="relative flex justify-center pointer-events-none">
              
-             <button onClick={handleGetLocation} className="-mt-10 w-16 h-16 rounded-full flex items-center justify-center shadow-lg border-[5px] border-white transform hover:scale-105 transition-transform text-white relative"
-                     style={{ backgroundColor: currentPrimaryColor, boxShadow: `0 10px 15px -3px ${hexToRgba(currentPrimaryColor, 0.4)}` }}>
-                <LocateFixed size={28} />
-                {userLocation && <div className="absolute top-3 right-4 w-2 h-2 bg-green-300 rounded-full animate-ping"></div>}
-             </button>
-             
-             <button onClick={() => setShowFilterModal(true)} className={`flex flex-col items-center gap-1 group transition-colors`} style={{ color: (filterOpenOnly || filterElevator || filterEventOnly) ? currentPrimaryColor : '#9ca3af' }}>
-                <Filter size={24} />
-             </button>
-             <button onClick={() => setShowUserModal(true)} className="flex flex-col items-center gap-1 group text-gray-400 hover:text-gray-600 transition-colors" style={{ color: showUserModal ? currentPrimaryColor : '#9ca3af' }}>
-                <User size={24} />
-             </button>
+             {/* 🌟 新增：探出頭的中間吉祥物 (進入店家或公告時隱藏) */}
+             {(!selectedShop && !selectedAnnouncement) && (
+                <div className="absolute bottom-[30px] left-1/2 -translate-x-1/2 pointer-events-auto z-0 animate-float-mascot">
+                   <img 
+                      src="/mascot.png" 
+                      alt="Mascot" 
+                      className="w-[110px] h-[110px] object-bottom object-contain drop-shadow-[0_-8px_16px_rgba(0,0,0,0.15)] hover:-translate-y-3 transition-transform duration-300 cursor-pointer"
+                      onError={(e) => { e.target.onerror = null; e.target.src='https://cdn-icons-png.flaticon.com/512/3466/3466395.png'; }}
+                   />
+                </div>
+             )}
+
+             {/* 導航列本體 (加入 relative z-10 確保浮在吉祥物前方) */}
+             <div className="bg-white/95 backdrop-blur-xl border border-gray-100 shadow-[0_10px_40px_-10px_rgba(0,0,0,0.15)] rounded-full px-6 py-3 flex items-center gap-8 pointer-events-auto relative z-10">
+               <button onClick={() => { setCurrentView('home'); setSortBy('default'); }} className={`flex flex-col items-center gap-1 group transition-colors`} style={{ color: currentView === 'home' ? currentPrimaryColor : '#9ca3af' }}>
+                  <Home size={24} />
+               </button>
+               <button onClick={() => setCurrentView('favorites')} className={`flex flex-col items-center gap-1 group transition-colors`} style={{ color: currentView === 'favorites' ? '#f43f5e' : '#9ca3af' }}>
+                  <Heart size={24} className={currentView === 'favorites' ? "fill-rose-500 text-rose-500" : ""} />
+               </button>
+               
+               <button onClick={handleGetLocation} className="-mt-10 w-16 h-16 rounded-full flex items-center justify-center shadow-lg border-[5px] border-white transform hover:scale-105 transition-transform text-white relative"
+                       style={{ backgroundColor: currentPrimaryColor, boxShadow: `0 10px 15px -3px ${hexToRgba(currentPrimaryColor, 0.4)}` }}>
+                  <LocateFixed size={28} />
+                  {userLocation && <div className="absolute top-3 right-4 w-2 h-2 bg-green-300 rounded-full animate-ping"></div>}
+               </button>
+               
+               <button onClick={() => setShowFilterModal(true)} className={`flex flex-col items-center gap-1 group transition-colors`} style={{ color: (filterOpenOnly || filterElevator || filterEventOnly) ? currentPrimaryColor : '#9ca3af' }}>
+                  <Filter size={24} />
+               </button>
+               <button onClick={() => setShowUserModal(true)} className="flex flex-col items-center gap-1 group text-gray-400 hover:text-gray-600 transition-colors" style={{ color: showUserModal ? currentPrimaryColor : '#9ca3af' }}>
+                  <User size={24} />
+               </button>
+            </div>
           </div>
         </div>
       </div>
