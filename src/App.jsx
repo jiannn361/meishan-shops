@@ -1255,7 +1255,7 @@ export default function App() {
             {landingStep === 'welcome' && (
               <div className="flex-1 flex flex-col items-center justify-center p-8 animate-fade-in">
                 <div className="flex flex-col items-center space-y-8 p-8 bg-white/60 backdrop-blur-xl rounded-[40px] shadow-2xl border border-white/60 w-full text-center transform transition-all hover:scale-105">
-                  <Mascot size={120} animation="bounce" className="drop-shadow-xl" />
+                  <Mascot size={150} animation="bounce" className="drop-shadow-xl" />
                   
                   <div className="space-y-2">
                     <p className="text-sm font-bold text-gray-600 tracking-widest uppercase">{APP_CONFIG.subTitle}</p>
@@ -1699,7 +1699,8 @@ export default function App() {
           <div className="px-6 space-y-6">
             {loading ? (
                <div className="flex flex-col items-center justify-center py-16 bg-white/70 backdrop-blur-md rounded-3xl border border-white shadow-xl mx-2">
-                 <Mascot imageUrl="/mascot-run.png" size={80} animation="ride" className="mb-2" />
+                 {/* 🌟 將 size={80} 改大，例如 120 或是 150，數字越大圖案越大 */}
+                 <Mascot imageUrl="/mascot-run.png" size={120} animation="ride" className="mb-2" />
                  
                  <div className="w-48 h-2 bg-gray-200 rounded-full overflow-hidden mt-2 mb-4 relative">
                     <div className="absolute top-0 left-0 h-full w-1/2 rounded-full animate-loading-bar" style={{ backgroundColor: currentPrimaryColor }}></div>
