@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, MapPin, Phone, Navigation, Facebook, Star, Home, Coffee, Gift, User, Filter, Heart, Menu, X, Mountain, Loader2, Camera, Ticket, Tag, Clock, ChevronLeft, ChevronRight, Info, LocateFixed, Globe, MessageCircle, Map as MapIcon, ExternalLink, CalendarCheck, Banknote, AlertCircle, Bus, ChevronDown, Play, ArrowRight, Sparkles, Cloud, Bird, Leaf, Flower2, Sunrise, Trees, ArrowUpSquare } from 'lucide-react';
+import { Search, MapPin, Phone, Navigation, Facebook, Star, Home, Coffee, Gift, User, Filter, Heart, Menu, X, Mountain, Loader2, Camera, Ticket, Tag, Clock, ChevronLeft, ChevronRight, Info, LocateFixed, Globe, MessageCircle, Map as MapIcon, ExternalLink, CalendarCheck, Banknote, AlertCircle, Bus, ChevronDown, Play, ArrowRight, Sparkles, Cloud, Bird, Leaf, Flower2, Sunrise, Trees, ArrowUpSquare, ExternalLinkIcon } from 'lucide-react';
 
 // 【安全修正】讀取環境變數
 const AIRTABLE_API_KEY = import.meta.env.VITE_AIRTABLE_API_KEY || "";
@@ -15,6 +15,17 @@ const APP_CONFIG = {
   aboutUsUrl: "https://www.facebook.com/TaipingSuspensionBridge?locale=zh_TW", 
   notionUrl: "https://www.notion.so/2a11f9fee71981239a89ebdbb2f25441?source=copy_link", 
   contactLineUrl: "https://line.me/R/ti/p/@your_line_id_here", 
+};
+
+// 【特色活動圖示對照表】
+// 若 Airtable 中的服務或分類標籤包含以下關鍵字，就會自動顯示特色圖示
+const EVENT_CONFIG = {
+  '黃頭鷺': { icon: Bird, color: '#d97706', bg: '#fef3c7', label: '黃頭鷺季' },
+  '紫藤花': { icon: Flower2, color: '#9333ea', bg: '#f3e8ff', label: '紫藤花季' },
+  '螢火蟲': { icon: Sparkles, color: '#ca8a04', bg: '#fef08a', label: '賞螢秘境' },
+  '賞螢': { icon: Sparkles, color: '#ca8a04', bg: '#fef08a', label: '賞螢秘境' },
+  '日出': { icon: Sunrise, color: '#ea580c', bg: '#ffedd5', label: '絕美日出' },
+  '雲海': { icon: Cloud, color: '#0284c7', bg: '#e0f2fe', label: '雲海勝地' },
 };
 
 // 【多國語言字典 - 系統介面】
@@ -57,6 +68,7 @@ const translations = {
     quickFilter: '快速篩選',
     onlyOpenNow: '只顯示營業中',
     onlyElevator: '只顯示有電梯/無障礙',
+    onlySpecialEvent: '只顯示特色活動地點',
     confirm: '確認',
     shopIntro: '店家介紹',
     googleReviews: '查看 Google 評論',
@@ -109,6 +121,7 @@ const translations = {
     quickFilter: 'Quick Filter',
     onlyOpenNow: 'Open Now Only',
     onlyElevator: 'Elevator/Accessible Only',
+    onlySpecialEvent: 'Special Events Only',
     confirm: 'Apply',
     shopIntro: 'About',
     googleReviews: 'Google Reviews',
@@ -185,7 +198,6 @@ const hexToRgba = (hex, alpha) => {
 // 🐻 專屬吉祥物元件 (Mascot) 
 // ==========================================
 const Mascot = ({ size = 60, className = "", animation = "", imageUrl = null }) => {
-  // 若沒有指定 imageUrl，預設為微彈跳的 mascot.png
   const defaultMascotUrl = "/mascot.png";
   const mascotSrc = imageUrl || defaultMascotUrl;
 
@@ -193,7 +205,7 @@ const Mascot = ({ size = 60, className = "", animation = "", imageUrl = null }) 
   if (animation === "spin") animClass = "animate-spin";     
   if (animation === "bounce") animClass = "animate-bounce"; 
   if (animation === "pulse") animClass = "animate-pulse";
-  if (animation === "ride") animClass = "animate-ride"; // 騎車專用平穩震動   
+  if (animation === "ride") animClass = "animate-ride";    
 
   return (
     <img
@@ -264,10 +276,12 @@ export default function App() {
   const [sortBy, setSortBy] = useState('default');
   
   const [selectedShop, setSelectedShop] = useState(null); 
+  const [selectedAnnouncement, setSelectedAnnouncement] = useState(null); // 新增：公告彈窗狀態
   const [showFilterModal, setShowFilterModal] = useState(false); 
   const [showUserModal, setShowUserModal] = useState(false); 
   const [filterOpenOnly, setFilterOpenOnly] = useState(false); 
-  const [filterElevator, setFilterElevator] = useState(false); // 新增電梯篩選狀態
+  const [filterElevator, setFilterElevator] = useState(false); 
+  const [filterEventOnly, setFilterEventOnly] = useState(false); // 新增：只看特色活動篩選
   const [searchQuery, setSearchQuery] = useState(''); 
 
   const currentPrimaryColor = villageData[selectedVillage]?.color || '#059669';
@@ -519,7 +533,15 @@ export default function App() {
       services = String(rawSvc).split(/[,，]/).map(s => s.trim());
     }
 
-    // 檢查電梯欄位 (多種常見命名)
+    // 檢查特色活動圖示 (從分類和標籤中尋找是否有關鍵字)
+    let matchedEvents = [];
+    [...categories, ...services].forEach(tag => {
+        const matchedKey = Object.keys(EVENT_CONFIG).find(k => tag.includes(k));
+        if (matchedKey && !matchedEvents.some(e => e.keyword === matchedKey)) {
+            matchedEvents.push({ keyword: matchedKey, ...EVENT_CONFIG[matchedKey], originalTag: tag });
+        }
+    });
+
     const hasElevator = f['電梯'] === true || f['Elevator'] === true || f['有電梯'] === true || String(f['電梯']).toLowerCase() === 'true';
 
     const bookingPlatforms = [
@@ -554,7 +576,8 @@ export default function App() {
       lat: parseFloat(f['lat'] || f['Lat'] || f['緯度']) || null,
       lng: parseFloat(f['lng'] || f['Lng'] || f['經度']) || null,
       services: services,
-      hasElevator: hasElevator, // 新增電梯屬性
+      matchedEvents: matchedEvents, // 儲存找出的特色活動
+      hasElevator: hasElevator, 
       trail_map: trailMap,
       rating: (f['rating'] || f['Rating'] || f['星等']) ? parseFloat(f['rating'] || f['Rating'] || f['星等']) : null,
       reviews: parseInt(f['reviews'] || f['Reviews'] || f['評論數'] || 0),
@@ -586,7 +609,7 @@ export default function App() {
 
       const CACHE_KEY = 'meishan_airtable_data';
       const CACHE_TIME_KEY = 'meishan_airtable_time';
-      const CACHE_DURATION = 1000 * 60 * 5; 
+      const CACHE_DURATION = 1000 * 60 * 3; 
 
       const cachedData = localStorage.getItem(CACHE_KEY);
       const cachedTime = localStorage.getItem(CACHE_TIME_KEY);
@@ -688,11 +711,17 @@ export default function App() {
       });
     }
     
-    // 電梯篩選邏輯
+    // 篩選：只顯示有電梯
     if (filterElevator) {
       result = result.filter(shop => shop.hasElevator);
     }
 
+    // 篩選：只顯示特色活動地點
+    if (filterEventOnly) {
+      result = result.filter(shop => shop.matchedEvents && shop.matchedEvents.length > 0);
+    }
+
+    // 篩選：只顯示營業中
     if (filterOpenOnly) {
       result = result.filter(shop => {
         const isOpen = checkIsOpen(shop.hours);
@@ -726,6 +755,8 @@ export default function App() {
 
   const processedShops = getProcessedShops();
   const availableCategories = getDynamicCategories();
+  // 檢查目前的村落/資料中，是否有任何特色活動地點（決定是否顯示在篩選器中）
+  const hasAnyEventsInVillage = shops.some(s => s.village === selectedVillage && s.matchedEvents && s.matchedEvents.length > 0);
 
   const ImageCarousel = ({ images, onClick }) => {
     const [currentIndex, setCurrentIndex] = useState(0);
@@ -761,6 +792,58 @@ export default function App() {
         <button onClick={prevSlide} className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/30 hover:bg-black/50 text-white p-1 rounded-full backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity"><ChevronLeft size={20} /></button>
         <button onClick={nextSlide} className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/30 hover:bg-black/50 text-white p-1 rounded-full backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity"><ChevronRight size={20} /></button>
         <div className="absolute bottom-3 right-3 bg-black/50 backdrop-blur-md px-2 py-1 rounded-lg text-xs text-white font-medium">{currentIndex + 1} / {images.length}</div>
+      </div>
+    );
+  };
+
+  // 【新增】公告/活動彈窗組件
+  const AnnouncementModal = ({ ann, onClose }) => {
+    if (!ann) return null;
+    const link = ann.website || ann.fbLink || ann.line_url || ann.nav_link;
+    const hasImage = ann.images && ann.images.length > 0;
+
+    return (
+      <div className="fixed inset-0 z-[80] flex items-center justify-center px-4 animate-fade-in">
+        <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose}></div>
+        <div className="relative w-full max-w-sm bg-white rounded-3xl overflow-hidden shadow-2xl animate-scale-up max-h-[85vh] flex flex-col">
+          <button onClick={onClose} className="absolute top-4 right-4 z-10 bg-black/30 hover:bg-black/50 text-white p-2 rounded-full backdrop-blur-md transition-colors">
+            <X size={20} />
+          </button>
+          
+          {hasImage && (
+            <div className="w-full h-48 sm:h-56 relative shrink-0">
+               <img src={ann.images[0]} alt={ann.name} className="w-full h-full object-cover" />
+               <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-black/60 to-transparent"></div>
+            </div>
+          )}
+
+          <div className="p-6 overflow-y-auto space-y-4">
+             <div className="flex items-start gap-2">
+                <div className="bg-amber-100 text-amber-600 p-1.5 rounded-lg shrink-0 mt-0.5">
+                   <Sparkles size={20} />
+                </div>
+                <h3 className="text-xl font-bold text-gray-900 leading-tight">{ann.name}</h3>
+             </div>
+             
+             {ann.description && (
+               <div className="bg-gray-50 rounded-2xl p-4 text-gray-600 text-sm text-justify">
+                  <FormattedText text={ann.description} />
+               </div>
+             )}
+
+             {link && (
+               <a 
+                 href={link} 
+                 target="_blank" 
+                 rel="noopener noreferrer" 
+                 className="mt-4 w-full py-3 rounded-xl flex items-center justify-center gap-2 font-bold shadow-lg transition-transform active:scale-95 text-white"
+                 style={{ backgroundColor: currentPrimaryColor, boxShadow: `0 8px 20px -5px ${hexToRgba(currentPrimaryColor, 0.4)}` }}
+               >
+                 查看活動詳情 <ExternalLinkIcon size={18} />
+               </a>
+             )}
+          </div>
+        </div>
       </div>
     );
   };
@@ -833,6 +916,17 @@ export default function App() {
 
           <div className="p-6 space-y-6">
             <div className="flex flex-col gap-3 items-start">
+               {/* 顯示特殊活動標籤 */}
+               {shop.matchedEvents && shop.matchedEvents.length > 0 && (
+                 <div className="flex flex-wrap gap-2 w-full border-b border-gray-100 pb-3 mb-1">
+                   {shop.matchedEvents.map((evt, idx) => (
+                      <div key={idx} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-bold shadow-sm" style={{ backgroundColor: evt.bg, color: evt.color }}>
+                         <evt.icon size={16} /> {evt.label}
+                      </div>
+                   ))}
+                 </div>
+               )}
+
                {showAccommodationBadge ? (
                  <div 
                   className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold self-start"
@@ -922,7 +1016,6 @@ export default function App() {
             </div>
 
             <div className="flex flex-wrap gap-2">
-              {/* 電梯 Badge */}
               {shop.hasElevator && (
                 <span className="px-2 py-1 bg-blue-50 text-blue-600 border border-blue-200 text-xs rounded-md font-bold flex items-center gap-1">
                   <ArrowUpSquare size={14} /> 有電梯
@@ -1037,6 +1130,24 @@ export default function App() {
               <div className={`w-4 h-4 bg-white rounded-full shadow-sm transition-transform ${filterElevator ? 'translate-x-6' : 'translate-x-0'}`}></div>
             </div>
           </label>
+
+          {/* 若當前村落有任何活動地點，才顯示這個篩選器 */}
+          {hasAnyEventsInVillage && (
+            <label className="flex items-center justify-between p-4 bg-gray-50 rounded-xl cursor-pointer hover:bg-opacity-80 transition-colors" style={{ hover: { backgroundColor: hexToRgba(currentPrimaryColor, 0.05) } }}>
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full flex items-center justify-center bg-orange-100 text-orange-600">
+                  <Sparkles size={20} />
+                </div>
+                <span className="font-medium text-gray-700">{t('onlySpecialEvent')}</span>
+              </div>
+              <div className={`w-12 h-6 rounded-full p-1 transition-colors ${filterEventOnly ? '' : 'bg-gray-300'}`}
+                   style={filterEventOnly ? { backgroundColor: '#ea580c' } : {}}
+                   onClick={(e) => { e.preventDefault(); setFilterEventOnly(!filterEventOnly); }}>
+                <div className={`w-4 h-4 bg-white rounded-full shadow-sm transition-transform ${filterEventOnly ? 'translate-x-6' : 'translate-x-0'}`}></div>
+              </div>
+            </label>
+          )}
+
         </div>
         <button 
           onClick={() => setShowFilterModal(false)} 
@@ -1270,7 +1381,6 @@ export default function App() {
             0% { transform: translateX(-100%); }
             100% { transform: translateX(200%); }
           }
-          /* 🌟 騎車平穩動畫：輕微震動即可 */
           @keyframes ride {
             0%, 100% { transform: translateY(0) rotate(0deg); }
             50% { transform: translateY(-3px) rotate(1deg); }
@@ -1300,7 +1410,7 @@ export default function App() {
         </div>
 
         {/* 🌟 前景動態植物與落葉層 (z-30，浮在店家卡片上方，進入店家時隱藏) */}
-        {!selectedShop && (
+        {(!selectedShop && !selectedAnnouncement) && (
           <div className="fixed inset-y-0 w-full max-w-md z-30 pointer-events-none">
             {(() => {
                const vData = villageData[selectedVillage];
@@ -1317,7 +1427,7 @@ export default function App() {
                    <div className="absolute top-[-10%] left-[50%] animate-fall-2"><AnimIcon className={animColor} size={32} /></div>
                    <div className="absolute top-[-10%] left-[80%] animate-fall-3"><AnimIcon className={animColor} size={20} /></div>
 
-                   {/* 🌟 修改為緊貼甚至稍微超出邊界，確保不留白 */}
+                   {/* 植物：緊貼且無留白 */}
                    <div className="absolute bottom-0 -left-4 w-[45%] origin-bottom-left animate-sway pointer-events-none">
                       <img 
                          src={`/plant-${plantPrefix}-left.png`} 
@@ -1342,7 +1452,8 @@ export default function App() {
 
         {/* 內容層：所有內容包在 z-10 內，確保浮在背景上 */}
         <div className="relative z-10">
-          {selectedShop && <ShopDetailModal shop={selectedShop} onClose={() => setSelectedShop(null)} />}
+          <AnnouncementModal ann={selectedAnnouncement} onClose={() => setSelectedAnnouncement(null)} />
+          <ShopDetailModal shop={selectedShop} onClose={() => setSelectedShop(null)} />
           {showFilterModal && <FilterModal />}
           {showUserModal && <UserModal />}
 
@@ -1466,32 +1577,30 @@ export default function App() {
                  if (announcements.length === 0) return null; 
 
                  return (
-                    <div className="px-6 mb-6 animate-fade-in">
-                      <h3 className="text-sm font-bold mb-3 flex items-center gap-1" style={{ color: currentDarkColor }}>
+                    <div className="px-4 mb-6 animate-fade-in">
+                      <h3 className="text-sm font-bold mb-3 px-2 flex items-center gap-1" style={{ color: currentDarkColor }}>
                         <Sparkles size={16} /> 最新消息 & 活動
                       </h3>
-                      <div className="flex gap-3 overflow-x-auto no-scrollbar snap-x">
+                      {/* Banner 改為滿版、較少的白邊 (w-[92%]) */}
+                      <div className="flex gap-3 overflow-x-auto no-scrollbar snap-x pb-2">
                         {announcements.map(ann => {
-                           const link = ann.website || ann.fbLink || ann.line_url || ann.nav_link;
+                           const hasImage = ann.images && ann.images.length > 0;
                            return (
                              <div key={ann.id} 
-                                  onClick={() => link ? window.open(link, '_blank') : null}
-                                  className={`snap-center shrink-0 w-full sm:w-[85%] h-32 rounded-2xl overflow-hidden relative shadow-md border ${link ? 'cursor-pointer group' : ''}`}
-                                  style={{ borderColor: hexToRgba(currentPrimaryColor, 0.3), backgroundColor: 'rgba(255,255,255,0.9)' }}>
+                                  onClick={() => setSelectedAnnouncement(ann)}
+                                  className="snap-center shrink-0 w-[92%] h-44 rounded-2xl overflow-hidden relative shadow-md border cursor-pointer group bg-white/90"
+                                  style={{ borderColor: hexToRgba(currentPrimaryColor, 0.3) }}>
                                 
-                                {ann.images && ann.images.length > 0 ? (
+                                {hasImage ? (
+                                   // 有圖片時：不顯示任何文字，以圖片為主
                                    <img src={ann.images[0]} alt={ann.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                                 ) : (
-                                   <div className="w-full h-full flex items-center justify-center bg-gray-100">
-                                      <span className="text-gray-400 text-sm">尚無圖片</span>
+                                   // 沒圖片時：顯示預設底色和標題
+                                   <div className="w-full h-full flex flex-col items-center justify-center p-4 bg-gradient-to-br from-gray-50 to-gray-200">
+                                      <Sparkles size={32} className="text-gray-400 mb-2" />
+                                      <h4 className="font-bold text-gray-700 text-lg text-center truncate w-full">{ann.name}</h4>
                                    </div>
                                 )}
-
-                                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"></div>
-                                <div className="absolute bottom-3 left-4 right-4 text-white">
-                                   <h4 className="font-bold text-sm truncate">{ann.name}</h4>
-                                   {ann.description && <p className="text-xs text-gray-200 truncate mt-0.5">{ann.description}</p>}
-                                </div>
                              </div>
                            );
                         })}
@@ -1540,6 +1649,11 @@ export default function App() {
                     <ArrowUpSquare size={12} /> 有電梯
                   </span>
                 )}
+                {filterEventOnly && (
+                  <span className="text-xs font-medium px-2 py-1 rounded-lg flex items-center gap-1 border bg-orange-50 text-orange-700 border-orange-200 backdrop-blur-sm">
+                    <Sparkles size={12} /> 特色活動
+                  </span>
+                )}
                 {filterOpenOnly && (
                   <span className="text-xs font-medium px-2 py-1 rounded-lg flex items-center gap-1 border bg-white/80 backdrop-blur-sm"
                         style={{ color: currentDarkColor, borderColor: hexToRgba(currentPrimaryColor, 0.2) }}>
@@ -1563,7 +1677,6 @@ export default function App() {
           <div className="px-6 space-y-6">
             {loading ? (
                <div className="flex flex-col items-center justify-center py-16 bg-white/70 backdrop-blur-md rounded-3xl border border-white shadow-xl mx-2">
-                 {/* 🌟 載入中：使用機車圖與騎車動畫 */}
                  <Mascot imageUrl="/mascot-run.png" size={80} animation="ride" className="mb-2" />
                  
                  <div className="w-48 h-2 bg-gray-200 rounded-full overflow-hidden mt-2 mb-4 relative">
@@ -1597,6 +1710,17 @@ export default function App() {
                       <button onClick={(e) => { e.preventDefault(); toggleFavorite(shop.id); }} className="absolute top-3 right-3 bg-white/90 backdrop-blur-md p-2 rounded-full shadow-sm hover:scale-110 transition-all z-10">
                         <Heart size={18} className={isFav ? "fill-rose-500 text-rose-500" : "text-gray-400"} />
                       </button>
+
+                      {/* 顯眼的特色活動圖示（如果有設定） */}
+                      {shop.matchedEvents && shop.matchedEvents.length > 0 && (
+                         <div className="absolute top-3 right-14 z-10 flex gap-1.5">
+                           {shop.matchedEvents.map((evt, idx) => (
+                              <div key={idx} className="p-1.5 rounded-full shadow-sm backdrop-blur-md bg-white/90 animate-bounce" style={{ color: evt.color }}>
+                                 <evt.icon size={18} />
+                              </div>
+                           ))}
+                         </div>
+                      )}
                       
                       <div 
                         className="absolute top-3 left-3 px-2 py-1 rounded-lg z-10 pointer-events-none shadow-sm"
@@ -1685,7 +1809,6 @@ export default function App() {
                       </div>
 
                       <div className="flex flex-wrap gap-2 mb-3">
-                        {/* 電梯 Badge 顯示在列表上 */}
                         {shop.hasElevator && (
                           <span className="text-[10px] bg-blue-50 text-blue-600 border border-blue-200 px-2 py-1 rounded-md font-bold flex items-center gap-1">
                             <ArrowUpSquare size={12} /> 有電梯
@@ -1734,7 +1857,6 @@ export default function App() {
               })
             ) : (
                <div className="text-center py-10 bg-white/60 backdrop-blur-md rounded-3xl border border-white">
-                 {/* 🌟 找不到店家時：使用一般吉祥物、灰階、微彈跳 */}
                  <Mascot size={72} animation="bounce" className="mx-auto mb-4 opacity-60 grayscale" />
                  <p className="text-gray-500 font-medium">
                    {currentView === 'favorites' ? t('noFavorites') : t('noShops')}
@@ -1763,7 +1885,7 @@ export default function App() {
                 {userLocation && <div className="absolute top-3 right-4 w-2 h-2 bg-green-300 rounded-full animate-ping"></div>}
              </button>
              
-             <button onClick={() => setShowFilterModal(true)} className={`flex flex-col items-center gap-1 group transition-colors`} style={{ color: (filterOpenOnly || filterElevator) ? currentPrimaryColor : '#9ca3af' }}>
+             <button onClick={() => setShowFilterModal(true)} className={`flex flex-col items-center gap-1 group transition-colors`} style={{ color: (filterOpenOnly || filterElevator || filterEventOnly) ? currentPrimaryColor : '#9ca3af' }}>
                 <Filter size={24} />
              </button>
              <button onClick={() => setShowUserModal(true)} className="flex flex-col items-center gap-1 group text-gray-400 hover:text-gray-600 transition-colors" style={{ color: showUserModal ? currentPrimaryColor : '#9ca3af' }}>
