@@ -10,7 +10,7 @@ const SafeArrowUpSquare = ArrowUpSquare || Info;
 const SafeTicket = Ticket || Tag;
 
 // 【安全修正】讀取環境變數
-const AIRTABLE_API_KEY = import.meta.env.VITE_AIRTABLE_API_KEY || "";
+const AIRTABLE_API_KEY = import.meta.env.VITE_AIRTABLE_API_KEY || ""; 
 
 // 【網站設定區】
 const APP_CONFIG = {
@@ -1255,7 +1255,7 @@ export default function App() {
             {landingStep === 'welcome' && (
               <div className="flex-1 flex flex-col items-center justify-center p-8 animate-fade-in">
                 <div className="flex flex-col items-center space-y-8 p-8 bg-white/60 backdrop-blur-xl rounded-[40px] shadow-2xl border border-white/60 w-full text-center transform transition-all hover:scale-105">
-                  <Mascot size={150} animation="bounce" className="drop-shadow-xl" />
+                  <Mascot size={120} animation="bounce" className="drop-shadow-xl" />
                   
                   <div className="space-y-2">
                     <p className="text-sm font-bold text-gray-600 tracking-widest uppercase">{APP_CONFIG.subTitle}</p>
@@ -1440,32 +1440,15 @@ export default function App() {
                
                const AnimIcon = vData.animIcon || Leaf; 
                const animColor = vData.animColor || 'text-emerald-500/30';
-               const plantPrefix = vData.plantPrefix || 'default';
 
                return (
                  <>
-                   {/* 落葉 */}
+                   {/* 落葉 (使用 Lucide Icon 不需圖檔) */}
                    <div className="absolute top-[-10%] left-[10%] animate-fall-1"><AnimIcon className={animColor} size={24} /></div>
                    <div className="absolute top-[-10%] left-[50%] animate-fall-2"><AnimIcon className={animColor} size={32} /></div>
                    <div className="absolute top-[-10%] left-[80%] animate-fall-3"><AnimIcon className={animColor} size={20} /></div>
 
-                   {/* 植物：緊貼且無留白 */}
-                   <div className="absolute bottom-0 -left-4 w-[45%] origin-bottom-left animate-sway pointer-events-none">
-                      <img 
-                         src={`/plant-${plantPrefix}-left.png`} 
-                         alt="" 
-                         className="w-full h-auto object-bottom object-contain opacity-95 drop-shadow-xl" 
-                         onError={(e)=>{ e.target.onerror = null; e.target.src='/plant-left.png'; e.target.onerror = (e2)=>e2.target.style.display='none'; }} 
-                      />
-                   </div>
-                   <div className="absolute bottom-0 -right-4 w-[45%] origin-bottom-right animate-sway-reverse pointer-events-none">
-                      <img 
-                         src={`/plant-${plantPrefix}-right.png`} 
-                         alt="" 
-                         className="w-full h-auto object-bottom object-contain opacity-95 drop-shadow-xl" 
-                         onError={(e)=>{ e.target.onerror = null; e.target.src='/plant-right.png'; e.target.onerror = (e2)=>e2.target.style.display='none'; }} 
-                      />
-                   </div>
+                   {/* ⚠️ 依要求先移除左右下角的植物圖片 ⚠️ */}
                  </>
                );
             })()}
@@ -1668,7 +1651,7 @@ export default function App() {
               <div className="flex items-center gap-2">
                 {filterElevator && (
                   <span className="text-xs font-medium px-2 py-1 rounded-lg flex items-center gap-1 border bg-blue-50 text-blue-700 border-blue-200 backdrop-blur-sm">
-                    <ArrowUpSquare size={12} /> 有電梯
+                    <SafeArrowUpSquare size={12} /> 有電梯
                   </span>
                 )}
                 {filterEventOnly && (
@@ -1699,7 +1682,6 @@ export default function App() {
           <div className="px-6 space-y-6">
             {loading ? (
                <div className="flex flex-col items-center justify-center py-16 bg-white/70 backdrop-blur-md rounded-3xl border border-white shadow-xl mx-2">
-                 {/* 🌟 將 size={80} 改大，例如 120 或是 150，數字越大圖案越大 */}
                  <Mascot imageUrl="/mascot-run.png" size={120} animation="ride" className="mb-2" />
                  
                  <div className="w-48 h-2 bg-gray-200 rounded-full overflow-hidden mt-2 mb-4 relative">
