@@ -1,6 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { Search, MapPin, Phone, Navigation, Facebook, Star, Home, Coffee, Gift, User, Filter, Heart, Menu, X, Mountain, Loader2, Camera, Ticket, Tag, Clock, ChevronLeft, ChevronRight, Info, LocateFixed, Globe, MessageCircle, Map as MapIcon, ExternalLink, CalendarCheck, Banknote, AlertCircle, Bus, ChevronDown, Play, ArrowRight, Sparkles, Cloud, Bird, Leaf, Flower2, Sunrise, Trees, ArrowUpSquare, ExternalLinkIcon } from 'lucide-react';
 
+// 【安全修正】防止部分環境缺少較新圖示而導致白畫面崩潰
+const SafeBird = Bird || Sparkles;
+const SafeFlower2 = Flower2 || Star;
+const SafeSunrise = Sunrise || Sparkles;
+const SafeTrees = Trees || MapIcon;
+const SafeArrowUpSquare = ArrowUpSquare || Info;
+const SafeTicket = Ticket || Tag;
+
 // 【安全修正】讀取環境變數
 const AIRTABLE_API_KEY = import.meta.env.VITE_AIRTABLE_API_KEY || "";
 
@@ -23,9 +31,9 @@ const APP_CONFIG = {
 // 系統會自動比對 Airtable 裡的「分類」或「服務標籤」，若包含以下關鍵字就會顯示對應標籤
 const EVENT_CONFIG = {
   // 寫法 1：使用系統內建圖示 (icon)
-  '黃頭鷺': { icon: Bird, color: '#d97706', bg: '#fef3c7', label: '賞鷺點' },
-  '紫藤花': { icon: Flower2, color: '#9333ea', bg: '#f3e8ff', label: '賞花點' },
-  '日出': { icon: Sunrise, color: '#ea580c', bg: '#ffedd5', label: '絕美日出' },
+  '黃頭鷺': { icon: SafeBird, color: '#d97706', bg: '#fef3c7', label: '賞鷺點' },
+  '紫藤花': { icon: SafeFlower2, color: '#9333ea', bg: '#f3e8ff', label: '賞花點' },
+  '日出': { icon: SafeSunrise, color: '#ea580c', bg: '#ffedd5', label: '絕美日出' },
   '雲海': { icon: Cloud, color: '#0284c7', bg: '#e0f2fe', label: '雲海勝地' },
   '螢火蟲': { customImg: '/star-event.png', color: '#ca8a04', bg: '#fef08a', label: '賞螢秘境' }
   
@@ -157,8 +165,8 @@ const villageData = {
   '太興村': { 
     zh: '太興村', en: 'Taixing', desc_zh: '萬鷺朝鳳', desc_en: 'Herons Migration', 
     color: '#ea994d', textDark: '#a35a0f', textBadge: '#ffffff',
-    bgFile: 'bg-taixing.png', iconFile: 'icon-taixing.png', icon: Bird,
-    animIcon: Bird, animColor: 'text-amber-700/40', plantPrefix: 'taixing',
+    bgFile: 'bg-taixing.png', iconFile: 'icon-taixing.png', icon: SafeBird,
+    animIcon: SafeBird, animColor: 'text-amber-700/40', plantPrefix: 'taixing',
     intro: '每年秋季限定的「萬鷺朝鳳」奇景令人嘆為觀止。這裡有著豐富的生態與優美的步道，適合喜愛大自然與深度生態旅遊的您。'
   },
   '碧湖/龍眼村': { 
@@ -171,21 +179,21 @@ const villageData = {
   '瑞里村': { 
     zh: '瑞里村', en: 'Ruili', desc_zh: '紫色山城', desc_en: 'Purple Mountain Town', 
     color: '#d2cbe3', textDark: '#5a5270', textBadge: '#413a54',
-    bgFile: 'bg-ruili.png', iconFile: 'icon-ruili.png', icon: Flower2,
-    animIcon: Flower2, animColor: 'text-purple-500/50', plantPrefix: 'ruili',
+    bgFile: 'bg-ruili.png', iconFile: 'icon-ruili.png', icon: SafeFlower2,
+    animIcon: SafeFlower2, animColor: 'text-purple-500/50', plantPrefix: 'ruili',
     intro: '著名的浪漫紫色山城，春季紫藤花盛開時如夢似幻。擁有燕子崖、蝙蝠洞等壯麗的自然地質景觀，是登山健行的絕佳勝地。'
   },
   '瑞峰村': { 
     zh: '瑞峰村', en: 'Ruifeng', desc_zh: '日出與步道', desc_en: 'Sunrise & Trails', 
     color: '#dd785b', textDark: '#8a371c', textBadge: '#ffffff',
-    bgFile: 'bg-ruifeng.png', iconFile: 'icon-ruifeng.png', icon: Sunrise,
+    bgFile: 'bg-ruifeng.png', iconFile: 'icon-ruifeng.png', icon: SafeSunrise,
     animIcon: Sparkles, animColor: 'text-orange-500/50', plantPrefix: 'ruifeng',
     intro: '坐擁絕美的日出勝地與竹坑溪步道，清晨的雲海與壯闊的山林景緻交織。非常適合熱愛早起迎接第一道曙光與親近森林的旅人。'
   },
   '太和村': { 
     zh: '太和村', en: 'Taihe', desc_zh: '茶園秘境', desc_en: 'Hidden Tea Farms', 
     color: '#c4b28e', textDark: '#70603d', textBadge: '#ffffff',
-    bgFile: 'bg-taihe.png', iconFile: 'icon-taihe.png', icon: Trees,
+    bgFile: 'bg-taihe.png', iconFile: 'icon-taihe.png', icon: SafeTrees,
     animIcon: Leaf, animColor: 'text-lime-700/40', plantPrefix: 'taihe',
     intro: '隱藏在深山中的茶園秘境，保留了最原始純粹的自然風貌。漫步在茶園小徑，感受山林間最清新的空氣與獨特靜謐。'
   },
@@ -382,7 +390,7 @@ export default function App() {
     'food': { labelKey: 'food', icon: <Coffee size={18}/> },
     'gift': { labelKey: 'gift', icon: <Gift size={18}/> },
     'attraction': { labelKey: 'attraction', icon: <Camera size={18}/> },
-    'experience': { labelKey: 'experience', icon: <Ticket size={18}/> },
+    'experience': { labelKey: 'experience', icon: <SafeTicket size={18}/> },
     'transport': { labelKey: 'transport', icon: <Bus size={18}/> },
     '交通': { labelKey: 'transport', icon: <Bus size={18}/> },
   };
@@ -541,7 +549,8 @@ export default function App() {
     // 檢查特色活動圖示 (從分類和標籤中尋找是否有關鍵字)
     let matchedEvents = [];
     [...categories, ...services].forEach(tag => {
-        const matchedKey = Object.keys(EVENT_CONFIG).find(k => tag.includes(k));
+        if (!tag) return; // 增強安全性防錯
+        const matchedKey = Object.keys(EVENT_CONFIG).find(k => String(tag).includes(k));
         if (matchedKey && !matchedEvents.some(e => e.keyword === matchedKey)) {
             matchedEvents.push({ keyword: matchedKey, ...EVENT_CONFIG[matchedKey], originalTag: tag });
         }
@@ -1025,7 +1034,7 @@ export default function App() {
             <div className="flex flex-wrap gap-2">
               {shop.hasElevator && (
                 <span className="px-2 py-1 bg-blue-50 text-blue-600 border border-blue-200 text-xs rounded-md font-bold flex items-center gap-1">
-                  <ArrowUpSquare size={14} /> 有電梯
+                  <SafeArrowUpSquare size={14} /> 有電梯
                 </span>
               )}
               {shop.services.map((s, i) => (
@@ -1127,7 +1136,7 @@ export default function App() {
           <label className="flex items-center justify-between p-4 bg-gray-50 rounded-xl cursor-pointer hover:bg-opacity-80 transition-colors" style={{ hover: { backgroundColor: hexToRgba(currentPrimaryColor, 0.05) } }}>
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-full flex items-center justify-center bg-blue-100 text-blue-600">
-                <ArrowUpSquare size={20} />
+                <SafeArrowUpSquare size={20} />
               </div>
               <span className="font-medium text-gray-700">{t('onlyElevator')}</span>
             </div>
@@ -1829,7 +1838,7 @@ export default function App() {
                       <div className="flex flex-wrap gap-2 mb-3">
                         {shop.hasElevator && (
                           <span className="text-[10px] bg-blue-50 text-blue-600 border border-blue-200 px-2 py-1 rounded-md font-bold flex items-center gap-1">
-                            <ArrowUpSquare size={12} /> 有電梯
+                            <SafeArrowUpSquare size={12} /> 有電梯
                           </span>
                         )}
                         {shop.services.slice(0, 3).map((service, idx) => (
