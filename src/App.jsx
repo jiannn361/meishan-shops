@@ -180,58 +180,18 @@ const ARNavigation = ({ targetShop, userLoc, onClose }) => {
   const targetBearing = userLoc && targetShop?.lat ? getBearing(userLoc.lat, userLoc.lng, targetShop.lat, targetShop.lng) : 0;
   const targetDistance = userLoc && targetShop?.lat ? calculateDistance(userLoc.lat, userLoc.lng, targetShop.lat, targetShop.lng) : 0;
 
-  useEffect(() => {
-    // 啟動相機
-    let stream = null;
-    const startCamera = async () => {
-      try {
-        stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
-        if (videoRef.current) videoRef.current.srcObject = stream;
-      } catch (err) {
-        console.error("Camera error:", err);
-        setErrorMsg("無法開啟相機，請確認是否給予權限。");
-      }
-    };
-    startCamera();
-
-    // 清除相機與事件
-    return () => {
-      if (stream) stream.getTracks().forEach(track => track.stop());
-      window.removeEventListener("deviceorientation", handleOrientation);
-    };
-  }, []);
-
-  const handleOrientation = (e) => {
-    let heading = null;
-    if (e.webkitCompassHeading) {
-      heading = e.webkitCompassHeading; // iOS
-    } else if (e.alpha !== null) {
-      heading = 360 - e.alpha; // Android (近似值)
-    }
-    if (heading !== null) setCompassHeading(heading);
+  // 新增：取得精確距離以判斷是否抵達 (小於 50 公尺)
+  const getRawDistance = (lat1, lon1, lat2, lng2) => {
+    const R = 6371; 
+    const dLat = (lat2 - lat1) * (Math.PI / 180);
+    const dLon = (lng2 - lon1) * (Math.PI / 180);
+    const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) + Math.cos(lat1 * (Math.PI / 180)) * Math.cos(lat2 * (Math.PI / 180)) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c;
   };
+  const rawDistance = userLoc && targetShop?.lat ? getRawDistance(userLoc.lat, userLoc.lng, targetShop.lat, targetShop.lng) : null;
+  const isArrived = rawDistance !== null && rawDistance <= 0.05; // 距離小於 0.05 km (50公尺) 視為抵達
 
-  const requestCompassPermission = async () => {
-    if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
-      try {
-        const permission = await DeviceOrientationEvent.requestPermission();
-        if (permission === 'granted') {
-          setPermissionGranted(true);
-          window.addEventListener("deviceorientation", handleOrientation);
-        } else {
-          setErrorMsg("需要方向感測器權限才能進行 AR 導航。");
-        }
-      } catch (err) {
-        console.error(err);
-      }
-    } else {
-      // 非 iOS 13+ 裝置直接監聽
-      setPermissionGranted(true);
-      window.addEventListener("deviceorientation", handleOrientation, true);
-    }
-  };
-
-  // 自動為非 iOS 裝置或已授權環境掛載
   useEffect(() => {
     if (typeof DeviceOrientationEvent === 'undefined' || typeof DeviceOrientationEvent.requestPermission !== 'function') {
       requestCompassPermission();
@@ -287,17 +247,28 @@ const ARNavigation = ({ targetShop, userLoc, onClose }) => {
           </div>
         ) : (
           <>
-            {/* 方位指示邏輯 */}
-            {isTargetVisible ? (
+            {/* 方位指示邏輯與抵達判斷 */}
+            {isArrived ? (
+              <div className="flex flex-col items-center animate-bounce z-50">
+                <div className="relative flex flex-col items-center">
+                  <div className="absolute -top-16 bg-yellow-400 text-yellow-900 px-6 py-3 rounded-full font-black text-lg shadow-[0_0_30px_rgba(250,204,21,0.6)] whitespace-nowrap flex items-center gap-2 border-4 border-white z-10">
+                    <Sparkles size={24} /> 已經抵達目的地囉！ <Sparkles size={24} />
+                  </div>
+                  {/* 🌟 抵達時的專屬吉祥物：可把 imageUrl 換成您畫的「歡呼」或「抵達」版本 */}
+                  <Mascot imageUrl="/mascot-righthere.png" size={180} animation="pulse" className="drop-shadow-[0_0_40px_rgba(255,255,255,0.6)]" />
+                </div>
+              </div>
+            ) : isTargetVisible ? (
               <div 
                 className="flex flex-col items-center transform transition-transform duration-200"
                 style={{ transform: `translateX(${diffAngle * 4}px)` }} // 根據角度微調左右偏移
               >
                 {/* AR 中帶路的吉祥物！ */}
-                <div className="relative">
-                  <div className="absolute -top-12 left-1/2 -translate-x-1/2 bg-white/90 text-emerald-800 px-4 py-2 rounded-full font-bold text-sm shadow-xl whitespace-nowrap animate-bounce flex items-center gap-2">
+                <div className="relative flex flex-col items-center">
+                  <div className="absolute -top-12 bg-white/90 text-emerald-800 px-4 py-2 rounded-full font-bold text-sm shadow-xl whitespace-nowrap animate-bounce flex items-center gap-2 z-10">
                     <Sparkles size={16} className="text-emerald-500" /> 往這裡走喔！
                   </div>
+                  {/* 🌟 帶路中的專屬吉祥物：可把 imageUrl 換成您畫的「背背包」或「走路」版本 */}
                   <Mascot imageUrl="/mascot-backpack.png" size={160} animation="ride" className="drop-shadow-2xl" />
                 </div>
               </div>
