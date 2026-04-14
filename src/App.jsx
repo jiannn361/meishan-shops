@@ -48,7 +48,7 @@ const translations = {
     accommodation: '民宿', food: '美食', gift: '伴手禮', attraction: '景點',
     experience: '體驗', transport: '交通', favoritesList: '收藏清單', featured: '精選推薦',
     openNow: '營業中', openingSoon: '即將營業', closingSoon: '即將休息', closed: '休息中',
-    checkAnnouncement: '詳見公告', byAppointment: '預約制', bookNow: '線上預約',
+    checkAnnouncement: '詳見公告', byAppointment: '預約制', bookNow: '線上預約/預訂',
     distance: '距離', shopsCount: '間', loading: '快到了再等一下...',
     noFavorites: '您的口袋名單還是空的喔！', noShops: '哎呀，找不到符合的店家...',
     goToExplore: '去探索店家', showAll: '顯示全部', googleInfo: 'Google 資訊',
