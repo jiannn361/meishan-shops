@@ -863,7 +863,7 @@ export default function App() {
           </div>
 
           <div className="p-6 space-y-6">
-            <div className="flex flex-col gap-3 items-start">
+            <div className="flex flex-col gap-4 items-start w-full">
                {shop.matchedEvents && shop.matchedEvents.length > 0 && (
                  <div className="flex flex-wrap gap-2 w-full border-b border-gray-100 pb-3 mb-1">
                    {shop.matchedEvents.map((evt, idx) => (
@@ -876,17 +876,30 @@ export default function App() {
                  </div>
                )}
 
-               {showAccommodationBadge ? (
-                 <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold self-start" style={{ backgroundColor: hexToRgba(shopDarkColor, 0.15), color: shopDarkColor }}><CalendarCheck size={14} />{accBadgeText}</div>
-               ) : isOpen === 'appointment' ? (
-                 <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold self-start" style={{ backgroundColor: hexToRgba(shopDarkColor, 0.15), color: shopDarkColor }}><CalendarCheck size={14} />{t('byAppointment')}</div>
-               ) : (
-                 <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold self-start`}
-                  style={ isOpen === true ? { backgroundColor: hexToRgba(shopDarkColor, 0.15), color: shopDarkColor } : isOpen === 'opening_soon' ? { backgroundColor: '#fef3c7', color: '#b45309' } : isOpen === 'closing_soon' ? { backgroundColor: '#ffedd5', color: '#c2410c' } : isOpen === false ? { backgroundColor: '#f3f4f6', color: '#4b5563' } : { backgroundColor: '#eff6ff', color: '#2563eb' } }>
-                   <Clock size={14} />
-                   {isOpen === true ? t('openNow') : isOpen === 'opening_soon' ? t('openingSoon') : isOpen === 'closing_soon' ? t('closingSoon') : isOpen === false ? t('closed') : t('checkAnnouncement')}
+               {/* 🌟 營業狀態標籤與聯絡方式（移至頂部） */}
+               <div className="w-full flex flex-wrap justify-between items-center gap-3">
+                 <div>
+                   {showAccommodationBadge ? (
+                     <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold self-start" style={{ backgroundColor: hexToRgba(shopDarkColor, 0.15), color: shopDarkColor }}><CalendarCheck size={14} />{accBadgeText}</div>
+                   ) : isOpen === 'appointment' ? (
+                     <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold self-start" style={{ backgroundColor: hexToRgba(shopDarkColor, 0.15), color: shopDarkColor }}><CalendarCheck size={14} />{t('byAppointment')}</div>
+                   ) : (
+                     <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold self-start`}
+                      style={ isOpen === true ? { backgroundColor: hexToRgba(shopDarkColor, 0.15), color: shopDarkColor } : isOpen === 'opening_soon' ? { backgroundColor: '#fef3c7', color: '#b45309' } : isOpen === 'closing_soon' ? { backgroundColor: '#ffedd5', color: '#c2410c' } : isOpen === false ? { backgroundColor: '#f3f4f6', color: '#4b5563' } : { backgroundColor: '#eff6ff', color: '#2563eb' } }>
+                       <Clock size={14} />
+                       {isOpen === true ? t('openNow') : isOpen === 'opening_soon' ? t('openingSoon') : isOpen === 'closing_soon' ? t('closingSoon') : isOpen === false ? t('closed') : t('checkAnnouncement')}
+                     </div>
+                   )}
                  </div>
-               )}
+
+                 {/* 🌟 移至頂部的聯絡與社群按鈕區塊 */}
+                 <div className="flex items-center gap-2">
+                   {shop.tel && <a href={`tel:${shop.tel}`} className="w-9 h-9 flex items-center justify-center rounded-full border hover:opacity-80 transition-opacity flex-shrink-0" style={{ backgroundColor: hexToRgba(shopColor, 0.05), borderColor: hexToRgba(shopColor, 0.2), color: shopColor }}><Phone size={16} /></a>}
+                   {shop.fbLink && <a href={shop.fbLink} target="_blank" rel="noopener noreferrer" className="w-9 h-9 flex items-center justify-center rounded-full border border-blue-200 text-blue-600 hover:bg-blue-50 transition-colors flex-shrink-0"><Facebook size={16} /></a>}
+                   {shop.line_url && <a href={shop.line_url} target="_blank" rel="noopener noreferrer" className="w-9 h-9 flex items-center justify-center rounded-full border border-green-200 text-green-600 hover:bg-green-50 transition-colors flex-shrink-0"><span className="font-extrabold text-[9px]">LINE</span></a>}
+                   {shop.website && <a href={shop.website} target="_blank" rel="noopener noreferrer" className="w-9 h-9 flex items-center justify-center rounded-full border border-purple-200 text-purple-600 hover:bg-purple-50 transition-colors flex-shrink-0"><Globe size={16} /></a>}
+                 </div>
+               </div>
 
                {!hideHoursText && <div className="w-full bg-gray-50 rounded-xl p-3 text-sm text-gray-600"><FormattedText text={shop.hours} /></div>}
             </div>
@@ -935,15 +948,15 @@ export default function App() {
               </button>
             )}
 
-            <div className="flex gap-3 pt-2 flex-wrap">
-              {/* 🌟 導航按鈕區 */}
+            <div className="flex flex-col gap-3 pt-2">
+              {/* 🌟 導航按鈕區保留在下方 */}
               <div className="w-full flex gap-2">
                  <a href={shop.nav_link || getGoogleMapLink(shop.name, shop.address)} target="_blank" rel="noopener noreferrer" 
                     className="flex-[2] text-white py-3 rounded-xl flex items-center justify-center gap-2 transition-colors font-medium shadow-lg hover:opacity-90"
                     style={{ backgroundColor: shopColor, boxShadow: `0 4px 14px 0 ${hexToRgba(shopColor, 0.4)}` }}>
                    <Navigation size={18} /> <span className="text-sm">{t('navigate')}</span>
                  </a>
-                 {/* 🌟 新增 AR 找店按鈕 (僅在有 GPS 座標的店家顯示) */}
+                 {/* AR 找店按鈕 (僅在有 GPS 座標的店家顯示) */}
                  {hasLocationData && (
                    <button 
                      onClick={(e) => { e.preventDefault(); setArTargetShop(shop); }}
@@ -954,19 +967,15 @@ export default function App() {
                  )}
               </div>
               
-              <div className="w-full flex gap-2">
-                 {shop.tel && <a href={`tel:${shop.tel}`} className="w-12 h-12 flex items-center justify-center rounded-xl border hover:opacity-80 transition-opacity flex-shrink-0" style={{ backgroundColor: hexToRgba(shopColor, 0.05), borderColor: hexToRgba(shopColor, 0.2), color: shopColor }}><Phone size={20} /></a>}
-                 {shop.fbLink && <a href={shop.fbLink} target="_blank" rel="noopener noreferrer" className="w-12 h-12 flex items-center justify-center rounded-xl border border-blue-200 text-blue-600 hover:bg-blue-50 transition-colors flex-shrink-0"><Facebook size={20} /></a>}
-                 {shop.line_url && <a href={shop.line_url} target="_blank" rel="noopener noreferrer" className="w-12 h-12 flex items-center justify-center rounded-xl border border-green-200 text-green-600 hover:bg-green-50 transition-colors flex-shrink-0"><span className="font-extrabold text-xs">LINE</span></a>}
-                 {shop.website && <a href={shop.website} target="_blank" rel="noopener noreferrer" className="w-12 h-12 flex items-center justify-center rounded-xl border border-purple-200 text-purple-600 hover:bg-purple-50 transition-colors flex-shrink-0"><Globe size={20} /></a>}
-              </div>
-              
+              {/* 訂房與預約按鈕區 */}
               {shop.bookings && shop.bookings.length > 0 && (
-                shop.bookings.map((booking, idx) => (
-                  <a key={idx} href={booking.url} target="_blank" rel="noopener noreferrer" className="flex-1 min-w-[120px] px-3 py-3 rounded-xl border text-white transition-opacity hover:opacity-90 flex items-center justify-center gap-2 font-bold text-sm" style={{ backgroundColor: shopDarkColor, boxShadow: `0 4px 14px 0 ${hexToRgba(shopDarkColor, 0.3)}` }}>
-                    <CalendarCheck size={18} /><span>{booking.name}</span>
-                  </a>
-                ))
+                <div className="w-full flex flex-wrap gap-2">
+                  {shop.bookings.map((booking, idx) => (
+                    <a key={idx} href={booking.url} target="_blank" rel="noopener noreferrer" className="flex-1 min-w-[120px] px-3 py-3 rounded-xl border text-white transition-opacity hover:opacity-90 flex items-center justify-center gap-2 font-bold text-sm" style={{ backgroundColor: shopDarkColor, boxShadow: `0 4px 14px 0 ${hexToRgba(shopDarkColor, 0.3)}` }}>
+                      <CalendarCheck size={18} /><span>{booking.name}</span>
+                    </a>
+                  ))}
+                </div>
               )}
             </div>
           </div>
