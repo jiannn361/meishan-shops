@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Search, MapPin, Phone, Navigation, Facebook, Star, Home, Coffee, Gift, User, Filter, Heart, Menu, X, Mountain, Loader2, Camera, Ticket, Tag, Clock, ChevronLeft, ChevronRight, Info, LocateFixed, Globe, MessageCircle, Map as MapIcon, ExternalLink, CalendarCheck, Banknote, AlertCircle, Bus, ChevronDown, Play, ArrowRight, Sparkles, Cloud, Bird, Leaf, Flower2, Sunrise, Trees, ArrowUpSquare, ExternalLinkIcon, Compass, CornerUpLeft, CornerUpRight } from 'lucide-react';
 
 // 【安全修正】防止部分環境缺少較新圖示而導致白畫面崩潰
@@ -8,6 +8,10 @@ const SafeSunrise = Sunrise || Sparkles;
 const SafeTrees = Trees || MapIcon;
 const SafeArrowUpSquare = ArrowUpSquare || Info;
 const SafeTicket = Ticket || Tag;
+const SafeCompass = Compass || MapPin;
+const SafeCornerUpLeft = CornerUpLeft || ChevronLeft;
+const SafeCornerUpRight = CornerUpRight || ChevronRight;
+const SafeExternalLink = ExternalLinkIcon || ExternalLink || Navigation;
 
 // 【安全修正】讀取環境變數
 const AIRTABLE_API_KEY = import.meta.env.VITE_AIRTABLE_API_KEY || "";
@@ -158,6 +162,17 @@ const DefaultShopImage = () => (
   </div>
 );
 
+// 輔助函式：計算兩點距離 (共用於列表與 AR)
+const calculateDistance = (lat1, lon1, lat2, lng2) => {
+  if (!lat1 || !lon1 || !lat2 || !lng2) return null;
+  const R = 6371; 
+  const dLat = (lat2 - lat1) * (Math.PI / 180);
+  const dLon = (lng2 - lon1) * (Math.PI / 180);
+  const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) + Math.cos(lat1 * (Math.PI / 180)) * Math.cos(lat2 * (Math.PI / 180)) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return (R * c).toFixed(1);
+};
+
 // 計算兩點之間的方位角 (Bearing)
 const getBearing = (lat1, lng1, lat2, lng2) => {
   const toRad = (deg) => (deg * Math.PI) / 180;
@@ -180,7 +195,7 @@ const ARNavigation = ({ targetShop, userLoc, onClose }) => {
   const targetBearing = userLoc && targetShop?.lat ? getBearing(userLoc.lat, userLoc.lng, targetShop.lat, targetShop.lng) : 0;
   const targetDistance = userLoc && targetShop?.lat ? calculateDistance(userLoc.lat, userLoc.lng, targetShop.lat, targetShop.lng) : 0;
 
-  // 新增：取得精確距離以判斷是否抵達 (小於 50 公尺)
+  // 取得精確距離以判斷是否抵達 (小於 50 公尺)
   const getRawDistance = (lat1, lon1, lat2, lng2) => {
     const R = 6371; 
     const dLat = (lat2 - lat1) * (Math.PI / 180);
@@ -192,30 +207,81 @@ const ARNavigation = ({ targetShop, userLoc, onClose }) => {
   const rawDistance = userLoc && targetShop?.lat ? getRawDistance(userLoc.lat, userLoc.lng, targetShop.lat, targetShop.lng) : null;
   const isArrived = rawDistance !== null && rawDistance <= 0.05; // 距離小於 0.05 km (50公尺) 視為抵達
 
+  // 【安全修正】穩定的 Orientation 事件處理
+  const handleOrientation = useCallback((e) => {
+    let heading = null;
+    if (e.webkitCompassHeading) {
+      heading = e.webkitCompassHeading; // iOS
+    } else if (e.alpha !== null) {
+      heading = 360 - e.alpha; // Android
+    }
+    if (heading !== null) setCompassHeading(heading);
+  }, []);
+
+  const requestCompassPermission = async () => {
+    if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+      try {
+        const permission = await DeviceOrientationEvent.requestPermission();
+        if (permission === 'granted') {
+          setPermissionGranted(true);
+          window.addEventListener("deviceorientation", handleOrientation);
+        } else {
+          setErrorMsg("需要方向感測器權限才能進行 AR 導航。");
+        }
+      } catch (err) {
+        console.error("Permission request error", err);
+        setPermissionGranted(true);
+        window.addEventListener("deviceorientation", handleOrientation, true);
+      }
+    } else {
+      // 非 iOS 13+ 裝置直接監聽
+      setPermissionGranted(true);
+      window.addEventListener("deviceorientation", handleOrientation, true);
+    }
+  };
+
   useEffect(() => {
     if (typeof DeviceOrientationEvent === 'undefined' || typeof DeviceOrientationEvent.requestPermission !== 'function') {
       requestCompassPermission();
     }
   }, []);
 
-  // 計算視角差 (差異角度)
+  useEffect(() => {
+    // 【安全修正】防止 navigator.mediaDevices 未定義導致白畫面
+    let stream = null;
+    const startCamera = async () => {
+      try {
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+           setErrorMsg("您的瀏覽器或設備不支援開啟鏡頭，請確認是否位於 HTTPS 安全連線。");
+           return;
+        }
+        stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
+        if (videoRef.current) videoRef.current.srcObject = stream;
+      } catch (err) {
+        console.error("Camera error:", err);
+        setErrorMsg("無法開啟相機，請確認是否給予鏡頭權限。");
+      }
+    };
+    startCamera();
+
+    return () => {
+      if (stream) stream.getTracks().forEach(track => track.stop());
+      window.removeEventListener("deviceorientation", handleOrientation);
+    };
+  }, [handleOrientation]);
+
   let diffAngle = 0;
   if (compassHeading !== null) {
     diffAngle = targetBearing - compassHeading;
-    // 讓角度保持在 -180 ~ 180 之間
     if (diffAngle > 180) diffAngle -= 360;
     if (diffAngle < -180) diffAngle += 360;
   }
-
-  // 畫面邏輯：視角約 60 度 (正負 30度以內顯示吉祥物在中央區)
   const isTargetVisible = Math.abs(diffAngle) < 35;
   
   return (
     <div className="fixed inset-0 z-[100] bg-black overflow-hidden flex flex-col items-center">
-      {/* 相機背景 */}
       <video ref={videoRef} autoPlay playsInline muted className="absolute inset-0 w-full h-full object-cover z-0 opacity-80" />
       
-      {/* 頂部資訊列 */}
       <div className="absolute top-0 inset-x-0 p-6 z-20 bg-gradient-to-b from-black/70 to-transparent flex justify-between items-start">
          <div className="text-white">
             <h2 className="text-2xl font-black drop-shadow-md">{targetShop?.name}</h2>
@@ -229,7 +295,6 @@ const ARNavigation = ({ targetShop, userLoc, onClose }) => {
          </button>
       </div>
 
-      {/* AR 主要互動區 */}
       <div className="relative z-10 w-full h-full flex items-center justify-center pointer-events-none">
         {errorMsg ? (
           <div className="bg-rose-500/90 text-white p-4 rounded-2xl backdrop-blur-sm pointer-events-auto shadow-lg mx-6 text-center">
@@ -238,7 +303,7 @@ const ARNavigation = ({ targetShop, userLoc, onClose }) => {
           </div>
         ) : !permissionGranted ? (
           <button onClick={requestCompassPermission} className="bg-emerald-500 text-white px-8 py-4 rounded-full font-bold shadow-xl pointer-events-auto animate-bounce flex items-center gap-2">
-            <Compass size={24} /> 開啟方向羅盤權限
+            <SafeCompass size={24} /> 開啟方向羅盤權限
           </button>
         ) : compassHeading === null ? (
           <div className="flex flex-col items-center text-white/80 drop-shadow-md">
@@ -247,39 +312,32 @@ const ARNavigation = ({ targetShop, userLoc, onClose }) => {
           </div>
         ) : (
           <>
-            {/* 方位指示邏輯與抵達判斷 */}
             {isArrived ? (
               <div className="flex flex-col items-center animate-bounce z-50">
                 <div className="relative flex flex-col items-center">
                   <div className="absolute -top-16 bg-yellow-400 text-yellow-900 px-6 py-3 rounded-full font-black text-lg shadow-[0_0_30px_rgba(250,204,21,0.6)] whitespace-nowrap flex items-center gap-2 border-4 border-white z-10">
                     <Sparkles size={24} /> 已經抵達目的地囉！ <Sparkles size={24} />
                   </div>
-                  {/* 🌟 抵達時的專屬吉祥物：可把 imageUrl 換成您畫的「歡呼」或「抵達」版本 */}
                   <Mascot imageUrl="/mascot-righthere.png" size={180} animation="pulse" className="drop-shadow-[0_0_40px_rgba(255,255,255,0.6)]" />
                 </div>
               </div>
             ) : isTargetVisible ? (
-              <div 
-                className="flex flex-col items-center transform transition-transform duration-200"
-                style={{ transform: `translateX(${diffAngle * 4}px)` }} // 根據角度微調左右偏移
-              >
-                {/* AR 中帶路的吉祥物！ */}
+              <div className="flex flex-col items-center transform transition-transform duration-200" style={{ transform: `translateX(${diffAngle * 4}px)` }}>
                 <div className="relative flex flex-col items-center">
                   <div className="absolute -top-12 bg-white/90 text-emerald-800 px-4 py-2 rounded-full font-bold text-sm shadow-xl whitespace-nowrap animate-bounce flex items-center gap-2 z-10">
                     <Sparkles size={16} className="text-emerald-500" /> 往這裡走喔！
                   </div>
-                  {/* 🌟 帶路中的專屬吉祥物：可把 imageUrl 換成您畫的「背背包」或「走路」版本 */}
                   <Mascot imageUrl="/mascot-backpack.png" size={160} animation="ride" className="drop-shadow-2xl" />
                 </div>
               </div>
             ) : diffAngle > 0 ? (
               <div className="absolute right-8 flex flex-col items-center text-white drop-shadow-[0_4px_10px_rgba(0,0,0,0.8)] animate-pulse">
-                 <CornerUpRight size={64} className="text-emerald-400 mb-2" />
+                 <SafeCornerUpRight size={64} className="text-emerald-400 mb-2" />
                  <span className="font-black text-2xl tracking-widest">向右轉</span>
               </div>
             ) : (
               <div className="absolute left-8 flex flex-col items-center text-white drop-shadow-[0_4px_10px_rgba(0,0,0,0.8)] animate-pulse">
-                 <CornerUpLeft size={64} className="text-emerald-400 mb-2" />
+                 <SafeCornerUpLeft size={64} className="text-emerald-400 mb-2" />
                  <span className="font-black text-2xl tracking-widest">向左轉</span>
               </div>
             )}
@@ -287,23 +345,11 @@ const ARNavigation = ({ targetShop, userLoc, onClose }) => {
         )}
       </div>
 
-      {/* 底部雷達裝飾 */}
       <div className="absolute bottom-10 z-20 pointer-events-none opacity-50">
-         <Compass size={120} className="text-white animate-pulse" strokeWidth={1} />
+         <SafeCompass size={120} className="text-white animate-pulse" strokeWidth={1} />
       </div>
     </div>
   );
-};
-
-// 輔助函式：計算兩點距離 (共用於列表與 AR)
-const calculateDistance = (lat1, lon1, lat2, lng2) => {
-  if (!lat1 || !lon1 || !lat2 || !lng2) return null;
-  const R = 6371; 
-  const dLat = (lat2 - lat1) * (Math.PI / 180);
-  const dLon = (lng2 - lon1) * (Math.PI / 180);
-  const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) + Math.cos(lat1 * (Math.PI / 180)) * Math.cos(lat2 * (Math.PI / 180)) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-  return (R * c).toFixed(1);
 };
 
 
@@ -326,7 +372,7 @@ export default function App() {
   
   const [selectedShop, setSelectedShop] = useState(null); 
   const [selectedAnnouncement, setSelectedAnnouncement] = useState(null); 
-  const [arTargetShop, setArTargetShop] = useState(null); // 新增：啟動 AR 導航的目標店家
+  const [arTargetShop, setArTargetShop] = useState(null); 
   const [showFilterModal, setShowFilterModal] = useState(false); 
   const [showUserModal, setShowUserModal] = useState(false); 
   const [filterOpenOnly, setFilterOpenOnly] = useState(false); 
@@ -752,7 +798,7 @@ export default function App() {
              {ann.description && <div className="bg-gray-50 rounded-2xl p-4 text-gray-600 text-sm text-justify"><FormattedText text={ann.description} /></div>}
              {link && (
                <a href={link} target="_blank" rel="noopener noreferrer" className="mt-4 w-full py-3 rounded-xl flex items-center justify-center gap-2 font-bold shadow-lg transition-transform active:scale-95 text-white" style={{ backgroundColor: currentPrimaryColor, boxShadow: `0 8px 20px -5px ${hexToRgba(currentPrimaryColor, 0.4)}` }}>
-                 查看活動詳情 <ExternalLinkIcon size={18} />
+                 查看活動詳情 <SafeExternalLink size={18} />
                </a>
              )}
           </div>
