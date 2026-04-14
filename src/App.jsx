@@ -1,17 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Search, MapPin, Phone, Navigation, Facebook, Star, Home, Coffee, Gift, User, Filter, Heart, Menu, X, Mountain, Loader2, Camera, Ticket, Tag, Clock, ChevronLeft, ChevronRight, Info, LocateFixed, Globe, MessageCircle, Map as MapIcon, ExternalLink, CalendarCheck, Banknote, AlertCircle, Bus, ChevronDown, Play, ArrowRight, Sparkles, Cloud, Bird, Leaf, Flower2, Sunrise, Trees, ArrowUpSquare, ExternalLinkIcon, Compass, CornerUpLeft, CornerUpRight } from 'lucide-react';
-
-// 【安全修正】防止部分環境缺少較新圖示而導致白畫面崩潰
-const SafeBird = Bird || Sparkles;
-const SafeFlower2 = Flower2 || Star;
-const SafeSunrise = Sunrise || Sparkles;
-const SafeTrees = Trees || MapIcon;
-const SafeArrowUpSquare = ArrowUpSquare || Info;
-const SafeTicket = Ticket || Tag;
-const SafeCompass = Compass || MapPin;
-const SafeCornerUpLeft = CornerUpLeft || ChevronLeft;
-const SafeCornerUpRight = CornerUpRight || ChevronRight;
-const SafeExternalLink = ExternalLinkIcon || ExternalLink || Navigation;
+// 【極致穩定修正】徹底移除所有可能有風險的新版圖示，只保留最基礎、最古老、保證 100% 存在的 Icon
+import { Search, MapPin, Phone, Navigation, Facebook, Star, Home, Coffee, Gift, User, Filter, Heart, Menu, X, Mountain, Loader2, Camera, Ticket, Tag, Clock, ChevronLeft, ChevronRight, Info, LocateFixed, Globe, MessageCircle, Map as MapIcon, ExternalLink, Calendar, Banknote, AlertCircle, Bus, ChevronDown, Play, ArrowRight, Sparkles, Cloud, Leaf, Feather, Sun, Navigation2, ArrowUp } from 'lucide-react';
 
 // 【安全修正】讀取環境變數
 const AIRTABLE_API_KEY = import.meta.env.VITE_AIRTABLE_API_KEY || "";
@@ -33,9 +22,9 @@ const APP_CONFIG = {
 // ⭐ 【特色活動圖示對照表】
 // ==========================================
 const EVENT_CONFIG = {
-  '黃頭鷺': { icon: SafeBird, color: '#d97706', bg: '#fef3c7', label: '賞鷺點' },
-  '紫藤花': { icon: SafeFlower2, color: '#9333ea', bg: '#f3e8ff', label: '賞花點' },
-  '日出': { icon: SafeSunrise, color: '#ea580c', bg: '#ffedd5', label: '絕美日出' },
+  '黃頭鷺': { icon: Feather, color: '#d97706', bg: '#fef3c7', label: '賞鷺點' },
+  '紫藤花': { icon: Star, color: '#9333ea', bg: '#f3e8ff', label: '賞花點' },
+  '日出': { icon: Sun, color: '#ea580c', bg: '#ffedd5', label: '絕美日出' },
   '雲海': { icon: Cloud, color: '#0284c7', bg: '#e0f2fe', label: '雲海勝地' },
   '螢火蟲': { customImg: '/star-event.png', color: '#ca8a04', bg: '#fef08a', label: '賞螢秘境' }
 };
@@ -89,11 +78,11 @@ const translations = {
 // ==========================================
 const villageData = {
   '太平村': { color: '#b8caa5', textDark: '#506638', textBadge: '#ffffff', bgFile: 'bg-taiping.png', iconFile: 'icon-taiping.png', icon: Cloud, animIcon: Cloud, animColor: 'text-gray-400/50', plantPrefix: 'taiping', zh: '太平村', en: 'Taiping', desc_zh: '雲梯與老街', desc_en: 'Sky Bridge & Old Street', intro: '漫步在雲端上的太平雲梯，俯瞰嘉南平原的壯麗景色，並在充滿歷史韻味的太平老街品嚐在地茶香與美食，感受雲霧繚繞的茶鄉風情。' },
-  '太興村': { color: '#ea994d', textDark: '#a35a0f', textBadge: '#ffffff', bgFile: 'bg-taixing.png', iconFile: 'icon-taixing.png', icon: SafeBird, animIcon: SafeBird, animColor: 'text-amber-700/40', plantPrefix: 'taixing', zh: '太興村', en: 'Taixing', desc_zh: '萬鷺朝鳳', desc_en: 'Herons Migration', intro: '每年秋季限定的「萬鷺朝鳳」奇景令人嘆為觀止。這裡有著豐富的生態與優美的步道，適合喜愛大自然與深度生態旅遊的您。' },
+  '太興村': { color: '#ea994d', textDark: '#a35a0f', textBadge: '#ffffff', bgFile: 'bg-taixing.png', iconFile: 'icon-taixing.png', icon: Feather, animIcon: Feather, animColor: 'text-amber-700/40', plantPrefix: 'taixing', zh: '太興村', en: 'Taixing', desc_zh: '萬鷺朝鳳', desc_en: 'Herons Migration', intro: '每年秋季限定的「萬鷺朝鳳」奇景令人嘆為觀止。這裡有著豐富的生態與優美的步道，適合喜愛大自然與深度生態旅遊的您。' },
   '碧湖/龍眼村': { color: '#80a4aa', textDark: '#3a595e', textBadge: '#ffffff', bgFile: 'bg-bihu.png', iconFile: 'icon-bihu.png', icon: Leaf, animIcon: Leaf, animColor: 'text-emerald-600/40', plantPrefix: 'bihu', zh: '碧湖/龍眼村', en: 'Bihu / Longyan', desc_zh: '觀光茶園', desc_en: 'Tea Gardens', intro: '被群山環繞的翠綠觀光茶園，層層疊疊的茶樹宛如綠色地毯。來到這裡，點一杯好茶，靜靜享受遠離塵囂的寧靜與茶香。' },
-  '瑞里村': { color: '#d2cbe3', textDark: '#5a5270', textBadge: '#413a54', bgFile: 'bg-ruili.png', iconFile: 'icon-ruili.png', icon: SafeFlower2, animIcon: SafeFlower2, animColor: 'text-purple-500/50', plantPrefix: 'ruili', zh: '瑞里村', en: 'Ruili', desc_zh: '紫色山城', desc_en: 'Purple Mountain Town', intro: '著名的浪漫紫色山城，春季紫藤花盛開時如夢似幻。擁有燕子崖、蝙蝠洞等壯麗的自然地質景觀，是登山健行的絕佳勝地。' },
-  '瑞峰村': { color: '#dd785b', textDark: '#8a371c', textBadge: '#ffffff', bgFile: 'bg-ruifeng.png', iconFile: 'icon-ruifeng.png', icon: SafeSunrise, animIcon: Sparkles, animColor: 'text-orange-500/50', plantPrefix: 'ruifeng', zh: '瑞峰村', en: 'Ruifeng', desc_zh: '日出與步道', desc_en: 'Sunrise & Trails', intro: '坐擁絕美的日出勝地與竹坑溪步道，清晨的雲海與壯闊的山林景緻交織。非常適合熱愛早起迎接第一道曙光與親近森林的旅人。' },
-  '太和村': { color: '#c4b28e', textDark: '#70603d', textBadge: '#ffffff', bgFile: 'bg-taihe.png', iconFile: 'icon-taihe.png', icon: SafeTrees, animIcon: Leaf, animColor: 'text-lime-700/40', plantPrefix: 'taihe', zh: '太和村', en: 'Taihe', desc_zh: '茶園秘境', desc_en: 'Hidden Tea Farms', intro: '隱藏在深山中的茶園秘境，保留了最原始純粹的自然風貌。漫步在茶園小徑，感受山林間最清新的空氣與獨特靜謐。' },
+  '瑞里村': { color: '#d2cbe3', textDark: '#5a5270', textBadge: '#413a54', bgFile: 'bg-ruili.png', iconFile: 'icon-ruili.png', icon: Star, animIcon: Sparkles, animColor: 'text-purple-500/50', plantPrefix: 'ruili', zh: '瑞里村', en: 'Ruili', desc_zh: '紫色山城', desc_en: 'Purple Mountain Town', intro: '著名的浪漫紫色山城，春季紫藤花盛開時如夢似幻。擁有燕子崖、蝙蝠洞等壯麗的自然地質景觀，是登山健行的絕佳勝地。' },
+  '瑞峰村': { color: '#dd785b', textDark: '#8a371c', textBadge: '#ffffff', bgFile: 'bg-ruifeng.png', iconFile: 'icon-ruifeng.png', icon: Sun, animIcon: Sun, animColor: 'text-orange-500/50', plantPrefix: 'ruifeng', zh: '瑞峰村', en: 'Ruifeng', desc_zh: '日出與步道', desc_en: 'Sunrise & Trails', intro: '坐擁絕美的日出勝地與竹坑溪步道，清晨的雲海與壯闊的山林景緻交織。非常適合熱愛早起迎接第一道曙光與親近森林的旅人。' },
+  '太和村': { color: '#c4b28e', textDark: '#70603d', textBadge: '#ffffff', bgFile: 'bg-taihe.png', iconFile: 'icon-taihe.png', icon: MapIcon, animIcon: Leaf, animColor: 'text-lime-700/40', plantPrefix: 'taihe', zh: '太和村', en: 'Taihe', desc_zh: '茶園秘境', desc_en: 'Hidden Tea Farms', intro: '隱藏在深山中的茶園秘境，保留了最原始純粹的自然風貌。漫步在茶園小徑，感受山林間最清新的空氣與獨特靜謐。' },
 };
 
 const hexToRgba = (hex, alpha) => {
@@ -207,7 +196,6 @@ const ARNavigation = ({ targetShop, userLoc, onClose }) => {
   const rawDistance = userLoc && targetShop?.lat ? getRawDistance(userLoc.lat, userLoc.lng, targetShop.lat, targetShop.lng) : null;
   const isArrived = rawDistance !== null && rawDistance <= 0.05; // 距離小於 0.05 km (50公尺) 視為抵達
 
-  // 【安全修正】穩定的 Orientation 事件處理
   const handleOrientation = useCallback((e) => {
     let heading = null;
     if (e.webkitCompassHeading) {
@@ -247,7 +235,6 @@ const ARNavigation = ({ targetShop, userLoc, onClose }) => {
   }, []);
 
   useEffect(() => {
-    // 【安全修正】防止 navigator.mediaDevices 未定義導致白畫面
     let stream = null;
     const startCamera = async () => {
       try {
@@ -303,7 +290,7 @@ const ARNavigation = ({ targetShop, userLoc, onClose }) => {
           </div>
         ) : !permissionGranted ? (
           <button onClick={requestCompassPermission} className="bg-emerald-500 text-white px-8 py-4 rounded-full font-bold shadow-xl pointer-events-auto animate-bounce flex items-center gap-2">
-            <SafeCompass size={24} /> 開啟方向羅盤權限
+            <Navigation2 size={24} /> 開啟方向羅盤權限
           </button>
         ) : compassHeading === null ? (
           <div className="flex flex-col items-center text-white/80 drop-shadow-md">
@@ -332,12 +319,12 @@ const ARNavigation = ({ targetShop, userLoc, onClose }) => {
               </div>
             ) : diffAngle > 0 ? (
               <div className="absolute right-8 flex flex-col items-center text-white drop-shadow-[0_4px_10px_rgba(0,0,0,0.8)] animate-pulse">
-                 <SafeCornerUpRight size={64} className="text-emerald-400 mb-2" />
+                 <ChevronRight size={64} className="text-emerald-400 mb-2" />
                  <span className="font-black text-2xl tracking-widest">向右轉</span>
               </div>
             ) : (
               <div className="absolute left-8 flex flex-col items-center text-white drop-shadow-[0_4px_10px_rgba(0,0,0,0.8)] animate-pulse">
-                 <SafeCornerUpLeft size={64} className="text-emerald-400 mb-2" />
+                 <ChevronLeft size={64} className="text-emerald-400 mb-2" />
                  <span className="font-black text-2xl tracking-widest">向左轉</span>
               </div>
             )}
@@ -346,7 +333,7 @@ const ARNavigation = ({ targetShop, userLoc, onClose }) => {
       </div>
 
       <div className="absolute bottom-10 z-20 pointer-events-none opacity-50">
-         <SafeCompass size={120} className="text-white animate-pulse" strokeWidth={1} />
+         <Navigation2 size={120} className="text-white animate-pulse" strokeWidth={1} />
       </div>
     </div>
   );
@@ -456,7 +443,7 @@ export default function App() {
     'food': { labelKey: 'food', icon: <Coffee size={18}/> },
     'gift': { labelKey: 'gift', icon: <Gift size={18}/> },
     'attraction': { labelKey: 'attraction', icon: <Camera size={18}/> },
-    'experience': { labelKey: 'experience', icon: <SafeTicket size={18}/> },
+    'experience': { labelKey: 'experience', icon: <Ticket size={18}/> },
     'transport': { labelKey: 'transport', icon: <Bus size={18}/> },
     '交通': { labelKey: 'transport', icon: <Bus size={18}/> },
   };
@@ -798,7 +785,7 @@ export default function App() {
              {ann.description && <div className="bg-gray-50 rounded-2xl p-4 text-gray-600 text-sm text-justify"><FormattedText text={ann.description} /></div>}
              {link && (
                <a href={link} target="_blank" rel="noopener noreferrer" className="mt-4 w-full py-3 rounded-xl flex items-center justify-center gap-2 font-bold shadow-lg transition-transform active:scale-95 text-white" style={{ backgroundColor: currentPrimaryColor, boxShadow: `0 8px 20px -5px ${hexToRgba(currentPrimaryColor, 0.4)}` }}>
-                 查看活動詳情 <SafeExternalLink size={18} />
+                 查看活動詳情 <ExternalLink size={18} />
                </a>
              )}
           </div>
@@ -880,9 +867,9 @@ export default function App() {
                <div className="w-full flex flex-wrap justify-between items-center gap-3">
                  <div>
                    {showAccommodationBadge ? (
-                     <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold self-start" style={{ backgroundColor: hexToRgba(shopDarkColor, 0.15), color: shopDarkColor }}><CalendarCheck size={14} />{accBadgeText}</div>
+                     <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold self-start" style={{ backgroundColor: hexToRgba(shopDarkColor, 0.15), color: shopDarkColor }}><Calendar size={14} />{accBadgeText}</div>
                    ) : isOpen === 'appointment' ? (
-                     <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold self-start" style={{ backgroundColor: hexToRgba(shopDarkColor, 0.15), color: shopDarkColor }}><CalendarCheck size={14} />{t('byAppointment')}</div>
+                     <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold self-start" style={{ backgroundColor: hexToRgba(shopDarkColor, 0.15), color: shopDarkColor }}><Calendar size={14} />{t('byAppointment')}</div>
                    ) : (
                      <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold self-start`}
                       style={ isOpen === true ? { backgroundColor: hexToRgba(shopDarkColor, 0.15), color: shopDarkColor } : isOpen === 'opening_soon' ? { backgroundColor: '#fef3c7', color: '#b45309' } : isOpen === 'closing_soon' ? { backgroundColor: '#ffedd5', color: '#c2410c' } : isOpen === false ? { backgroundColor: '#f3f4f6', color: '#4b5563' } : { backgroundColor: '#eff6ff', color: '#2563eb' } }>
@@ -938,7 +925,7 @@ export default function App() {
             </div>
 
             <div className="flex flex-wrap gap-2">
-              {shop.hasElevator && <span className="px-2 py-1 bg-blue-50 text-blue-600 border border-blue-200 text-xs rounded-md font-bold flex items-center gap-1"><SafeArrowUpSquare size={14} /> 有電梯</span>}
+              {shop.hasElevator && <span className="px-2 py-1 bg-blue-50 text-blue-600 border border-blue-200 text-xs rounded-md font-bold flex items-center gap-1"><ArrowUp size={14} /> 有電梯</span>}
               {shop.services.map((s, i) => <span key={i} className="px-2 py-1 bg-gray-100 text-gray-500 text-xs rounded-md">#{s}</span>)}
             </div>
 
@@ -972,7 +959,7 @@ export default function App() {
                 <div className="w-full flex flex-wrap gap-2">
                   {shop.bookings.map((booking, idx) => (
                     <a key={idx} href={booking.url} target="_blank" rel="noopener noreferrer" className="flex-1 min-w-[120px] px-3 py-3 rounded-xl border text-white transition-opacity hover:opacity-90 flex items-center justify-center gap-2 font-bold text-sm" style={{ backgroundColor: shopDarkColor, boxShadow: `0 4px 14px 0 ${hexToRgba(shopDarkColor, 0.3)}` }}>
-                      <CalendarCheck size={18} /><span>{booking.name}</span>
+                      <Calendar size={18} /><span>{booking.name}</span>
                     </a>
                   ))}
                 </div>
@@ -1004,7 +991,7 @@ export default function App() {
           </label>
           <label className="flex items-center justify-between p-4 bg-gray-50 rounded-xl cursor-pointer hover:bg-opacity-80 transition-colors" style={{ hover: { backgroundColor: hexToRgba(currentPrimaryColor, 0.05) } }}>
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full flex items-center justify-center bg-blue-100 text-blue-600"><SafeArrowUpSquare size={20} /></div>
+              <div className="w-10 h-10 rounded-full flex items-center justify-center bg-blue-100 text-blue-600"><ArrowUp size={20} /></div>
               <span className="font-medium text-gray-700">{t('onlyElevator')}</span>
             </div>
             <div className={`w-12 h-6 rounded-full p-1 transition-colors ${filterElevator ? '' : 'bg-gray-300'}`} style={filterElevator ? { backgroundColor: '#2563eb' } : {}} onClick={(e) => { e.preventDefault(); setFilterElevator(!filterElevator); }}>
@@ -1301,7 +1288,7 @@ export default function App() {
           <div className="px-6 mb-4 flex justify-between items-center">
               <h2 className="text-lg font-bold text-gray-800 bg-white/50 px-2 rounded-lg backdrop-blur-sm">{currentView === 'favorites' ? t('favoritesList') : t('featured')}</h2>
               <div className="flex items-center gap-2">
-                {filterElevator && <span className="text-xs font-medium px-2 py-1 rounded-lg flex items-center gap-1 border bg-blue-50 text-blue-700 border-blue-200 backdrop-blur-sm"><SafeArrowUpSquare size={12} /> 有電梯</span>}
+                {filterElevator && <span className="text-xs font-medium px-2 py-1 rounded-lg flex items-center gap-1 border bg-blue-50 text-blue-700 border-blue-200 backdrop-blur-sm"><ArrowUp size={12} /> 有電梯</span>}
                 {filterEventOnly && <span className="text-xs font-medium px-2 py-1 rounded-lg flex items-center gap-1 border bg-orange-50 text-orange-700 border-orange-200 backdrop-blur-sm"><Sparkles size={12} /> 特色活動</span>}
                 {filterOpenOnly && <span className="text-xs font-medium px-2 py-1 rounded-lg flex items-center gap-1 border bg-white/80 backdrop-blur-sm" style={{ color: currentDarkColor, borderColor: hexToRgba(currentPrimaryColor, 0.2) }}><Clock size={12} /> {t('openNow')}</span>}
                 {userLocation && <span className="text-xs font-medium px-2 py-1 rounded-lg flex items-center gap-1 bg-white/80 backdrop-blur-sm" style={{ color: currentDarkColor }}><LocateFixed size={12} /> {t('distance')}</span>}
@@ -1352,7 +1339,7 @@ export default function App() {
 
                       {showAccommodationBadge || isOpen === 'appointment' ? (
                         <div className="absolute bottom-3 left-3 backdrop-blur-md pl-2 pr-3 py-1 rounded-full flex items-center gap-1.5 shadow-lg z-10 pointer-events-none" style={{ backgroundColor: hexToRgba(villageData[shop.village]?.textDark || '#047857', 0.95) }}>
-                          <CalendarCheck size={12} className="text-white" /><span className="text-xs font-bold text-white tracking-wide">{showAccommodationBadge ? accBadgeText : t('byAppointment')}</span>
+                          <Calendar size={12} className="text-white" /><span className="text-xs font-bold text-white tracking-wide">{showAccommodationBadge ? accBadgeText : t('byAppointment')}</span>
                         </div>
                       ) : isOpen === 'google' ? (
                          <div className="absolute bottom-3 left-3 bg-blue-500/90 backdrop-blur-md pl-2 pr-3 py-1 rounded-full flex items-center gap-1.5 shadow-lg z-10 pointer-events-none"><Info size={12} className="text-white" /><span className="text-xs font-bold text-white tracking-wide">{t('googleInfo')}</span></div>
@@ -1388,7 +1375,7 @@ export default function App() {
                       </div>
 
                       <div className="flex flex-wrap gap-2 mb-3">
-                        {shop.hasElevator && <span className="text-[10px] bg-blue-50 text-blue-600 border border-blue-200 px-2 py-1 rounded-md font-bold flex items-center gap-1"><SafeArrowUpSquare size={12} /> 有電梯</span>}
+                        {shop.hasElevator && <span className="text-[10px] bg-blue-50 text-blue-600 border border-blue-200 px-2 py-1 rounded-md font-bold flex items-center gap-1"><ArrowUp size={12} /> 有電梯</span>}
                         {shop.services.slice(0, 3).map((service, idx) => <span key={idx} className="text-[10px] bg-gray-100 text-gray-600 px-2 py-1 rounded-md font-medium">{service}</span>)}
                         {shop.services.length > 3 && <span className="text-[10px] text-gray-400 px-1 py-1">+{shop.services.length - 3}</span>}
                       </div>
