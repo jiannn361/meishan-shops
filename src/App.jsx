@@ -3,7 +3,11 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Search, MapPin, Phone, Navigation, Facebook, Instagram, Star, Home, Coffee, Gift, User, Filter, Heart, Menu, X, Mountain, Loader2, Camera, Ticket, Tag, Clock, ChevronLeft, ChevronRight, Info, LocateFixed, Globe, MessageCircle, Map as MapIcon, ExternalLink, Calendar, Banknote, AlertCircle, Bus, ChevronDown, Play, ArrowRight, Sparkles, Cloud, Leaf, Feather, Sun, Navigation2, ArrowUp } from 'lucide-react';
 
 // 【安全修正】防止部分環境缺少較新圖示而導致白畫面崩潰
-const AIRTABLE_API_KEY = import.meta.env.VITE_AIRTABLE_API_KEY || ""; 
+const SafeWind = Sparkles; // 已經移除 Wind，替換為穩定圖示
+const SafeInstagram = Instagram || Camera;
+
+// 【安全修正】讀取環境變數
+const AIRTABLE_API_KEY = import.meta.env.VITE_AIRTABLE_API_KEY || "";  
 
 // 【網站設定區】
 const APP_CONFIG = {
@@ -22,7 +26,7 @@ const APP_CONFIG = {
 // ⭐ 【特色活動圖示對照表】
 // ==========================================
 const EVENT_CONFIG = {
-  '黃頭鷺': { icon: Feather, color: '#d97706', bg: '#fef3c7', label: '賞鷺點' },
+  '黃頭鷺': { customImg: '/bird-event.png', color: '#d97706', bg: '#fef3c7', label: '賞鷺點' },
   '紫藤花': { icon: Star, color: '#9333ea', bg: '#f3e8ff', label: '賞花點' },
   '日出': { icon: Sun, color: '#ea580c', bg: '#ffedd5', label: '絕美日出' },
   '雲海': { icon: Cloud, color: '#0284c7', bg: '#e0f2fe', label: '雲海勝地' },
@@ -78,6 +82,7 @@ const translations = {
 // ==========================================
 const villageData = {
   '太平村': { color: '#b8caa5', textDark: '#506638', textBadge: '#ffffff', bgFile: 'bg-taiping.png', iconFile: 'icon-taiping.png', icon: Cloud, animIcon: Cloud, animColor: 'text-gray-400/50', plantPrefix: 'taiping', zh: '太平村', en: 'Taiping', desc_zh: '雲梯與老街', desc_en: 'Sky Bridge & Old Street', intro: '漫步在雲端上的太平雲梯，俯瞰嘉南平原的壯麗景色，並在充滿歷史韻味的太平老街品嚐在地茶香與美食，感受雲霧繚繞的茶鄉風情。' },
+  // 🌟 太興村的圖示改用最安全的 Feather
   '太興村': { color: '#ea994d', textDark: '#a35a0f', textBadge: '#ffffff', bgFile: 'bg-taixing.png', iconFile: 'icon-taixing.png', icon: Feather, animIcon: Feather, animColor: 'text-amber-700/40', plantPrefix: 'taixing', zh: '太興村', en: 'Taixing', desc_zh: '萬鷺朝鳳', desc_en: 'Herons Migration', intro: '每年秋季限定的「萬鷺朝鳳」奇景令人嘆為觀止。這裡有著豐富的生態與優美的步道，適合喜愛大自然與深度生態旅遊的您。' },
   '碧湖/龍眼村': { color: '#80a4aa', textDark: '#3a595e', textBadge: '#ffffff', bgFile: 'bg-bihu.png', iconFile: 'icon-bihu.png', icon: Leaf, animIcon: Leaf, animColor: 'text-emerald-600/40', plantPrefix: 'bihu', zh: '碧湖/龍眼村', en: 'Bihu / Longyan', desc_zh: '觀光茶園', desc_en: 'Tea Gardens', intro: '被群山環繞的翠綠觀光茶園，層層疊疊的茶樹宛如綠色地毯。來到這裡，點一杯好茶，靜靜享受遠離塵囂的寧靜與茶香。' },
   '瑞里村': { color: '#d2cbe3', textDark: '#5a5270', textBadge: '#413a54', bgFile: 'bg-ruili.png', iconFile: 'icon-ruili.png', icon: Star, animIcon: Sparkles, animColor: 'text-purple-500/50', plantPrefix: 'ruili', zh: '瑞里村', en: 'Ruili', desc_zh: '紫色山城', desc_en: 'Purple Mountain Town', intro: '著名的浪漫紫色山城，春季紫藤花盛開時如夢似幻。擁有燕子崖、蝙蝠洞等壯麗的自然地質景觀，是登山健行的絕佳勝地。' },
@@ -159,7 +164,7 @@ const calculateDistance = (lat1, lon1, lat2, lng2) => {
   const dLon = (lng2 - lon1) * (Math.PI / 180);
   const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) + Math.cos(lat1 * (Math.PI / 180)) * Math.cos(lat2 * (Math.PI / 180)) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-  return (R * c).toFixed(1);
+  return (R * c).toFixed(2);
 };
 
 // 計算兩點之間的方位角 (Bearing)
@@ -263,6 +268,9 @@ const ARNavigation = ({ targetShop, userLoc, onClose }) => {
 
     return () => {
       isMounted = false;
+      if (videoRef.current) {
+        videoRef.current.srcObject = null;
+      }
       if (streamRef.current) {
         streamRef.current.getTracks().forEach(track => track.stop());
         streamRef.current = null;
@@ -827,8 +835,10 @@ export default function App() {
     const shopColor = villageData[shop.village]?.color || '#059669';
     const shopDarkColor = villageData[shop.village]?.textDark || '#047857';
 
-    // 判斷是否顯示 AR 按鈕 (必須有經緯度座標)
+    // 判斷是否顯示 AR 按鈕 (必須有經緯度座標且距離在 2 公里內)
     const hasLocationData = shop.lat && shop.lng;
+    const shopDistanceNum = shop.distance ? parseFloat(shop.distance) : null;
+    const isWithinWalkingDistance = shopDistanceNum !== null && shopDistanceNum <= 2.0;
 
     return (
       <div className="fixed inset-0 z-[60] flex items-center justify-center px-4 animate-fade-in">
@@ -898,7 +908,7 @@ export default function App() {
                  <div className="flex items-center gap-1.5">
                    {shop.tel && <a href={`tel:${shop.tel}`} className="w-9 h-9 flex items-center justify-center rounded-full border hover:opacity-80 transition-opacity flex-shrink-0" style={{ backgroundColor: hexToRgba(shopColor, 0.05), borderColor: hexToRgba(shopColor, 0.2), color: shopColor }}><Phone size={16} /></a>}
                    {shop.fbLink && <a href={shop.fbLink} target="_blank" rel="noopener noreferrer" className="w-9 h-9 flex items-center justify-center rounded-full border border-blue-200 text-blue-600 hover:bg-blue-50 transition-colors flex-shrink-0"><Facebook size={16} /></a>}
-                   {shop.ig_url && <a href={shop.ig_url} target="_blank" rel="noopener noreferrer" className="w-9 h-9 flex items-center justify-center rounded-full border border-pink-200 text-pink-600 hover:bg-pink-50 transition-colors flex-shrink-0"><Instagram size={16} /></a>}
+                   {shop.ig_url && <a href={shop.ig_url} target="_blank" rel="noopener noreferrer" className="w-9 h-9 flex items-center justify-center rounded-full border border-pink-200 text-pink-600 hover:bg-pink-50 transition-colors flex-shrink-0"><SafeInstagram size={16} /></a>}
                    {shop.line_url && <a href={shop.line_url} target="_blank" rel="noopener noreferrer" className="w-9 h-9 flex items-center justify-center rounded-full border border-green-200 text-green-600 hover:bg-green-50 transition-colors flex-shrink-0"><span className="font-extrabold text-[9px]">LINE</span></a>}
                    {shop.website && <a href={shop.website} target="_blank" rel="noopener noreferrer" className="w-9 h-9 flex items-center justify-center rounded-full border border-purple-200 text-purple-600 hover:bg-purple-50 transition-colors flex-shrink-0"><Globe size={16} /></a>}
                  </div>
@@ -940,7 +950,7 @@ export default function App() {
             </div>
 
             <div className="flex flex-wrap gap-2">
-              {shop.hasElevator && <span className="px-2 py-1 bg-blue-50 text-blue-600 border border-blue-200 text-xs rounded-md font-bold flex items-center gap-1"><ArrowUp size={14} /> 有電梯</span>}
+              {shop.hasElevator && <span className="px-2 py-1 bg-blue-50 text-blue-600 border border-blue-200 text-xs rounded-md font-bold flex items-center gap-1"><SafeArrowUpSquare size={14} /> 有電梯</span>}
               {shop.services.map((s, i) => <span key={i} className="px-2 py-1 bg-gray-100 text-gray-500 text-xs rounded-md">#{s}</span>)}
             </div>
 
@@ -951,17 +961,28 @@ export default function App() {
             )}
 
             <div className="flex flex-col gap-3 pt-2">
-              {/* 🌟 導航與 AR 找店 按鈕區 */}
               <div className="w-full flex gap-2">
                  <a href={shop.nav_link || getGoogleMapLink(shop.name, shop.address)} target="_blank" rel="noopener noreferrer" 
                     className="flex-[2] text-white py-3 rounded-xl flex items-center justify-center gap-2 transition-colors font-medium shadow-lg hover:opacity-90"
                     style={{ backgroundColor: shopColor, boxShadow: `0 4px 14px 0 ${hexToRgba(shopColor, 0.4)}` }}>
                    <Navigation size={18} /> <span className="text-sm">{t('navigate')}</span>
                  </a>
-                 {/* AR 找店按鈕 (僅在有 GPS 座標的店家顯示) */}
+                 
+                 {/* 🌟 只有在有定位、有座標、且距離在 2 公里內時，才允許開啟 AR 找店 */}
                  {hasLocationData && (
                    <button 
-                     onClick={(e) => { e.preventDefault(); setArTargetShop(shop); }}
+                     onClick={(e) => { 
+                        e.preventDefault(); 
+                        if (!userLocation) {
+                          alert("請先點擊首頁右下角的「定位」圖示取得您的位置，才能開啟 AR 找店喔！");
+                          return;
+                        }
+                        if (!isWithinWalkingDistance) {
+                          alert("距離超過 2 公里！太遠了，建議您直接使用一般導航前往。");
+                          return;
+                        }
+                        setArTargetShop(shop); 
+                     }}
                      className="flex-1 bg-gray-900 text-white py-3 rounded-xl flex items-center justify-center gap-1.5 transition-colors font-bold shadow-lg hover:opacity-90"
                      style={{ boxShadow: `0 4px 14px 0 rgba(0,0,0,0.3)` }}>
                      <Camera size={16} /> <span className="text-sm">{t('arNavigate')}</span>
@@ -1407,7 +1428,6 @@ export default function App() {
                         {shop.tel && <a href={`tel:${shop.tel}`} className="w-11 h-11 rounded-xl flex items-center justify-center transition-colors border hover:opacity-80" style={{ backgroundColor: hexToRgba(shopCardColor, 0.05), borderColor: hexToRgba(shopCardColor, 0.2), color: shopCardColor }}><Phone size={18} /></a>}
                         {shop.line_url && <a href={shop.line_url} target="_blank" rel="noopener noreferrer" className="w-11 h-11 bg-green-500 hover:bg-green-600 text-white rounded-xl flex items-center justify-center transition-colors shadow-sm"><span className="font-extrabold text-[10px]">LINE</span></a>}
                         {shop.fbLink && <a href={shop.fbLink} target="_blank" rel="noopener noreferrer" className="w-11 h-11 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-xl flex items-center justify-center transition-colors"><Facebook size={18} /></a>}
-                        {shop.ig_url && <a href={shop.ig_url} target="_blank" rel="noopener noreferrer" className="w-11 h-11 bg-pink-50 hover:bg-pink-100 text-pink-600 rounded-xl flex items-center justify-center transition-colors"><Instagram size={18} /></a>}
                       </div>
                     </div>
                   </div>
