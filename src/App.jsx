@@ -3,7 +3,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Search, MapPin, Phone, Navigation, Facebook, Star, Home, Coffee, Gift, User, Filter, Heart, Menu, X, Mountain, Loader2, Camera, Ticket, Tag, Clock, ChevronLeft, ChevronRight, Info, LocateFixed, Globe, MessageCircle, Map as MapIcon, ExternalLink, Calendar, Banknote, AlertCircle, Bus, ChevronDown, Play, ArrowRight, Sparkles, Cloud, Leaf, Feather, Sun, Navigation2, ArrowUp } from 'lucide-react';
 
 // 【安全修正】讀取環境變數
-const AIRTABLE_API_KEY = import.meta.env.VITE_AIRTABLE_API_KEY || "";
+const AIRTABLE_API_KEY = import.meta.env.VITE_AIRTABLE_API_KEY || ""; 
 
 // 【網站設定區】
 const APP_CONFIG = {
@@ -177,6 +177,7 @@ const getBearing = (lat1, lng1, lat2, lng2) => {
 // ==========================================
 const ARNavigation = ({ targetShop, userLoc, onClose }) => {
   const videoRef = useRef(null);
+  const streamRef = useRef(null); 
   const [compassHeading, setCompassHeading] = useState(null);
   const [permissionGranted, setPermissionGranted] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
@@ -235,24 +236,37 @@ const ARNavigation = ({ targetShop, userLoc, onClose }) => {
   }, []);
 
   useEffect(() => {
-    let stream = null;
+    let isMounted = true;
+
     const startCamera = async () => {
       try {
         if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-           setErrorMsg("您的瀏覽器或設備不支援開啟鏡頭，請確認是否位於 HTTPS 安全連線。");
+           if (isMounted) setErrorMsg("您的瀏覽器或設備不支援開啟鏡頭，請確認是否位於 HTTPS 安全連線。");
            return;
         }
-        stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
-        if (videoRef.current) videoRef.current.srcObject = stream;
+        
+        const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
+        
+        if (isMounted) {
+          streamRef.current = stream;
+          if (videoRef.current) videoRef.current.srcObject = stream;
+        } else {
+          stream.getTracks().forEach(track => track.stop());
+        }
       } catch (err) {
         console.error("Camera error:", err);
-        setErrorMsg("無法開啟相機，請確認是否給予鏡頭權限。");
+        if (isMounted) setErrorMsg("無法開啟相機，請確認是否給予鏡頭權限。");
       }
     };
+
     startCamera();
 
     return () => {
-      if (stream) stream.getTracks().forEach(track => track.stop());
+      isMounted = false;
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach(track => track.stop());
+        streamRef.current = null;
+      }
       window.removeEventListener("deviceorientation", handleOrientation);
     };
   }, [handleOrientation]);
@@ -277,7 +291,7 @@ const ARNavigation = ({ targetShop, userLoc, onClose }) => {
                <span className="font-bold text-emerald-50 drop-shadow-md">距離 {targetDistance} km</span>
             </div>
          </div>
-         <button onClick={onClose} className="bg-white/20 hover:bg-white/40 p-3 rounded-full backdrop-blur-md text-white transition-colors">
+         <button onClick={onClose} className="bg-white/20 hover:bg-white/40 p-3 rounded-full backdrop-blur-md text-white transition-colors shadow-lg">
             <X size={24} />
          </button>
       </div>
@@ -443,7 +457,7 @@ export default function App() {
     'food': { labelKey: 'food', icon: <Coffee size={18}/> },
     'gift': { labelKey: 'gift', icon: <Gift size={18}/> },
     'attraction': { labelKey: 'attraction', icon: <Camera size={18}/> },
-    'experience': { labelKey: 'experience', icon: <Ticket size={18}/> },
+    'experience': { labelKey: 'experience', icon: <Tag size={18}/> },
     'transport': { labelKey: 'transport', icon: <Bus size={18}/> },
     '交通': { labelKey: 'transport', icon: <Bus size={18}/> },
   };
@@ -863,15 +877,15 @@ export default function App() {
                  </div>
                )}
 
-               {/* 🌟 營業狀態標籤與聯絡方式（移至頂部） */}
+               {/* 🌟 營業狀態標籤與聯絡方式（已移至頂部，並調整按鈕間距與樣式） */}
                <div className="w-full flex flex-wrap justify-between items-center gap-3">
-                 <div>
+                 <div className="flex-shrink-0">
                    {showAccommodationBadge ? (
-                     <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold self-start" style={{ backgroundColor: hexToRgba(shopDarkColor, 0.15), color: shopDarkColor }}><Calendar size={14} />{accBadgeText}</div>
+                     <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold" style={{ backgroundColor: hexToRgba(shopDarkColor, 0.15), color: shopDarkColor }}><Calendar size={14} />{accBadgeText}</div>
                    ) : isOpen === 'appointment' ? (
-                     <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold self-start" style={{ backgroundColor: hexToRgba(shopDarkColor, 0.15), color: shopDarkColor }}><Calendar size={14} />{t('byAppointment')}</div>
+                     <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold" style={{ backgroundColor: hexToRgba(shopDarkColor, 0.15), color: shopDarkColor }}><Calendar size={14} />{t('byAppointment')}</div>
                    ) : (
-                     <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold self-start`}
+                     <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold`}
                       style={ isOpen === true ? { backgroundColor: hexToRgba(shopDarkColor, 0.15), color: shopDarkColor } : isOpen === 'opening_soon' ? { backgroundColor: '#fef3c7', color: '#b45309' } : isOpen === 'closing_soon' ? { backgroundColor: '#ffedd5', color: '#c2410c' } : isOpen === false ? { backgroundColor: '#f3f4f6', color: '#4b5563' } : { backgroundColor: '#eff6ff', color: '#2563eb' } }>
                        <Clock size={14} />
                        {isOpen === true ? t('openNow') : isOpen === 'opening_soon' ? t('openingSoon') : isOpen === 'closing_soon' ? t('closingSoon') : isOpen === false ? t('closed') : t('checkAnnouncement')}
@@ -879,8 +893,8 @@ export default function App() {
                    )}
                  </div>
 
-                 {/* 🌟 移至頂部的聯絡與社群按鈕區塊 */}
-                 <div className="flex items-center gap-2">
+                 {/* 🌟 頂部的聯絡與社群按鈕區塊 */}
+                 <div className="flex items-center gap-1.5">
                    {shop.tel && <a href={`tel:${shop.tel}`} className="w-9 h-9 flex items-center justify-center rounded-full border hover:opacity-80 transition-opacity flex-shrink-0" style={{ backgroundColor: hexToRgba(shopColor, 0.05), borderColor: hexToRgba(shopColor, 0.2), color: shopColor }}><Phone size={16} /></a>}
                    {shop.fbLink && <a href={shop.fbLink} target="_blank" rel="noopener noreferrer" className="w-9 h-9 flex items-center justify-center rounded-full border border-blue-200 text-blue-600 hover:bg-blue-50 transition-colors flex-shrink-0"><Facebook size={16} /></a>}
                    {shop.line_url && <a href={shop.line_url} target="_blank" rel="noopener noreferrer" className="w-9 h-9 flex items-center justify-center rounded-full border border-green-200 text-green-600 hover:bg-green-50 transition-colors flex-shrink-0"><span className="font-extrabold text-[9px]">LINE</span></a>}
@@ -921,7 +935,6 @@ export default function App() {
 
             <div className="space-y-3">
               <div className="flex items-start gap-3 text-sm text-gray-600"><MapPin size={18} className="mt-0.5 shrink-0" style={{ color: shopColor }} /><span>{displayAddress}</span></div>
-              {shop.tel && <div className="flex items-center gap-3 text-sm text-gray-600"><Phone size={18} className="shrink-0" style={{ color: shopColor }} /><span>{shop.tel}</span></div>}
             </div>
 
             <div className="flex flex-wrap gap-2">
@@ -936,7 +949,7 @@ export default function App() {
             )}
 
             <div className="flex flex-col gap-3 pt-2">
-              {/* 🌟 導航按鈕區保留在下方 */}
+              {/* 🌟 導航與 AR 找店 按鈕區 */}
               <div className="w-full flex gap-2">
                  <a href={shop.nav_link || getGoogleMapLink(shop.name, shop.address)} target="_blank" rel="noopener noreferrer" 
                     className="flex-[2] text-white py-3 rounded-xl flex items-center justify-center gap-2 transition-colors font-medium shadow-lg hover:opacity-90"
