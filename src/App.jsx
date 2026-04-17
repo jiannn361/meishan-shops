@@ -18,12 +18,12 @@ const APP_CONFIG = {
 // ==========================================
 // ⭐ 【特色活動圖示對照表】
 // ==========================================
-// 統一先使用 Star 作為預設，您未來只要放入 customImg 即可替換成自己的圖片！
+// 若設定了 customImg，則系統會自動隱藏預設的 icon，避免重疊！
 const EVENT_CONFIG = {
   '黃頭鷺': { customImg: '/bird-event.png', color: '#d97706', bg: '#fef3c7', label: '賞鷺點' },
-  '紫藤花': { icon: Star, color: '#9333ea', bg: '#f3e8ff', label: '賞花點' },
-  '日出': { icon: Star, color: '#ea580c', bg: '#ffedd5', label: '絕美日出' },
-  '雲海': { icon: Star, color: '#0284c7', bg: '#e0f2fe', label: '雲海勝地' },
+  '紫藤花': { customImg: '/flower-event.png', icon: Star, color: '#9333ea', bg: '#f3e8ff', label: '賞花點' },
+  '日出': { customImg: '/sunrise-event.png', icon: Star, color: '#ea580c', bg: '#ffedd5', label: '絕美日出' },
+  '雲海': { customImg: '/cloud-event.png', icon: Star, color: '#0284c7', bg: '#e0f2fe', label: '雲海勝地' },
   '螢火蟲': { customImg: '/star-event.png', color: '#ca8a04', bg: '#fef08a', label: '賞螢秘境' }
 };
 
@@ -39,7 +39,7 @@ const translations = {
     distance: '距離', shopsCount: '間', loading: '快到了再等一下...',
     noFavorites: '您的口袋名單還是空的喔！', noShops: '哎呀，找不到符合的店家...',
     goToExplore: '去探索店家', showAll: '顯示全部', googleInfo: 'Google 資訊',
-    fbAnnouncement: '粉專公告', navigate: '導航', arNavigate: 'AR 找店', aboutUs: '關於我們',
+    fbAnnouncement: '粉公告', navigate: '導航', arNavigate: 'AR 找店', aboutUs: '關於我們',
     contactSupport: '聯絡客服', trailGuide: '周邊步道攻略', clearFavorites: '清空收藏紀錄',
     quickFilter: '快速篩選', onlyOpenNow: '只顯示營業中', onlyElevator: '只顯示有電梯/無障礙',
     onlySpecialEvent: '只顯示特色活動地點', confirm: '確認', shopIntro: '店家介紹',
@@ -72,15 +72,15 @@ const translations = {
 };
 
 // ==========================================
-// 🎨 村落資料字典 (圖示全部先替換為最安全的 Star 或 MapIcon)
+// 🎨 村落資料字典 (已經徹底拔除預設的 icon 與 animIcon，完全依賴您的圖檔)
 // ==========================================
 const villageData = {
-  '太平村': { color: '#b8caa5', textDark: '#506638', textBadge: '#ffffff', bgFile: 'bg-taiping.png', iconFile: 'icon-taiping.png', icon: Star, animIcon: Star, animColor: 'text-gray-400/50', plantPrefix: 'taiping', zh: '太平村', en: 'Taiping', desc_zh: '雲梯與老街', desc_en: 'Sky Bridge & Old Street', intro: '漫步在雲端上的太平雲梯，俯瞰嘉南平原的壯麗景色，並在充滿歷史韻味的太平老街品嚐在地茶香與美食，感受雲霧繚繞的茶鄉風情。' },
-  '太興村': { color: '#ea994d', textDark: '#a35a0f', textBadge: '#ffffff', bgFile: 'bg-taixing.png', iconFile: 'icon-taixing.png', icon: Star, animIcon: Star, animColor: 'text-amber-700/40', plantPrefix: 'taixing', zh: '太興村', en: 'Taixing', desc_zh: '萬鷺朝鳳', desc_en: 'Herons Migration', intro: '每年秋季限定的「萬鷺朝鳳」奇景令人嘆為觀止。這裡有著豐富的生態與優美的步道，適合喜愛大自然與深度生態旅遊的您。' },
-  '碧湖/龍眼村': { color: '#80a4aa', textDark: '#3a595e', textBadge: '#ffffff', bgFile: 'bg-bihu.png', iconFile: 'icon-bihu.png', icon: Star, animIcon: Star, animColor: 'text-emerald-600/40', plantPrefix: 'bihu', zh: '碧湖/龍眼村', en: 'Bihu / Longyan', desc_zh: '觀光茶園', desc_en: 'Tea Gardens', intro: '被群山環繞的翠綠觀光茶園，層層疊疊的茶樹宛如綠色地毯。來到這裡，點一杯好茶，靜靜享受遠離塵囂的寧靜與茶香。' },
-  '瑞里村': { color: '#d2cbe3', textDark: '#5a5270', textBadge: '#413a54', bgFile: 'bg-ruili.png', iconFile: 'icon-ruili.png', icon: Star, animIcon: Star, animColor: 'text-purple-500/50', plantPrefix: 'ruili', zh: '瑞里村', en: 'Ruili', desc_zh: '紫色山城', desc_en: 'Purple Mountain Town', intro: '著名的浪漫紫色山城，春季紫藤花盛開時如夢似幻。擁有燕子崖、蝙蝠洞等壯麗的自然地質景觀，是登山健行的絕佳勝地。' },
-  '瑞峰村': { color: '#dd785b', textDark: '#8a371c', textBadge: '#ffffff', bgFile: 'bg-ruifeng.png', iconFile: 'icon-ruifeng.png', icon: Star, animIcon: Star, animColor: 'text-orange-500/50', plantPrefix: 'ruifeng', zh: '瑞峰村', en: 'Ruifeng', desc_zh: '日出與步道', desc_en: 'Sunrise & Trails', intro: '坐擁絕美的日出勝地與竹坑溪步道，清晨的雲海與壯闊的山林景緻交織。非常適合熱愛早起迎接第一道曙光與親近森林的旅人。' },
-  '太和村': { color: '#c4b28e', textDark: '#70603d', textBadge: '#ffffff', bgFile: 'bg-taihe.png', iconFile: 'icon-taihe.png', icon: MapIcon, animIcon: Star, animColor: 'text-lime-700/40', plantPrefix: 'taihe', zh: '太和村', en: 'Taihe', desc_zh: '茶園秘境', desc_en: 'Hidden Tea Farms', intro: '隱藏在深山中的茶園秘境，保留了最原始純粹的自然風貌。漫步在茶園小徑，感受山林間最清新的空氣與獨特靜謐。' },
+  '太平村': { color: '#b8caa5', textDark: '#506638', textBadge: '#ffffff', bgFile: 'bg-taiping.png', iconFile: 'icon-taiping.png', animColor: 'text-gray-400/50', plantPrefix: 'taiping', zh: '太平村', en: 'Taiping', desc_zh: '雲梯與老街', desc_en: 'Sky Bridge & Old Street', intro: '漫步在雲端上的太平雲梯，俯瞰嘉南平原的壯麗景色，並在充滿歷史韻味的太平老街品嚐在地茶香與美食，感受雲霧繚繞的茶鄉風情。' },
+  '太興村': { color: '#ea994d', textDark: '#a35a0f', textBadge: '#ffffff', bgFile: 'bg-taixing.png', iconFile: 'icon-taixing.png', animColor: 'text-amber-700/40', plantPrefix: 'taixing', zh: '太興村', en: 'Taixing', desc_zh: '萬鷺朝鳳', desc_en: 'Herons Migration', intro: '每年秋季限定的「萬鷺朝鳳」奇景令人嘆為觀止。這裡有著豐富的生態與優美的步道，適合喜愛大自然與深度生態旅遊的您。' },
+  '碧湖/龍眼村': { color: '#80a4aa', textDark: '#3a595e', textBadge: '#ffffff', bgFile: 'bg-bihu.png', iconFile: 'icon-bihu.png', animColor: 'text-emerald-600/40', plantPrefix: 'bihu', zh: '碧湖/龍眼村', en: 'Bihu / Longyan', desc_zh: '觀光茶園', desc_en: 'Tea Gardens', intro: '被群山環繞的翠綠觀光茶園，層層疊疊的茶樹宛如綠色地毯。來到這裡，點一杯好茶，靜靜享受遠離塵囂的寧靜與茶香。' },
+  '瑞里村': { color: '#d2cbe3', textDark: '#5a5270', textBadge: '#413a54', bgFile: 'bg-ruili.png', iconFile: 'icon-ruili.png', animColor: 'text-purple-500/50', plantPrefix: 'ruili', zh: '瑞里村', en: 'Ruili', desc_zh: '紫色山城', desc_en: 'Purple Mountain Town', intro: '著名的浪漫紫色山城，春季紫藤花盛開時如夢似幻。擁有燕子崖、蝙蝠洞等壯麗的自然地質景觀，是登山健行的絕佳勝地。' },
+  '瑞峰村': { color: '#dd785b', textDark: '#8a371c', textBadge: '#ffffff', bgFile: 'bg-ruifeng.png', iconFile: 'icon-ruifeng.png', animColor: 'text-orange-500/50', plantPrefix: 'ruifeng', zh: '瑞峰村', en: 'Ruifeng', desc_zh: '日出與步道', desc_en: 'Sunrise & Trails', intro: '坐擁絕美的日出勝地與竹坑溪步道，清晨的雲海與壯闊的山林景緻交織。非常適合熱愛早起迎接第一道曙光與親近森林的旅人。' },
+  '太和村': { color: '#c4b28e', textDark: '#70603d', textBadge: '#ffffff', bgFile: 'bg-taihe.png', iconFile: 'icon-taihe.png', animColor: 'text-lime-700/40', plantPrefix: 'taihe', zh: '太和村', en: 'Taihe', desc_zh: '茶園秘境', desc_en: 'Hidden Tea Farms', intro: '隱藏在深山中的茶園秘境，保留了最原始純粹的自然風貌。漫步在茶園小徑，感受山林間最清新的空氣與獨特靜謐。' },
 };
 
 const hexToRgba = (hex, alpha) => {
@@ -290,7 +290,7 @@ const ARNavigation = ({ targetShop, userLoc, onClose }) => {
       <div className="relative z-10 w-full h-full flex items-center justify-center pointer-events-none">
         {errorMsg ? (
           <div className="bg-rose-500/90 text-white p-4 rounded-2xl backdrop-blur-sm pointer-events-auto shadow-lg mx-6 text-center">
-            <Info className="mx-auto mb-2" size={32} />
+            <AlertCircle className="mx-auto mb-2" size={32} />
             {errorMsg}
           </div>
         ) : !permissionGranted ? (
@@ -299,7 +299,7 @@ const ARNavigation = ({ targetShop, userLoc, onClose }) => {
           </button>
         ) : compassHeading === null ? (
           <div className="flex flex-col items-center text-white/80 drop-shadow-md">
-             <Loader2 size={40} className="animate-spin mb-4" />
+             <Spinner size={40} className="mb-4" />
              <p className="font-bold">正在定位方向...</p>
           </div>
         ) : (
@@ -401,6 +401,7 @@ const ShopDetailModal = ({ shop, onClose, t, language, setArTargetShop, userLoca
   const shopColor = villageData[shop.village]?.color || '#059669';
   const shopDarkColor = villageData[shop.village]?.textDark || '#047857';
 
+  // 判斷是否顯示 AR 按鈕 (必須有經緯度座標且距離在 2 公里內)
   const hasLocationData = shop.lat && shop.lng;
   const shopDistanceNum = shop.distance ? parseFloat(shop.distance) : null;
   const isWithinWalkingDistance = shopDistanceNum !== null && shopDistanceNum <= 2.0;
@@ -444,11 +445,12 @@ const ShopDetailModal = ({ shop, onClose, t, language, setArTargetShop, userLoca
 
         <div className="p-6 space-y-6">
           <div className="flex flex-col gap-4 items-start w-full">
+             {/* 🌟 修正：確保在自訂圖片與預設圖示間正確轉換，避免衝突 */}
              {shop.matchedEvents && shop.matchedEvents.length > 0 && (
                <div className="flex flex-wrap gap-2 w-full border-b border-gray-100 pb-3 mb-1">
                  {shop.matchedEvents.map((evt, idx) => (
                     <div key={idx} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-bold shadow-sm" style={{ backgroundColor: evt.bg, color: evt.color }}>
-                       {evt.icon && <evt.icon size={18} />}
+                       {!evt.customImg && evt.icon && <evt.icon size={18} />}
                        {evt.customImg && <img src={evt.customImg} alt={evt.label} className="w-6 h-6 object-contain" />}
                        {evt.label}
                     </div>
@@ -474,7 +476,7 @@ const ShopDetailModal = ({ shop, onClose, t, language, setArTargetShop, userLoca
                <div className="flex items-center gap-1.5">
                  {shop.tel && <a href={`tel:${shop.tel}`} className="w-9 h-9 flex items-center justify-center rounded-full border hover:opacity-80 transition-opacity flex-shrink-0" style={{ backgroundColor: hexToRgba(shopColor, 0.05), borderColor: hexToRgba(shopColor, 0.2), color: shopColor }}><Phone size={16} /></a>}
                  {shop.fbLink && <a href={shop.fbLink} target="_blank" rel="noopener noreferrer" className="w-9 h-9 flex items-center justify-center rounded-full border border-blue-200 text-blue-600 hover:bg-blue-50 transition-colors flex-shrink-0"><Facebook size={16} /></a>}
-                 {shop.ig_url && <a href={shop.ig_url} target="_blank" rel="noopener noreferrer" className="w-9 h-9 flex items-center justify-center rounded-full border border-pink-200 text-pink-600 hover:bg-pink-50 transition-colors flex-shrink-0"><span className="font-extrabold text-[10px]">IG</span></a>}
+                 {shop.ig_url && <a href={shop.ig_url} target="_blank" rel="noopener noreferrer" className="w-9 h-9 flex items-center justify-center rounded-full border border-pink-200 text-pink-600 hover:bg-pink-50 transition-colors flex-shrink-0"><Instagram size={16} /></a>}
                  {shop.line_url && <a href={shop.line_url} target="_blank" rel="noopener noreferrer" className="w-9 h-9 flex items-center justify-center rounded-full border border-green-200 text-green-600 hover:bg-green-50 transition-colors flex-shrink-0"><span className="font-extrabold text-[9px]">LINE</span></a>}
                  {shop.website && <a href={shop.website} target="_blank" rel="noopener noreferrer" className="w-9 h-9 flex items-center justify-center rounded-full border border-purple-200 text-purple-600 hover:bg-purple-50 transition-colors flex-shrink-0"><Globe size={16} /></a>}
                </div>
@@ -487,7 +489,7 @@ const ShopDetailModal = ({ shop, onClose, t, language, setArTargetShop, userLoca
             <div className="space-y-3">
               {displayPayment && (
                 <div className="bg-amber-50 p-3 rounded-2xl border border-amber-200 flex items-start gap-3">
-                  <div className="bg-amber-100 p-2 rounded-full text-amber-600 shrink-0"><Tag size={18} /></div>
+                  <div className="bg-amber-100 p-2 rounded-full text-amber-600 shrink-0"><Banknote size={18} /></div>
                   <div className="w-full">
                     <h4 className="text-[13px] font-bold text-amber-800 mb-0.5">{t('paymentMethod')}</h4>
                     <FormattedText text={displayPayment} className="text-sm text-amber-700 font-medium" />
@@ -496,7 +498,7 @@ const ShopDetailModal = ({ shop, onClose, t, language, setArTargetShop, userLoca
               )}
               {displayNotice && (
                 <div className="bg-rose-50 p-3 rounded-2xl border border-rose-200 flex items-start gap-3">
-                  <div className="bg-rose-100 p-2 rounded-full text-rose-600 shrink-0"><Info size={18} /></div>
+                  <div className="bg-rose-100 p-2 rounded-full text-rose-600 shrink-0"><AlertCircle size={18} /></div>
                   <div className="w-full">
                     <h4 className="text-[13px] font-bold text-rose-800 mb-0.5">{t('notice')}</h4>
                     <FormattedText text={displayNotice} className="text-sm text-rose-700 font-medium" />
@@ -1083,7 +1085,7 @@ export default function App() {
                         <div className="absolute -right-6 -top-6 w-20 h-20 rounded-full opacity-10 group-hover:opacity-20 transition-opacity" style={{ backgroundColor: vData.color }}></div>
                         <div className="w-10 h-10 rounded-full mb-4 flex items-center justify-center shadow-sm relative overflow-hidden" style={{ backgroundColor: vData.color, color: vData.textBadge }}>
                            <img src={`/${vData.iconFile}`} alt="icon" className="absolute inset-0 w-full h-full object-cover z-10" onError={(e) => { e.target.style.display = 'none'; }} />
-                           <vData.icon size={20} className="relative z-0" />
+                           {/* 【修復】這裡已經移除呼叫有問題的 vData.icon，完全依賴您的圖片 */}
                         </div>
                         <h3 className="font-extrabold text-lg mb-1" style={{ color: vData.textDark }}>{vData[language] || vKey}</h3>
                         <p className="text-xs font-bold" style={{ color: hexToRgba(vData.textDark, 0.6) }}>{language === 'en' ? vData.desc_en : vData.desc_zh}</p>
@@ -1101,7 +1103,7 @@ export default function App() {
                      <div className="flex items-center gap-4">
                         <div className="w-16 h-16 rounded-2xl flex items-center justify-center shadow-md relative overflow-hidden" style={{ backgroundColor: hexToRgba(villageData[previewVillage].color, 0.15), color: villageData[previewVillage].textDark }}>
                            <img src={`/${villageData[previewVillage].iconFile}`} alt="icon" className="absolute inset-0 w-full h-full object-cover z-10 p-2" onError={(e) => { e.target.style.display = 'none'; }} />
-                           {React.createElement(villageData[previewVillage].icon, { size: 32, className: "relative z-0" })}
+                           {/* 【修復】這裡同樣徹底移除了可能引發崩潰的 icon */}
                         </div>
                         <div>
                            <h2 className="text-3xl font-extrabold" style={{ color: villageData[previewVillage].textDark }}>{villageData[previewVillage][language] || previewVillage}</h2>
@@ -1133,13 +1135,11 @@ export default function App() {
         {`
           @keyframes slowFloat { 0% { transform: translateY(0) scale(1); } 50% { transform: translateY(-15px) scale(1.02); } 100% { transform: translateY(0) scale(1); } }
           @keyframes fall { 0% { transform: translateY(-10vh) rotate(0deg) translateX(0); opacity: 0; } 10% { opacity: 1; } 90% { opacity: 1; } 100% { transform: translateY(110vh) rotate(360deg) translateX(40px); opacity: 0; } }
-          @keyframes loadingBar { 0% { transform: translateX(-100%); } 100% { transform: translateX(200%); } }
           @keyframes ride { 0%, 100% { transform: translateY(0) rotate(0deg); } 50% { transform: translateY(-3px) rotate(1deg); } }
           @keyframes floatMascot { 0%, 100% { transform: translate(-50%, 0); } 50% { transform: translate(-50%, -6px); } }
           .animate-fall-1 { animation: fall 8s linear infinite; }
           .animate-fall-2 { animation: fall 11s linear infinite 2s; }
           .animate-fall-3 { animation: fall 9s linear infinite 4s; }
-          .animate-loading-bar { animation: loadingBar 1.5s infinite linear; }
           .animate-ride { animation: ride 0.4s ease-in-out infinite; }
           .animate-float-mascot { animation: floatMascot 4s ease-in-out infinite; }
         `}
@@ -1153,22 +1153,14 @@ export default function App() {
           <img src={`/${villageData[selectedVillage]?.bgFile}`} alt="Village Background" className="w-full h-full object-cover opacity-80" style={{ animation: 'slowFloat 20s ease-in-out infinite' }} onError={(e) => e.target.style.display = 'none'} />
         </div>
 
-        {/* 前景動態落葉 */}
-        <div className="fixed inset-y-0 w-full max-w-md z-30 pointer-events-none">
-          {(() => {
-             const vData = villageData[selectedVillage];
-             if (!vData) return null;
-             const AnimIcon = vData.animIcon || Star; 
-             const animColor = vData.animColor || 'text-emerald-500/30';
-             return (
-               <>
-                 <div className="absolute top-[-10%] left-[10%] animate-fall-1"><AnimIcon className={animColor} size={24} /></div>
-                 <div className="absolute top-[-10%] left-[50%] animate-fall-2"><AnimIcon className={animColor} size={32} /></div>
-                 <div className="absolute top-[-10%] left-[80%] animate-fall-3"><AnimIcon className={animColor} size={20} /></div>
-               </>
-             );
-          })()}
-        </div>
+        {/* 前景動態落葉 (進入店家時隱藏) */}
+        {(!selectedShop && !selectedAnnouncement && !arTargetShop) && (
+          <div className="fixed inset-y-0 w-full max-w-md z-30 pointer-events-none">
+            <div className="absolute top-[-10%] left-[10%] animate-fall-1"><Star className="text-emerald-500/30" size={24} /></div>
+            <div className="absolute top-[-10%] left-[50%] animate-fall-2"><Star className="text-emerald-500/30" size={32} /></div>
+            <div className="absolute top-[-10%] left-[80%] animate-fall-3"><Star className="text-emerald-500/30" size={20} /></div>
+          </div>
+        )}
 
         {/* 內容層 */}
         <div className="relative z-10">
@@ -1265,7 +1257,7 @@ export default function App() {
             {loading ? (
                <div className="flex flex-col items-center justify-center py-16 bg-white/70 backdrop-blur-md rounded-3xl border border-white shadow-xl mx-2">
                  <Mascot imageUrl="/mascot-run.png" size={120} animation="ride" className="mb-2" />
-                 <div className="w-48 h-2 bg-gray-200 rounded-full overflow-hidden mt-2 mb-4 relative"><div className="absolute top-0 left-0 h-full w-1/2 rounded-full animate-loading-bar" style={{ backgroundColor: currentPrimaryColor }}></div></div>
+                 <div className="w-48 h-2 bg-gray-200 rounded-full overflow-hidden mt-2 mb-4 relative"><div className="absolute top-0 left-0 h-full w-1/2 rounded-full bg-emerald-500 animate-pulse"></div></div>
                  <p className="font-bold tracking-widest" style={{ color: currentDarkColor }}>{t('loading')}</p>
                </div>
             ) : processedShops.length > 0 ? (
@@ -1291,7 +1283,7 @@ export default function App() {
                          <div className="absolute top-3 right-14 z-10 flex flex-col gap-1.5 items-end">
                            {shop.matchedEvents.map((evt, idx) => (
                               <div key={idx} className="px-3 py-1.5 rounded-full shadow-[0_2px_8px_rgba(0,0,0,0.15)] backdrop-blur-md bg-white/95 flex items-center gap-1.5 border border-white" style={{ color: evt.color }}>
-                                 {evt.icon && <evt.icon size={16} />}
+                                 {evt.icon && !evt.customImg && <evt.icon size={16} />}
                                  {evt.customImg && <img src={evt.customImg} alt={evt.label} className="w-5 h-5 object-contain" />}
                                  <span className="text-xs font-bold whitespace-nowrap">{evt.label}</span>
                               </div>
@@ -1357,6 +1349,7 @@ export default function App() {
                         {shop.tel && <a href={`tel:${shop.tel}`} className="w-11 h-11 rounded-xl flex items-center justify-center transition-colors border hover:opacity-80" style={{ backgroundColor: hexToRgba(shopCardColor, 0.05), borderColor: hexToRgba(shopCardColor, 0.2), color: shopCardColor }}><Phone size={18} /></a>}
                         {shop.line_url && <a href={shop.line_url} target="_blank" rel="noopener noreferrer" className="w-11 h-11 bg-green-500 hover:bg-green-600 text-white rounded-xl flex items-center justify-center transition-colors shadow-sm"><span className="font-extrabold text-[10px]">LINE</span></a>}
                         {shop.fbLink && <a href={shop.fbLink} target="_blank" rel="noopener noreferrer" className="w-11 h-11 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-xl flex items-center justify-center transition-colors"><Facebook size={18} /></a>}
+                        {shop.ig_url && <a href={shop.ig_url} target="_blank" rel="noopener noreferrer" className="w-11 h-11 bg-pink-50 hover:bg-pink-100 text-pink-600 rounded-xl flex items-center justify-center transition-colors"><Camera size={18} /></a>}
                       </div>
                     </div>
                   </div>
@@ -1373,33 +1366,33 @@ export default function App() {
             )}
           </div>
         </div>
+      </div>
 
-        {/* 底層導航列 */}
-        <div className="fixed bottom-6 left-0 right-0 flex justify-center z-50 pointer-events-none">
-          <div className="relative flex justify-center pointer-events-none">
-             {(!selectedShop && !selectedAnnouncement && !arTargetShop && !showFilterModal && !showUserModal) && (
-                <div className="absolute bottom-[30px] left-1/2 -translate-x-1/2 pointer-events-auto z-0 animate-float-mascot">
-                   <img src="/mascot.png" alt="Mascot" className="w-[110px] h-[110px] object-bottom object-contain drop-shadow-[0_-8px_16px_rgba(0,0,0,0.15)] hover:-translate-y-3 transition-transform duration-300 cursor-pointer" onError={(e) => { e.target.onerror = null; e.target.src='https://cdn-icons-png.flaticon.com/512/3466/3466395.png'; }} />
-                </div>
-             )}
+      {/* 底層導航列 - 移至主畫面容器外，並將 z-index 提高確保永遠在最上層 */}
+      <div className="fixed bottom-6 left-0 right-0 flex justify-center z-[85] pointer-events-none">
+        <div className="relative flex justify-center pointer-events-none">
+           {(!selectedShop && !selectedAnnouncement && !arTargetShop && !showFilterModal && !showUserModal) && (
+              <div className="absolute bottom-[30px] left-1/2 -translate-x-1/2 pointer-events-auto z-0 animate-float-mascot">
+                 <img src="/mascot.png" alt="Mascot" className="w-[110px] h-[110px] object-bottom object-contain drop-shadow-[0_-8px_16px_rgba(0,0,0,0.15)] hover:-translate-y-3 transition-transform duration-300 cursor-pointer" onError={(e) => { e.target.onerror = null; e.target.src='https://cdn-icons-png.flaticon.com/512/3466/3466395.png'; }} />
+              </div>
+           )}
 
-             <div className="bg-white/95 backdrop-blur-xl border border-gray-100 shadow-[0_10px_40px_-10px_rgba(0,0,0,0.15)] rounded-full px-6 py-3 flex items-center gap-8 pointer-events-auto relative z-10">
-               <button onClick={() => { setCurrentView('home'); setSortBy('default'); }} className={`flex flex-col items-center gap-1 group transition-colors`} style={{ color: currentView === 'home' ? currentPrimaryColor : '#9ca3af' }}><Home size={24} /></button>
-               <button onClick={() => setCurrentView('favorites')} className={`flex flex-col items-center gap-1 group transition-colors`} style={{ color: currentView === 'favorites' ? '#f43f5e' : '#9ca3af' }}><Heart size={24} className={currentView === 'favorites' ? "fill-rose-500 text-rose-500" : ""} /></button>
-               <button onClick={handleGetLocation} className="-mt-10 w-16 h-16 rounded-full flex items-center justify-center shadow-lg border-[5px] border-white transform hover:scale-105 transition-transform text-white relative" style={{ backgroundColor: currentPrimaryColor, boxShadow: `0 10px 15px -3px ${hexToRgba(currentPrimaryColor, 0.4)}` }}>
-                  <LocateFixed size={28} />
-                  {userLocation && <div className="absolute top-3 right-4 w-2 h-2 bg-green-300 rounded-full animate-ping"></div>}
-               </button>
-               <button onClick={() => setShowFilterModal(true)} className={`flex flex-col items-center gap-1 group transition-colors`} style={{ color: (filterOpenOnly || filterElevator || filterEventOnly) ? currentPrimaryColor : '#9ca3af' }}><Filter size={24} /></button>
-               <button onClick={() => setShowUserModal(true)} className="flex flex-col items-center gap-1 group text-gray-400 hover:text-gray-600 transition-colors" style={{ color: showUserModal ? currentPrimaryColor : '#9ca3af' }}><User size={24} /></button>
-            </div>
+           <div className="bg-white/95 backdrop-blur-xl border border-gray-100 shadow-[0_10px_40px_-10px_rgba(0,0,0,0.15)] rounded-full px-6 py-3 flex items-center gap-8 pointer-events-auto relative z-10">
+             <button onClick={() => { setCurrentView('home'); setSortBy('default'); }} className={`flex flex-col items-center gap-1 group transition-colors`} style={{ color: currentView === 'home' ? currentPrimaryColor : '#9ca3af' }}><Home size={24} /></button>
+             <button onClick={() => setCurrentView('favorites')} className={`flex flex-col items-center gap-1 group transition-colors`} style={{ color: currentView === 'favorites' ? '#f43f5e' : '#9ca3af' }}><Heart size={24} className={currentView === 'favorites' ? "fill-rose-500 text-rose-500" : ""} /></button>
+             <button onClick={handleGetLocation} className="-mt-10 w-16 h-16 rounded-full flex items-center justify-center shadow-lg border-[5px] border-white transform hover:scale-105 transition-transform text-white relative" style={{ backgroundColor: currentPrimaryColor, boxShadow: `0 10px 15px -3px ${hexToRgba(currentPrimaryColor, 0.4)}` }}>
+                <LocateFixed size={28} />
+                {userLocation && <div className="absolute top-3 right-4 w-2 h-2 bg-green-300 rounded-full animate-ping"></div>}
+             </button>
+             <button onClick={() => setShowFilterModal(true)} className={`flex flex-col items-center gap-1 group transition-colors`} style={{ color: (filterOpenOnly || filterElevator || filterEventOnly) ? currentPrimaryColor : '#9ca3af' }}><Filter size={24} /></button>
+             <button onClick={() => setShowUserModal(true)} className="flex flex-col items-center gap-1 group text-gray-400 hover:text-gray-600 transition-colors" style={{ color: showUserModal ? currentPrimaryColor : '#9ca3af' }}><User size={24} /></button>
           </div>
         </div>
       </div>
 
-      {/* 💥 所有的彈窗與側邊欄都在這個最外層 💥 */}
+      {/* 💥 所有的彈窗與側邊欄都在這個最外層，z-index 高於一切 💥 */}
       {isSidebarOpen && (
-        <div className="fixed inset-0 z-[90] flex">
+        <div className="fixed inset-0 z-[100] flex">
            <div className="w-64 bg-white h-full shadow-2xl p-6 transform transition-transform duration-300 ease-in-out flex flex-col z-20">
             <div className="flex justify-between items-center mb-8">
               <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2"><MapPin className="text-gray-600" />{t('switchVillage')}</h2>
@@ -1422,7 +1415,7 @@ export default function App() {
         </div>
       )}
 
-      {/* 📌 這些彈窗已經搬移到最外層，不會再被導航列蓋住了 */}
+      {/* 📌 這些彈窗已經搬移到最外層，絕不會被導航列蓋住，且具備顯眼的白底叉叉 */}
       {arTargetShop && <ARNavigation targetShop={arTargetShop} userLoc={userLocation} onClose={() => setArTargetShop(null)} />}
       <AnnouncementModal ann={selectedAnnouncement} onClose={() => setSelectedAnnouncement(null)} currentPrimaryColor={currentPrimaryColor} />
       <ShopDetailModal shop={selectedShop} onClose={() => setSelectedShop(null)} t={t} language={language} setArTargetShop={setArTargetShop} userLocation={userLocation} />
