@@ -1,26 +1,12 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Search, MapPin, Phone, Navigation, Facebook, Instagram, Star, Home, Coffee, Gift, User, Filter, Heart, Menu, X, Mountain, Loader2, Camera, Ticket, Tag, Clock, ChevronLeft, ChevronRight, Info, LocateFixed, Globe, MessageCircle, Map as MapIcon, ExternalLink, Calendar, Banknote, AlertCircle, Bus, ChevronDown, ChevronUp, Play, ArrowRight, Cloud, Leaf, Feather, Sun, ArrowUp, Sparkles } from 'lucide-react';
-
-// 【終極安全防護】攔截所有可能導致白畫面的缺失圖示，自動替換成最基礎的預設圖案
-const SafeInstagram = Instagram || Camera;
-const SafeCloud = Cloud || Star;
-const SafeFeather = Feather || Star;
-const SafeLeaf = Leaf || Star;
-const SafeStar = Star || Info;
-const SafeSun = Sun || Star;
-const SafeMapIcon = MapIcon || Info;
-const SafeChevronUp = ChevronUp || Info;
-const SafeSparkles = Sparkles || Star; // 🌟 這是導致其他村落白畫面的最大兇手，已防護！
-const SafeArrowUp = ArrowUp || ChevronUp || Info; // 🌟 這是另一個兇手，已防護！
-
-// 【安全修正】讀取環境變數
-const AIRTABLE_API_KEY = import.meta.env.VITE_AIRTABLE_API_KEY || ""; 
+// 【極致純淨版】只保留最基礎、最標準的圖示，杜絕任何 ReferenceError 崩潰！
+import { Search, MapPin, Phone, Navigation, Facebook, Star, Home, Coffee, Gift, User, Filter, Heart, Menu, X, Mountain, Loader2, Camera, Tag, Clock, ChevronLeft, ChevronRight, Info, LocateFixed, Globe, MessageCircle, Map as MapIcon, ExternalLink, Calendar, Banknote, AlertCircle, Bus, ChevronDown, Play, ArrowRight } from 'lucide-react';
 
 // 【網站設定區】
 const APP_CONFIG = {
   appName: "Meishan Taiping",
   subTitle: "Meishan, Chiayi",
-  airtableApiKey: AIRTABLE_API_KEY, 
+  airtableApiKey: import.meta.env.VITE_AIRTABLE_API_KEY || "", // 記得填入您的 API KEY
   airtableBaseId: "appkU3kxP74Gq7iXj", 
   airtableTableName: "Table 1", 
   liffId: "2009010332-K14upnUb",
@@ -32,11 +18,12 @@ const APP_CONFIG = {
 // ==========================================
 // ⭐ 【特色活動圖示對照表】
 // ==========================================
+// 統一先使用 Star 作為預設，您未來只要放入 customImg 即可替換成自己的圖片！
 const EVENT_CONFIG = {
   '黃頭鷺': { customImg: '/bird-event.png', color: '#d97706', bg: '#fef3c7', label: '賞鷺點' },
-  '紫藤花': { icon: SafeStar, color: '#9333ea', bg: '#f3e8ff', label: '賞花點' },
-  '日出': { icon: SafeSun, color: '#ea580c', bg: '#ffedd5', label: '絕美日出' },
-  '雲海': { icon: SafeCloud, color: '#0284c7', bg: '#e0f2fe', label: '雲海勝地' },
+  '紫藤花': { icon: Star, color: '#9333ea', bg: '#f3e8ff', label: '賞花點' },
+  '日出': { icon: Star, color: '#ea580c', bg: '#ffedd5', label: '絕美日出' },
+  '雲海': { icon: Star, color: '#0284c7', bg: '#e0f2fe', label: '雲海勝地' },
   '螢火蟲': { customImg: '/star-event.png', color: '#ca8a04', bg: '#fef08a', label: '賞螢秘境' }
 };
 
@@ -85,15 +72,15 @@ const translations = {
 };
 
 // ==========================================
-// 🎨 村落資料字典 
+// 🎨 村落資料字典 (圖示全部先替換為最安全的 Star 或 MapIcon)
 // ==========================================
 const villageData = {
-  '太平村': { color: '#b8caa5', textDark: '#506638', textBadge: '#ffffff', bgFile: 'bg-taiping.png', iconFile: 'icon-taiping.png', icon: SafeCloud, animIcon: SafeCloud, animColor: 'text-gray-400/50', plantPrefix: 'taiping', zh: '太平村', en: 'Taiping', desc_zh: '雲梯與老街', desc_en: 'Sky Bridge & Old Street', intro: '漫步在雲端上的太平雲梯，俯瞰嘉南平原的壯麗景色，並在充滿歷史韻味的太平老街品嚐在地茶香與美食，感受雲霧繚繞的茶鄉風情。' },
-  '太興村': { color: '#ea994d', textDark: '#a35a0f', textBadge: '#ffffff', bgFile: 'bg-taixing.png', iconFile: 'icon-taixing.png', icon: SafeFeather, animIcon: SafeFeather, animColor: 'text-amber-700/40', plantPrefix: 'taixing', zh: '太興村', en: 'Taixing', desc_zh: '萬鷺朝鳳', desc_en: 'Herons Migration', intro: '每年秋季限定的「萬鷺朝鳳」奇景令人嘆為觀止。這裡有著豐富的生態與優美的步道，適合喜愛大自然與深度生態旅遊的您。' },
-  '碧湖/龍眼村': { color: '#80a4aa', textDark: '#3a595e', textBadge: '#ffffff', bgFile: 'bg-bihu.png', iconFile: 'icon-bihu.png', icon: SafeLeaf, animIcon: SafeLeaf, animColor: 'text-emerald-600/40', plantPrefix: 'bihu', zh: '碧湖/龍眼村', en: 'Bihu / Longyan', desc_zh: '觀光茶園', desc_en: 'Tea Gardens', intro: '被群山環繞的翠綠觀光茶園，層層疊疊的茶樹宛如綠色地毯。來到這裡，點一杯好茶，靜靜享受遠離塵囂的寧靜與茶香。' },
-  '瑞里村': { color: '#d2cbe3', textDark: '#5a5270', textBadge: '#413a54', bgFile: 'bg-ruili.png', iconFile: 'icon-ruili.png', icon: SafeStar, animIcon: SafeSparkles, animColor: 'text-purple-500/50', plantPrefix: 'ruili', zh: '瑞里村', en: 'Ruili', desc_zh: '紫色山城', desc_en: 'Purple Mountain Town', intro: '著名的浪漫紫色山城，春季紫藤花盛開時如夢似幻。擁有燕子崖、蝙蝠洞等壯麗的自然地質景觀，是登山健行的絕佳勝地。' },
-  '瑞峰村': { color: '#dd785b', textDark: '#8a371c', textBadge: '#ffffff', bgFile: 'bg-ruifeng.png', iconFile: 'icon-ruifeng.png', icon: SafeSun, animIcon: SafeSun, animColor: 'text-orange-500/50', plantPrefix: 'ruifeng', zh: '瑞峰村', en: 'Ruifeng', desc_zh: '日出與步道', desc_en: 'Sunrise & Trails', intro: '坐擁絕美的日出勝地與竹坑溪步道，清晨的雲海與壯闊的山林景緻交織。非常適合熱愛早起迎接第一道曙光與親近森林的旅人。' },
-  '太和村': { color: '#c4b28e', textDark: '#70603d', textBadge: '#ffffff', bgFile: 'bg-taihe.png', iconFile: 'icon-taihe.png', icon: SafeMapIcon, animIcon: SafeLeaf, animColor: 'text-lime-700/40', plantPrefix: 'taihe', zh: '太和村', en: 'Taihe', desc_zh: '茶園秘境', desc_en: 'Hidden Tea Farms', intro: '隱藏在深山中的茶園秘境，保留了最原始純粹的自然風貌。漫步在茶園小徑，感受山林間最清新的空氣與獨特靜謐。' },
+  '太平村': { color: '#b8caa5', textDark: '#506638', textBadge: '#ffffff', bgFile: 'bg-taiping.png', iconFile: 'icon-taiping.png', icon: Star, animIcon: Star, animColor: 'text-gray-400/50', plantPrefix: 'taiping', zh: '太平村', en: 'Taiping', desc_zh: '雲梯與老街', desc_en: 'Sky Bridge & Old Street', intro: '漫步在雲端上的太平雲梯，俯瞰嘉南平原的壯麗景色，並在充滿歷史韻味的太平老街品嚐在地茶香與美食，感受雲霧繚繞的茶鄉風情。' },
+  '太興村': { color: '#ea994d', textDark: '#a35a0f', textBadge: '#ffffff', bgFile: 'bg-taixing.png', iconFile: 'icon-taixing.png', icon: Star, animIcon: Star, animColor: 'text-amber-700/40', plantPrefix: 'taixing', zh: '太興村', en: 'Taixing', desc_zh: '萬鷺朝鳳', desc_en: 'Herons Migration', intro: '每年秋季限定的「萬鷺朝鳳」奇景令人嘆為觀止。這裡有著豐富的生態與優美的步道，適合喜愛大自然與深度生態旅遊的您。' },
+  '碧湖/龍眼村': { color: '#80a4aa', textDark: '#3a595e', textBadge: '#ffffff', bgFile: 'bg-bihu.png', iconFile: 'icon-bihu.png', icon: Star, animIcon: Star, animColor: 'text-emerald-600/40', plantPrefix: 'bihu', zh: '碧湖/龍眼村', en: 'Bihu / Longyan', desc_zh: '觀光茶園', desc_en: 'Tea Gardens', intro: '被群山環繞的翠綠觀光茶園，層層疊疊的茶樹宛如綠色地毯。來到這裡，點一杯好茶，靜靜享受遠離塵囂的寧靜與茶香。' },
+  '瑞里村': { color: '#d2cbe3', textDark: '#5a5270', textBadge: '#413a54', bgFile: 'bg-ruili.png', iconFile: 'icon-ruili.png', icon: Star, animIcon: Star, animColor: 'text-purple-500/50', plantPrefix: 'ruili', zh: '瑞里村', en: 'Ruili', desc_zh: '紫色山城', desc_en: 'Purple Mountain Town', intro: '著名的浪漫紫色山城，春季紫藤花盛開時如夢似幻。擁有燕子崖、蝙蝠洞等壯麗的自然地質景觀，是登山健行的絕佳勝地。' },
+  '瑞峰村': { color: '#dd785b', textDark: '#8a371c', textBadge: '#ffffff', bgFile: 'bg-ruifeng.png', iconFile: 'icon-ruifeng.png', icon: Star, animIcon: Star, animColor: 'text-orange-500/50', plantPrefix: 'ruifeng', zh: '瑞峰村', en: 'Ruifeng', desc_zh: '日出與步道', desc_en: 'Sunrise & Trails', intro: '坐擁絕美的日出勝地與竹坑溪步道，清晨的雲海與壯闊的山林景緻交織。非常適合熱愛早起迎接第一道曙光與親近森林的旅人。' },
+  '太和村': { color: '#c4b28e', textDark: '#70603d', textBadge: '#ffffff', bgFile: 'bg-taihe.png', iconFile: 'icon-taihe.png', icon: MapIcon, animIcon: Star, animColor: 'text-lime-700/40', plantPrefix: 'taihe', zh: '太和村', en: 'Taihe', desc_zh: '茶園秘境', desc_en: 'Hidden Tea Farms', intro: '隱藏在深山中的茶園秘境，保留了最原始純粹的自然風貌。漫步在茶園小徑，感受山林間最清新的空氣與獨特靜謐。' },
 };
 
 const hexToRgba = (hex, alpha) => {
@@ -104,9 +91,6 @@ const hexToRgba = (hex, alpha) => {
   return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 };
 
-// ==========================================
-// 🐻 專屬吉祥物元件 (Mascot) 
-// ==========================================
 const Mascot = ({ size = 60, className = "", animation = "", imageUrl = null }) => {
   const defaultMascotUrl = "/mascot.png";
   const mascotSrc = imageUrl || defaultMascotUrl;
@@ -162,7 +146,7 @@ const DefaultShopImage = () => (
   </div>
 );
 
-// 輔助函式：計算兩點距離 (共用於列表與 AR)
+// 輔助函式：計算兩點距離
 const calculateDistance = (lat1, lon1, lat2, lng2) => {
   if (!lat1 || !lon1 || !lat2 || !lng2) return null;
   const R = 6371; 
@@ -173,7 +157,6 @@ const calculateDistance = (lat1, lon1, lat2, lng2) => {
   return (R * c).toFixed(2);
 };
 
-// 計算兩點之間的方位角 (Bearing)
 const getBearing = (lat1, lng1, lat2, lng2) => {
   const toRad = (deg) => (deg * Math.PI) / 180;
   const toDeg = (rad) => (rad * 180) / Math.PI;
@@ -254,9 +237,7 @@ const ARNavigation = ({ targetShop, userLoc, onClose }) => {
            if (isMounted) setErrorMsg("您的瀏覽器或設備不支援開啟鏡頭，請確認是否位於 HTTPS 安全連線。");
            return;
         }
-        
         const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
-        
         if (isMounted) {
           streamRef.current = stream;
           if (videoRef.current) videoRef.current.srcObject = stream;
@@ -268,14 +249,11 @@ const ARNavigation = ({ targetShop, userLoc, onClose }) => {
         if (isMounted) setErrorMsg("無法開啟相機，請確認是否給予鏡頭權限。");
       }
     };
-
     startCamera();
 
     return () => {
       isMounted = false;
-      if (videoRef.current) {
-        videoRef.current.srcObject = null;
-      }
+      if (videoRef.current) videoRef.current.srcObject = null;
       if (streamRef.current) {
         streamRef.current.getTracks().forEach(track => track.stop());
         streamRef.current = null;
@@ -312,7 +290,7 @@ const ARNavigation = ({ targetShop, userLoc, onClose }) => {
       <div className="relative z-10 w-full h-full flex items-center justify-center pointer-events-none">
         {errorMsg ? (
           <div className="bg-rose-500/90 text-white p-4 rounded-2xl backdrop-blur-sm pointer-events-auto shadow-lg mx-6 text-center">
-            <AlertCircle className="mx-auto mb-2" size={32} />
+            <Info className="mx-auto mb-2" size={32} />
             {errorMsg}
           </div>
         ) : !permissionGranted ? (
@@ -330,7 +308,7 @@ const ARNavigation = ({ targetShop, userLoc, onClose }) => {
               <div className="flex flex-col items-center animate-bounce z-50">
                 <div className="relative flex flex-col items-center">
                   <div className="absolute -top-16 bg-yellow-400 text-yellow-900 px-6 py-3 rounded-full font-black text-lg shadow-[0_0_30px_rgba(250,204,21,0.6)] whitespace-nowrap flex items-center gap-2 border-4 border-white z-10">
-                    <SafeSparkles size={24} /> 已經抵達目的地囉！ <SafeSparkles size={24} />
+                    <Star size={24} /> 已經抵達目的地囉！ <Star size={24} />
                   </div>
                   <Mascot imageUrl="/mascot-righthere.png" size={180} animation="pulse" className="drop-shadow-[0_0_40px_rgba(255,255,255,0.6)]" />
                 </div>
@@ -339,7 +317,7 @@ const ARNavigation = ({ targetShop, userLoc, onClose }) => {
               <div className="flex flex-col items-center transform transition-transform duration-200" style={{ transform: `translateX(${diffAngle * 4}px)` }}>
                 <div className="relative flex flex-col items-center">
                   <div className="absolute -top-12 bg-white/90 text-emerald-800 px-4 py-2 rounded-full font-bold text-sm shadow-xl whitespace-nowrap animate-bounce flex items-center gap-2 z-10">
-                    <SafeSparkles size={16} className="text-emerald-500" /> 往這裡走喔！
+                    <Star size={16} className="text-emerald-500" /> 往這裡走喔！
                   </div>
                   <Mascot imageUrl="/mascot-backpack.png" size={160} animation="ride" className="drop-shadow-2xl" />
                 </div>
@@ -367,7 +345,7 @@ const ARNavigation = ({ targetShop, userLoc, onClose }) => {
 };
 
 // ==========================================
-// 🌟 各式彈窗組件 (移至底層確保覆蓋完美)
+// 🌟 各式彈窗組件
 // ==========================================
 const AnnouncementModal = ({ ann, onClose, currentPrimaryColor }) => {
   if (!ann) return null;
@@ -390,7 +368,7 @@ const AnnouncementModal = ({ ann, onClose, currentPrimaryColor }) => {
         )}
         <div className="p-6 overflow-y-auto space-y-4">
            <div className={`flex items-start gap-2 ${!hasImage ? 'pr-12' : ''}`}>
-              <div className="bg-amber-100 text-amber-600 p-1.5 rounded-lg shrink-0 mt-0.5"><SafeSparkles size={20} /></div>
+              <div className="bg-amber-100 text-amber-600 p-1.5 rounded-lg shrink-0 mt-0.5"><Star size={20} /></div>
               <h3 className="text-xl font-bold text-gray-900 leading-tight">{ann.name}</h3>
            </div>
            {ann.description && <div className="bg-gray-50 rounded-2xl p-4 text-gray-600 text-sm text-justify"><FormattedText text={ann.description} /></div>}
@@ -496,7 +474,7 @@ const ShopDetailModal = ({ shop, onClose, t, language, setArTargetShop, userLoca
                <div className="flex items-center gap-1.5">
                  {shop.tel && <a href={`tel:${shop.tel}`} className="w-9 h-9 flex items-center justify-center rounded-full border hover:opacity-80 transition-opacity flex-shrink-0" style={{ backgroundColor: hexToRgba(shopColor, 0.05), borderColor: hexToRgba(shopColor, 0.2), color: shopColor }}><Phone size={16} /></a>}
                  {shop.fbLink && <a href={shop.fbLink} target="_blank" rel="noopener noreferrer" className="w-9 h-9 flex items-center justify-center rounded-full border border-blue-200 text-blue-600 hover:bg-blue-50 transition-colors flex-shrink-0"><Facebook size={16} /></a>}
-                 {shop.ig_url && <a href={shop.ig_url} target="_blank" rel="noopener noreferrer" className="w-9 h-9 flex items-center justify-center rounded-full border border-pink-200 text-pink-600 hover:bg-pink-50 transition-colors flex-shrink-0"><SafeInstagram size={16} /></a>}
+                 {shop.ig_url && <a href={shop.ig_url} target="_blank" rel="noopener noreferrer" className="w-9 h-9 flex items-center justify-center rounded-full border border-pink-200 text-pink-600 hover:bg-pink-50 transition-colors flex-shrink-0"><span className="font-extrabold text-[10px]">IG</span></a>}
                  {shop.line_url && <a href={shop.line_url} target="_blank" rel="noopener noreferrer" className="w-9 h-9 flex items-center justify-center rounded-full border border-green-200 text-green-600 hover:bg-green-50 transition-colors flex-shrink-0"><span className="font-extrabold text-[9px]">LINE</span></a>}
                  {shop.website && <a href={shop.website} target="_blank" rel="noopener noreferrer" className="w-9 h-9 flex items-center justify-center rounded-full border border-purple-200 text-purple-600 hover:bg-purple-50 transition-colors flex-shrink-0"><Globe size={16} /></a>}
                </div>
@@ -509,7 +487,7 @@ const ShopDetailModal = ({ shop, onClose, t, language, setArTargetShop, userLoca
             <div className="space-y-3">
               {displayPayment && (
                 <div className="bg-amber-50 p-3 rounded-2xl border border-amber-200 flex items-start gap-3">
-                  <div className="bg-amber-100 p-2 rounded-full text-amber-600 shrink-0"><Banknote size={18} /></div>
+                  <div className="bg-amber-100 p-2 rounded-full text-amber-600 shrink-0"><Tag size={18} /></div>
                   <div className="w-full">
                     <h4 className="text-[13px] font-bold text-amber-800 mb-0.5">{t('paymentMethod')}</h4>
                     <FormattedText text={displayPayment} className="text-sm text-amber-700 font-medium" />
@@ -518,7 +496,7 @@ const ShopDetailModal = ({ shop, onClose, t, language, setArTargetShop, userLoca
               )}
               {displayNotice && (
                 <div className="bg-rose-50 p-3 rounded-2xl border border-rose-200 flex items-start gap-3">
-                  <div className="bg-rose-100 p-2 rounded-full text-rose-600 shrink-0"><AlertCircle size={18} /></div>
+                  <div className="bg-rose-100 p-2 rounded-full text-rose-600 shrink-0"><Info size={18} /></div>
                   <div className="w-full">
                     <h4 className="text-[13px] font-bold text-rose-800 mb-0.5">{t('notice')}</h4>
                     <FormattedText text={displayNotice} className="text-sm text-rose-700 font-medium" />
@@ -538,7 +516,7 @@ const ShopDetailModal = ({ shop, onClose, t, language, setArTargetShop, userLoca
           </div>
 
           <div className="flex flex-wrap gap-2">
-            {shop.hasElevator && <span className="px-2 py-1 bg-blue-50 text-blue-600 border border-blue-200 text-xs rounded-md font-bold flex items-center gap-1"><SafeArrowUp size={14} /> 有電梯</span>}
+            {shop.hasElevator && <span className="px-2 py-1 bg-blue-50 text-blue-600 border border-blue-200 text-xs rounded-md font-bold flex items-center gap-1"><Star size={14} /> 有電梯</span>}
             {shop.services.map((s, i) => <span key={i} className="px-2 py-1 bg-gray-100 text-gray-500 text-xs rounded-md">#{s}</span>)}
           </div>
 
@@ -615,7 +593,7 @@ const FilterModal = ({ showFilterModal, setShowFilterModal, filterOpenOnly, setF
           </label>
           <label className="flex items-center justify-between p-4 bg-gray-50 rounded-xl cursor-pointer hover:bg-opacity-80 transition-colors" style={{ hover: { backgroundColor: hexToRgba(currentPrimaryColor, 0.05) } }}>
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full flex items-center justify-center bg-blue-100 text-blue-600"><SafeArrowUp size={20} /></div>
+              <div className="w-10 h-10 rounded-full flex items-center justify-center bg-blue-100 text-blue-600"><Star size={20} /></div>
               <span className="font-medium text-gray-700">{t('onlyElevator')}</span>
             </div>
             <div className={`w-12 h-6 rounded-full p-1 transition-colors ${filterElevator ? '' : 'bg-gray-300'}`} style={filterElevator ? { backgroundColor: '#2563eb' } : {}} onClick={(e) => { e.preventDefault(); setFilterElevator(!filterElevator); }}>
@@ -625,7 +603,7 @@ const FilterModal = ({ showFilterModal, setShowFilterModal, filterOpenOnly, setF
           {hasAnyEventsInVillage && (
             <label className="flex items-center justify-between p-4 bg-gray-50 rounded-xl cursor-pointer hover:bg-opacity-80 transition-colors" style={{ hover: { backgroundColor: hexToRgba(currentPrimaryColor, 0.05) } }}>
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full flex items-center justify-center bg-orange-100 text-orange-600"><SafeSparkles size={20} /></div>
+                <div className="w-10 h-10 rounded-full flex items-center justify-center bg-orange-100 text-orange-600"><Star size={20} /></div>
                 <span className="font-medium text-gray-700">{t('onlySpecialEvent')}</span>
               </div>
               <div className={`w-12 h-6 rounded-full p-1 transition-colors ${filterEventOnly ? '' : 'bg-gray-300'}`} style={filterEventOnly ? { backgroundColor: '#ea580c' } : {}} onClick={(e) => { e.preventDefault(); setFilterEventOnly(!filterEventOnly); }}>
@@ -754,8 +732,8 @@ export default function App() {
     'gift': { labelKey: 'gift', icon: <Gift size={18}/> },
     'attraction': { labelKey: 'attraction', icon: <Camera size={18}/> },
     'experience': { labelKey: 'experience', icon: <Tag size={18}/> },
-    'transport': { labelKey: 'transport', icon: <Bus size={18}/> },
-    '交通': { labelKey: 'transport', icon: <Bus size={18}/> },
+    'transport': { labelKey: 'transport', icon: <Navigation size={18}/> },
+    '交通': { labelKey: 'transport', icon: <Navigation size={18}/> },
   };
 
   useEffect(() => {
@@ -931,6 +909,115 @@ export default function App() {
     return result;
   };
 
+  const checkIsOpen = (hoursString) => {
+    if (!hoursString) return null; 
+    const now = new Date();
+    const currentDay = now.getDay(); 
+    const currentHour = now.getHours();
+    const currentMin = now.getMinutes();
+    const currentTimeVal = currentHour * 60 + currentMin;
+
+    let cleanHours = String(hoursString).replace(/\|/g, ',').replace(/：/g, ':').replace(/～/g, '-').replace(/至/g, '-').trim();
+    const expandDayRanges = (str) => {
+      const dayMap = { '日': 0, '一': 1, '二': 2, '三': 3, '四': 4, '五': 5, '六': 6 };
+      const revMap = ['日', '一', '二', '三', '四', '五', '六'];
+      return str.replace(/(?:週|星期)([日一二三四五六])\s*(?:-|~)\s*(?:週|星期)([日一二三四五六])/g, (match, startChar, endChar) => {
+        let startIdx = dayMap[startChar];
+        let endIdx = dayMap[endChar];
+        let result = [];
+        let curr = startIdx;
+        while (true) {
+          result.push('週' + revMap[curr]);
+          if (curr === endIdx) break;
+          curr = (curr + 1) % 7;
+        }
+        return result.join(' ');
+      });
+    };
+
+    cleanHours = expandDayRanges(cleanHours);
+    if (cleanHours.includes('預約制')) return 'appointment';
+    if (cleanHours.toLowerCase().includes('google')) return 'google';
+    if (cleanHours.toLowerCase().includes('fb') || cleanHours.includes('粉絲專頁')) return 'fb';
+    if (cleanHours === '營業中') return true;
+    if (cleanHours === '休息中') return false;
+
+    const dayChars = ['日', '一', '二', '三', '四', '五', '六'];
+    const todayChar = dayChars[currentDay];
+    const isWeekend = currentDay === 0 || currentDay === 6;
+    const segments = cleanHours.split(/[,;，；\n]/).map(s => s.trim()).filter(s => s);
+    let matchedRanges = [];
+    let matchPriority = -1; 
+
+    for (let segment of segments) {
+      let applies = false;
+      let priority = 0;
+      const hasSpecificDay = /(週|星期)[日一二三四五六]/.test(segment);
+      const hasWeekday = /平日/.test(segment);
+      const hasWeekend = /(假日|週末|六日)/.test(segment);
+
+      if (hasSpecificDay) {
+        if (new RegExp(`(週|星期)[日一二三四五六、,，\\s]*${todayChar}`).test(segment)) { applies = true; priority = 2; }
+      } else if (hasWeekday) {
+        if (!isWeekend) { applies = true; priority = 1; }
+      } else if (hasWeekend) {
+        if (isWeekend) { applies = true; priority = 1; }
+      } else { applies = true; priority = 0; }
+
+      if (applies) {
+        const isClosed = /公休|休息/.test(segment);
+        if (priority > matchPriority) {
+          matchPriority = priority;
+          matchedRanges = isClosed ? [] : [segment]; 
+        } else if (priority === matchPriority) {
+          if (isClosed) matchedRanges = [];
+          else matchedRanges.push(segment);
+        }
+      }
+    }
+
+    if (matchPriority === -1) {
+      const hasAnyDayKeywords = /(週|星期|平日|假日|週末)/.test(cleanHours);
+      if (hasAnyDayKeywords) return false; 
+      matchedRanges = [cleanHours];
+    }
+    if (matchedRanges.length === 0 && matchPriority > -1) return false; 
+
+    let isOpeningSoon = false; let isClosingSoon = false; let isOpenNow = false;
+
+    for (let segment of matchedRanges) {
+      const times = segment.match(/(\d{1,2}:\d{2})\s*-\s*(\d{1,2}:\d{2})/g);
+      if (times) {
+        for (let timeRange of times) {
+           const [startStr, endStr] = timeRange.split('-').map(s => s.trim());
+           try {
+              const [startH, startM] = startStr.split(':').map(Number);
+              const [endH, endM] = endStr.split(':').map(Number);
+              const startVal = startH * 60 + startM;
+              const endVal = endH * 60 + endM;
+              if (currentTimeVal >= startVal && currentTimeVal < endVal) {
+                  isOpenNow = true;
+                  if (currentTimeVal >= endVal - 30) isClosingSoon = true;
+              }
+              if (currentTimeVal >= startVal - 30 && currentTimeVal < startVal) isOpeningSoon = true;
+           } catch (e) {}
+        }
+      }
+    }
+    if (isClosingSoon) return 'closing_soon';
+    if (isOpenNow) return true;
+    if (isOpeningSoon) return 'opening_soon';
+    return false;
+  };
+
+  const toggleFavorite = (shopId) => {
+    let newFavs;
+    if (favorites.includes(shopId)) newFavs = favorites.filter(id => id !== shopId);
+    else newFavs = [...favorites, shopId];
+    setFavorites(newFavs);
+    localStorage.setItem('meishan_favorites', JSON.stringify(newFavs));
+  };
+
   const processedShops = getProcessedShops();
   const availableCategories = getDynamicCategories();
   const hasAnyEventsInVillage = shops.some(s => s.village === selectedVillage && s.matchedEvents && s.matchedEvents.length > 0);
@@ -1066,24 +1153,22 @@ export default function App() {
           <img src={`/${villageData[selectedVillage]?.bgFile}`} alt="Village Background" className="w-full h-full object-cover opacity-80" style={{ animation: 'slowFloat 20s ease-in-out infinite' }} onError={(e) => e.target.style.display = 'none'} />
         </div>
 
-        {/* 前景動態落葉 (進入店家時隱藏) */}
-        {(!selectedShop && !selectedAnnouncement && !arTargetShop) && (
-          <div className="fixed inset-y-0 w-full max-w-md z-30 pointer-events-none">
-            {(() => {
-               const vData = villageData[selectedVillage];
-               if (!vData) return null;
-               const AnimIcon = vData.animIcon || SafeLeaf; 
-               const animColor = vData.animColor || 'text-emerald-500/30';
-               return (
-                 <>
-                   <div className="absolute top-[-10%] left-[10%] animate-fall-1"><AnimIcon className={animColor} size={24} /></div>
-                   <div className="absolute top-[-10%] left-[50%] animate-fall-2"><AnimIcon className={animColor} size={32} /></div>
-                   <div className="absolute top-[-10%] left-[80%] animate-fall-3"><AnimIcon className={animColor} size={20} /></div>
-                 </>
-               );
-            })()}
-          </div>
-        )}
+        {/* 前景動態落葉 */}
+        <div className="fixed inset-y-0 w-full max-w-md z-30 pointer-events-none">
+          {(() => {
+             const vData = villageData[selectedVillage];
+             if (!vData) return null;
+             const AnimIcon = vData.animIcon || Star; 
+             const animColor = vData.animColor || 'text-emerald-500/30';
+             return (
+               <>
+                 <div className="absolute top-[-10%] left-[10%] animate-fall-1"><AnimIcon className={animColor} size={24} /></div>
+                 <div className="absolute top-[-10%] left-[50%] animate-fall-2"><AnimIcon className={animColor} size={32} /></div>
+                 <div className="absolute top-[-10%] left-[80%] animate-fall-3"><AnimIcon className={animColor} size={20} /></div>
+               </>
+             );
+          })()}
+        </div>
 
         {/* 內容層 */}
         <div className="relative z-10">
@@ -1126,7 +1211,7 @@ export default function App() {
                  if (announcements.length === 0) return null; 
                  return (
                     <div className="px-4 mb-6 animate-fade-in">
-                      <h3 className="text-sm font-bold mb-3 px-2 flex items-center gap-1" style={{ color: currentDarkColor }}><SafeStar size={16} /> 最新消息 & 活動</h3>
+                      <h3 className="text-sm font-bold mb-3 px-2 flex items-center gap-1" style={{ color: currentDarkColor }}><Star size={16} /> 最新消息 & 活動</h3>
                       <div className="flex gap-3 overflow-x-auto no-scrollbar snap-x pb-2">
                         {announcements.map(ann => {
                            const hasImage = ann.images && ann.images.length > 0;
@@ -1136,7 +1221,7 @@ export default function App() {
                                    <img src={ann.images[0]} alt={ann.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                                 ) : (
                                    <div className="w-full h-full flex flex-col items-center justify-center p-4 bg-gradient-to-br from-gray-50 to-gray-200">
-                                      <SafeStar size={32} className="text-gray-400 mb-2" />
+                                      <Star size={32} className="text-gray-400 mb-2" />
                                       <h4 className="font-bold text-gray-700 text-lg text-center truncate w-full">{ann.name}</h4>
                                    </div>
                                 )}
@@ -1168,10 +1253,10 @@ export default function App() {
           <div className="px-6 mb-4 flex justify-between items-center">
               <h2 className="text-lg font-bold text-gray-800 bg-white/50 px-2 rounded-lg backdrop-blur-sm">{currentView === 'favorites' ? t('favoritesList') : t('featured')}</h2>
               <div className="flex items-center gap-2">
-                {filterElevator && <span className="text-xs font-medium px-2 py-1 rounded-lg flex items-center gap-1 border bg-blue-50 text-blue-700 border-blue-200 backdrop-blur-sm"><SafeChevronUp size={12} /> 有電梯</span>}
-                {filterEventOnly && <span className="text-xs font-medium px-2 py-1 rounded-lg flex items-center gap-1 border bg-orange-50 text-orange-700 border-orange-200 backdrop-blur-sm"><SafeStar size={12} /> 特色活動</span>}
+                {filterElevator && <span className="text-xs font-medium px-2 py-1 rounded-lg flex items-center gap-1 border bg-blue-50 text-blue-700 border-blue-200 backdrop-blur-sm"><Star size={12} /> 有電梯</span>}
+                {filterEventOnly && <span className="text-xs font-medium px-2 py-1 rounded-lg flex items-center gap-1 border bg-orange-50 text-orange-700 border-orange-200 backdrop-blur-sm"><Star size={12} /> 特色活動</span>}
                 {filterOpenOnly && <span className="text-xs font-medium px-2 py-1 rounded-lg flex items-center gap-1 border bg-white/80 backdrop-blur-sm" style={{ color: currentDarkColor, borderColor: hexToRgba(currentPrimaryColor, 0.2) }}><Clock size={12} /> {t('openNow')}</span>}
-                {userLocation && <span className="text-xs font-medium px-2 py-1 rounded-lg flex items-center gap-1 bg-white/80 backdrop-blur-sm" style={{ color: currentDarkColor }}><LocateFixed size={12} /> {t('distance')}</span>}
+                {userLocation && <span className="text-xs font-medium px-2 py-1 rounded-lg flex items-center gap-1 bg-white/80 backdrop-blur-sm" style={{ color: currentDarkColor }}><Navigation size={12} /> {t('distance')}</span>}
                 <div className="flex items-center gap-1 text-xs px-2 py-1 rounded-lg bg-white/80 backdrop-blur-sm" style={{ color: currentDarkColor }}><Star size={12} style={{ fill: currentDarkColor }} /><span>{processedShops.length} {t('shopsCount')}</span></div>
               </div>
           </div>
@@ -1255,7 +1340,7 @@ export default function App() {
                       </div>
 
                       <div className="flex flex-wrap gap-2 mb-3">
-                        {shop.hasElevator && <span className="text-[10px] bg-blue-50 text-blue-600 border border-blue-200 px-2 py-1 rounded-md font-bold flex items-center gap-1"><SafeChevronUp size={12} /> 有電梯</span>}
+                        {shop.hasElevator && <span className="text-[10px] bg-blue-50 text-blue-600 border border-blue-200 px-2 py-1 rounded-md font-bold flex items-center gap-1"><Star size={12} /> 有電梯</span>}
                         {shop.services.slice(0, 3).map((service, idx) => <span key={idx} className="text-[10px] bg-gray-100 text-gray-600 px-2 py-1 rounded-md font-medium">{service}</span>)}
                         {shop.services.length > 3 && <span className="text-[10px] text-gray-400 px-1 py-1">+{shop.services.length - 3}</span>}
                       </div>
@@ -1272,7 +1357,6 @@ export default function App() {
                         {shop.tel && <a href={`tel:${shop.tel}`} className="w-11 h-11 rounded-xl flex items-center justify-center transition-colors border hover:opacity-80" style={{ backgroundColor: hexToRgba(shopCardColor, 0.05), borderColor: hexToRgba(shopCardColor, 0.2), color: shopCardColor }}><Phone size={18} /></a>}
                         {shop.line_url && <a href={shop.line_url} target="_blank" rel="noopener noreferrer" className="w-11 h-11 bg-green-500 hover:bg-green-600 text-white rounded-xl flex items-center justify-center transition-colors shadow-sm"><span className="font-extrabold text-[10px]">LINE</span></a>}
                         {shop.fbLink && <a href={shop.fbLink} target="_blank" rel="noopener noreferrer" className="w-11 h-11 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-xl flex items-center justify-center transition-colors"><Facebook size={18} /></a>}
-                        {shop.ig_url && <a href={shop.ig_url} target="_blank" rel="noopener noreferrer" className="w-11 h-11 bg-pink-50 hover:bg-pink-100 text-pink-600 rounded-xl flex items-center justify-center transition-colors"><SafeInstagram size={18} /></a>}
                       </div>
                     </div>
                   </div>
@@ -1338,6 +1422,7 @@ export default function App() {
         </div>
       )}
 
+      {/* 📌 這些彈窗已經搬移到最外層，不會再被導航列蓋住了 */}
       {arTargetShop && <ARNavigation targetShop={arTargetShop} userLoc={userLocation} onClose={() => setArTargetShop(null)} />}
       <AnnouncementModal ann={selectedAnnouncement} onClose={() => setSelectedAnnouncement(null)} currentPrimaryColor={currentPrimaryColor} />
       <ShopDetailModal shop={selectedShop} onClose={() => setSelectedShop(null)} t={t} language={language} setArTargetShop={setArTargetShop} userLocation={userLocation} />
