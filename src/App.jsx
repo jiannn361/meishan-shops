@@ -1,13 +1,19 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-// 【極致穩定修正】徹底移除所有可能有風險的新版圖示，只保留最基礎、最古老、保證 100% 存在的 Icon
-import { Search, MapPin, Phone, Navigation, Facebook, Instagram, Star, Home, Coffee, Gift, User, Filter, Heart, Menu, X, Mountain, Loader2, Camera, Ticket, Tag, Clock, ChevronLeft, ChevronRight, Info, LocateFixed, Globe, MessageCircle, Map as MapIcon, ExternalLink, Calendar, Banknote, AlertCircle, Bus, ChevronDown, Play, ArrowRight, Sparkles, Cloud, Leaf, Feather, Sun, Navigation2, ArrowUp } from 'lucide-react';
+// 【極致穩定修正】徹底移除所有可能有風險的新版圖示 (如 Sparkles, ArrowUp, Navigation2)
+import { Search, MapPin, Phone, Navigation, Facebook, Instagram, Star, Home, Coffee, Gift, User, Filter, Heart, Menu, X, Mountain, Loader2, Camera, Ticket, Tag, Clock, ChevronLeft, ChevronRight, Info, LocateFixed, Globe, MessageCircle, Map as MapIcon, ExternalLink, Calendar, Banknote, AlertCircle, Bus, ChevronDown, ChevronUp, Play, ArrowRight, Cloud, Leaf, Feather, Sun } from 'lucide-react';
 
-// 【安全修正】防止部分環境缺少較新圖示而導致白畫面崩潰
-const SafeWind = Sparkles; // 已經移除 Wind，替換為穩定圖示
+// 【終極安全防護】如果環境連這些舊圖示都沒抓到，全部強制替換成最安全的預設圖示，絕對不白畫面！
 const SafeInstagram = Instagram || Camera;
+const SafeCloud = Cloud || Star;
+const SafeFeather = Feather || Star;
+const SafeLeaf = Leaf || Star;
+const SafeStar = Star || Info;
+const SafeSun = Sun || Star;
+const SafeMapIcon = MapIcon || Info;
+const SafeChevronUp = ChevronUp || Info;
 
 // 【安全修正】讀取環境變數
-const AIRTABLE_API_KEY = import.meta.env.VITE_AIRTABLE_API_KEY || "";
+const AIRTABLE_API_KEY = import.meta.env.VITE_AIRTABLE_API_KEY || ""; 
 
 // 【網站設定區】
 const APP_CONFIG = {
@@ -27,9 +33,9 @@ const APP_CONFIG = {
 // ==========================================
 const EVENT_CONFIG = {
   '黃頭鷺': { customImg: '/bird-event.png', color: '#d97706', bg: '#fef3c7', label: '賞鷺點' },
-  '紫藤花': { icon: Star, color: '#9333ea', bg: '#f3e8ff', label: '賞花點' },
-  '日出': { icon: Sun, color: '#ea580c', bg: '#ffedd5', label: '絕美日出' },
-  '雲海': { icon: Cloud, color: '#0284c7', bg: '#e0f2fe', label: '雲海勝地' },
+  '紫藤花': { icon: SafeStar, color: '#9333ea', bg: '#f3e8ff', label: '賞花點' },
+  '日出': { icon: SafeSun, color: '#ea580c', bg: '#ffedd5', label: '絕美日出' },
+  '雲海': { icon: SafeCloud, color: '#0284c7', bg: '#e0f2fe', label: '雲海勝地' },
   '螢火蟲': { customImg: '/star-event.png', color: '#ca8a04', bg: '#fef08a', label: '賞螢秘境' }
 };
 
@@ -81,12 +87,12 @@ const translations = {
 // 🎨 村落資料字典 
 // ==========================================
 const villageData = {
-  '太平村': { color: '#b8caa5', textDark: '#506638', textBadge: '#ffffff', bgFile: 'bg-taiping.png', iconFile: 'icon-taiping.png', icon: Cloud, animIcon: Cloud, animColor: 'text-gray-400/50', plantPrefix: 'taiping', zh: '太平村', en: 'Taiping', desc_zh: '雲梯與老街', desc_en: 'Sky Bridge & Old Street', intro: '漫步在雲端上的太平雲梯，俯瞰嘉南平原的壯麗景色，並在充滿歷史韻味的太平老街品嚐在地茶香與美食，感受雲霧繚繞的茶鄉風情。' },
-  '太興村': { color: '#ea994d', textDark: '#a35a0f', textBadge: '#ffffff', bgFile: 'bg-taixing.png', iconFile: 'icon-taixing.png', icon: Feather, animIcon: Feather, animColor: 'text-amber-700/40', plantPrefix: 'taixing', zh: '太興村', en: 'Taixing', desc_zh: '萬鷺朝鳳', desc_en: 'Herons Migration', intro: '每年秋季限定的「萬鷺朝鳳」奇景令人嘆為觀止。這裡有著豐富的生態與優美的步道，適合喜愛大自然與深度生態旅遊的您。' },
-  '碧湖/龍眼村': { color: '#80a4aa', textDark: '#3a595e', textBadge: '#ffffff', bgFile: 'bg-bihu.png', iconFile: 'icon-bihu.png', icon: Leaf, animIcon: Leaf, animColor: 'text-emerald-600/40', plantPrefix: 'bihu', zh: '碧湖/龍眼村', en: 'Bihu / Longyan', desc_zh: '觀光茶園', desc_en: 'Tea Gardens', intro: '被群山環繞的翠綠觀光茶園，層層疊疊的茶樹宛如綠色地毯。來到這裡，點一杯好茶，靜靜享受遠離塵囂的寧靜與茶香。' },
-  '瑞里村': { color: '#d2cbe3', textDark: '#5a5270', textBadge: '#413a54', bgFile: 'bg-ruili.png', iconFile: 'icon-ruili.png', icon: Star, animIcon: Sparkles, animColor: 'text-purple-500/50', plantPrefix: 'ruili', zh: '瑞里村', en: 'Ruili', desc_zh: '紫色山城', desc_en: 'Purple Mountain Town', intro: '著名的浪漫紫色山城，春季紫藤花盛開時如夢似幻。擁有燕子崖、蝙蝠洞等壯麗的自然地質景觀，是登山健行的絕佳勝地。' },
-  '瑞峰村': { color: '#dd785b', textDark: '#8a371c', textBadge: '#ffffff', bgFile: 'bg-ruifeng.png', iconFile: 'icon-ruifeng.png', icon: Sun, animIcon: Sun, animColor: 'text-orange-500/50', plantPrefix: 'ruifeng', zh: '瑞峰村', en: 'Ruifeng', desc_zh: '日出與步道', desc_en: 'Sunrise & Trails', intro: '坐擁絕美的日出勝地與竹坑溪步道，清晨的雲海與壯闊的山林景緻交織。非常適合熱愛早起迎接第一道曙光與親近森林的旅人。' },
-  '太和村': { color: '#c4b28e', textDark: '#70603d', textBadge: '#ffffff', bgFile: 'bg-taihe.png', iconFile: 'icon-taihe.png', icon: MapIcon, animIcon: Leaf, animColor: 'text-lime-700/40', plantPrefix: 'taihe', zh: '太和村', en: 'Taihe', desc_zh: '茶園秘境', desc_en: 'Hidden Tea Farms', intro: '隱藏在深山中的茶園秘境，保留了最原始純粹的自然風貌。漫步在茶園小徑，感受山林間最清新的空氣與獨特靜謐。' },
+  '太平村': { color: '#b8caa5', textDark: '#506638', textBadge: '#ffffff', bgFile: 'bg-taiping.png', iconFile: 'icon-taiping.png', icon: SafeCloud, animIcon: SafeCloud, animColor: 'text-gray-400/50', plantPrefix: 'taiping', zh: '太平村', en: 'Taiping', desc_zh: '雲梯與老街', desc_en: 'Sky Bridge & Old Street', intro: '漫步在雲端上的太平雲梯，俯瞰嘉南平原的壯麗景色，並在充滿歷史韻味的太平老街品嚐在地茶香與美食，感受雲霧繚繞的茶鄉風情。' },
+  '太興村': { color: '#ea994d', textDark: '#a35a0f', textBadge: '#ffffff', bgFile: 'bg-taixing.png', iconFile: 'icon-taixing.png', icon: SafeFeather, animIcon: SafeFeather, animColor: 'text-amber-700/40', plantPrefix: 'taixing', zh: '太興村', en: 'Taixing', desc_zh: '萬鷺朝鳳', desc_en: 'Herons Migration', intro: '每年秋季限定的「萬鷺朝鳳」奇景令人嘆為觀止。這裡有著豐富的生態與優美的步道，適合喜愛大自然與深度生態旅遊的您。' },
+  '碧湖/龍眼村': { color: '#80a4aa', textDark: '#3a595e', textBadge: '#ffffff', bgFile: 'bg-bihu.png', iconFile: 'icon-bihu.png', icon: SafeLeaf, animIcon: SafeLeaf, animColor: 'text-emerald-600/40', plantPrefix: 'bihu', zh: '碧湖/龍眼村', en: 'Bihu / Longyan', desc_zh: '觀光茶園', desc_en: 'Tea Gardens', intro: '被群山環繞的翠綠觀光茶園，層層疊疊的茶樹宛如綠色地毯。來到這裡，點一杯好茶，靜靜享受遠離塵囂的寧靜與茶香。' },
+  '瑞里村': { color: '#d2cbe3', textDark: '#5a5270', textBadge: '#413a54', bgFile: 'bg-ruili.png', iconFile: 'icon-ruili.png', icon: SafeStar, animIcon: SafeStar, animColor: 'text-purple-500/50', plantPrefix: 'ruili', zh: '瑞里村', en: 'Ruili', desc_zh: '紫色山城', desc_en: 'Purple Mountain Town', intro: '著名的浪漫紫色山城，春季紫藤花盛開時如夢似幻。擁有燕子崖、蝙蝠洞等壯麗的自然地質景觀，是登山健行的絕佳勝地。' },
+  '瑞峰村': { color: '#dd785b', textDark: '#8a371c', textBadge: '#ffffff', bgFile: 'bg-ruifeng.png', iconFile: 'icon-ruifeng.png', icon: SafeSun, animIcon: SafeSun, animColor: 'text-orange-500/50', plantPrefix: 'ruifeng', zh: '瑞峰村', en: 'Ruifeng', desc_zh: '日出與步道', desc_en: 'Sunrise & Trails', intro: '坐擁絕美的日出勝地與竹坑溪步道，清晨的雲海與壯闊的山林景緻交織。非常適合熱愛早起迎接第一道曙光與親近森林的旅人。' },
+  '太和村': { color: '#c4b28e', textDark: '#70603d', textBadge: '#ffffff', bgFile: 'bg-taihe.png', iconFile: 'icon-taihe.png', icon: SafeMapIcon, animIcon: SafeLeaf, animColor: 'text-lime-700/40', plantPrefix: 'taihe', zh: '太和村', en: 'Taihe', desc_zh: '茶園秘境', desc_en: 'Hidden Tea Farms', intro: '隱藏在深山中的茶園秘境，保留了最原始純粹的自然風貌。漫步在茶園小徑，感受山林間最清新的空氣與獨特靜謐。' },
 };
 
 const hexToRgba = (hex, alpha) => {
@@ -189,6 +195,7 @@ const ARNavigation = ({ targetShop, userLoc, onClose }) => {
   const targetBearing = userLoc && targetShop?.lat ? getBearing(userLoc.lat, userLoc.lng, targetShop.lat, targetShop.lng) : 0;
   const targetDistance = userLoc && targetShop?.lat ? calculateDistance(userLoc.lat, userLoc.lng, targetShop.lat, targetShop.lng) : 0;
 
+  // 取得精確距離以判斷是否抵達 (小於 50 公尺)
   const getRawDistance = (lat1, lon1, lat2, lng2) => {
     const R = 6371; 
     const dLat = (lat2 - lat1) * (Math.PI / 180);
@@ -309,7 +316,7 @@ const ARNavigation = ({ targetShop, userLoc, onClose }) => {
           </div>
         ) : !permissionGranted ? (
           <button onClick={requestCompassPermission} className="bg-emerald-500 text-white px-8 py-4 rounded-full font-bold shadow-xl pointer-events-auto animate-bounce flex items-center gap-2">
-            <Navigation2 size={24} /> 開啟方向羅盤權限
+            <Navigation size={24} /> 開啟方向羅盤權限
           </button>
         ) : compassHeading === null ? (
           <div className="flex flex-col items-center text-white/80 drop-shadow-md">
@@ -322,7 +329,7 @@ const ARNavigation = ({ targetShop, userLoc, onClose }) => {
               <div className="flex flex-col items-center animate-bounce z-50">
                 <div className="relative flex flex-col items-center">
                   <div className="absolute -top-16 bg-yellow-400 text-yellow-900 px-6 py-3 rounded-full font-black text-lg shadow-[0_0_30px_rgba(250,204,21,0.6)] whitespace-nowrap flex items-center gap-2 border-4 border-white z-10">
-                    <Sparkles size={24} /> 已經抵達目的地囉！ <Sparkles size={24} />
+                    <SafeStar size={24} /> 已經抵達目的地囉！ <SafeStar size={24} />
                   </div>
                   <Mascot imageUrl="/mascot-righthere.png" size={180} animation="pulse" className="drop-shadow-[0_0_40px_rgba(255,255,255,0.6)]" />
                 </div>
@@ -331,7 +338,7 @@ const ARNavigation = ({ targetShop, userLoc, onClose }) => {
               <div className="flex flex-col items-center transform transition-transform duration-200" style={{ transform: `translateX(${diffAngle * 4}px)` }}>
                 <div className="relative flex flex-col items-center">
                   <div className="absolute -top-12 bg-white/90 text-emerald-800 px-4 py-2 rounded-full font-bold text-sm shadow-xl whitespace-nowrap animate-bounce flex items-center gap-2 z-10">
-                    <Sparkles size={16} className="text-emerald-500" /> 往這裡走喔！
+                    <SafeStar size={16} className="text-emerald-500" /> 往這裡走喔！
                   </div>
                   <Mascot imageUrl="/mascot-backpack.png" size={160} animation="ride" className="drop-shadow-2xl" />
                 </div>
@@ -352,7 +359,7 @@ const ARNavigation = ({ targetShop, userLoc, onClose }) => {
       </div>
 
       <div className="absolute bottom-10 z-20 pointer-events-none opacity-50">
-         <Navigation2 size={120} className="text-white animate-pulse" strokeWidth={1} />
+         <Navigation size={120} className="text-white animate-pulse" strokeWidth={1} />
       </div>
     </div>
   );
@@ -370,7 +377,6 @@ const AnnouncementModal = ({ ann, onClose, currentPrimaryColor }) => {
     <div className="fixed inset-0 z-[80] flex items-center justify-center px-4 animate-fade-in">
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose}></div>
       <div className="relative w-full max-w-sm bg-white rounded-3xl overflow-hidden shadow-2xl animate-scale-up max-h-[85vh] flex flex-col">
-        {/* 🌟 強化的立體關閉按鈕 */}
         <button onClick={onClose} className="absolute top-4 right-4 z-50 bg-white text-gray-800 p-2.5 rounded-full shadow-[0_2px_12px_rgba(0,0,0,0.25)] hover:bg-gray-50 transition-transform active:scale-95">
           <X size={20} strokeWidth={3} />
         </button>
@@ -382,9 +388,8 @@ const AnnouncementModal = ({ ann, onClose, currentPrimaryColor }) => {
           </div>
         )}
         <div className="p-6 overflow-y-auto space-y-4">
-           {/* 加上 pr-12 避免沒有圖片時文字被叉叉按鈕蓋住 */}
            <div className={`flex items-start gap-2 ${!hasImage ? 'pr-12' : ''}`}>
-              <div className="bg-amber-100 text-amber-600 p-1.5 rounded-lg shrink-0 mt-0.5"><Sparkles size={20} /></div>
+              <div className="bg-amber-100 text-amber-600 p-1.5 rounded-lg shrink-0 mt-0.5"><SafeStar size={20} /></div>
               <h3 className="text-xl font-bold text-gray-900 leading-tight">{ann.name}</h3>
            </div>
            {ann.description && <div className="bg-gray-50 rounded-2xl p-4 text-gray-600 text-sm text-justify"><FormattedText text={ann.description} /></div>}
@@ -417,10 +422,11 @@ const ShopDetailModal = ({ shop, onClose, t, language, setArTargetShop, userLoca
   const shopColor = villageData[shop.village]?.color || '#059669';
   const shopDarkColor = villageData[shop.village]?.textDark || '#047857';
 
-  // 判斷是否顯示 AR 按鈕 (必須有經緯度座標且距離在 2 公里內)
   const hasLocationData = shop.lat && shop.lng;
   const shopDistanceNum = shop.distance ? parseFloat(shop.distance) : null;
-  const isWithinWalkingDistance = shopDistanceNum !== null && shopDistanceNum <= 2.0;
+  // 🌟 新增判斷邏輯：要有座標，並且距離在 2.0 公里內，才顯示 AR 按鈕。
+  // (如果沒有定位資料，代表尚未授權 GPS，我們保留按鈕，點擊時再請用戶授權定位)
+  const showArButton = hasLocationData && (!userLocation || shopDistanceNum <= 2.0);
 
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center px-4 animate-fade-in">
@@ -435,7 +441,6 @@ const ShopDetailModal = ({ shop, onClose, t, language, setArTargetShop, userLoca
       )}
 
       <div className="relative w-full max-w-sm bg-white rounded-3xl overflow-hidden shadow-2xl animate-scale-up max-h-[85vh] overflow-y-auto">
-        {/* 🌟 強化的立體關閉按鈕 */}
         <button onClick={onClose} className="absolute top-4 right-4 z-50 bg-white text-gray-800 p-2.5 rounded-full shadow-[0_2px_12px_rgba(0,0,0,0.25)] hover:bg-gray-50 transition-transform active:scale-95">
           <X size={20} strokeWidth={3} />
         </button>
@@ -533,7 +538,7 @@ const ShopDetailModal = ({ shop, onClose, t, language, setArTargetShop, userLoca
           </div>
 
           <div className="flex flex-wrap gap-2">
-            {shop.hasElevator && <span className="px-2 py-1 bg-blue-50 text-blue-600 border border-blue-200 text-xs rounded-md font-bold flex items-center gap-1"><ArrowUp size={14} /> 有電梯</span>}
+            {shop.hasElevator && <span className="px-2 py-1 bg-blue-50 text-blue-600 border border-blue-200 text-xs rounded-md font-bold flex items-center gap-1"><SafeChevronUp size={14} /> 有電梯</span>}
             {shop.services.map((s, i) => <span key={i} className="px-2 py-1 bg-gray-100 text-gray-500 text-xs rounded-md">#{s}</span>)}
           </div>
 
@@ -551,16 +556,13 @@ const ShopDetailModal = ({ shop, onClose, t, language, setArTargetShop, userLoca
                  <Navigation size={18} /> <span className="text-sm">{t('navigate')}</span>
                </a>
                
-               {hasLocationData && (
+               {/* 🌟 只有在有定位資料、且距離在 2 公里內時，才會顯示 AR 找店 */}
+               {showArButton && (
                  <button 
                    onClick={(e) => { 
                       e.preventDefault(); 
                       if (!userLocation) {
-                        alert("請先點擊首頁右下角的「定位」圖示取得您的位置，才能開啟 AR 找店喔！");
-                        return;
-                      }
-                      if (!isWithinWalkingDistance) {
-                        alert("距離超過 2 公里！太遠了，建議您直接使用一般導航前往。");
+                        alert("請先點擊首頁下方中間的「定位」圖示取得您的位置，才能開啟 AR 找店喔！");
                         return;
                       }
                       setArTargetShop(shop); 
@@ -594,7 +596,6 @@ const FilterModal = ({ showFilterModal, setShowFilterModal, filterOpenOnly, setF
     <div className="fixed inset-0 z-[60] flex items-end justify-center sm:items-center p-4 animate-fade-in">
       <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setShowFilterModal(false)}></div>
       <div className="relative w-full max-w-sm bg-white rounded-t-3xl sm:rounded-3xl p-6 space-y-6 animate-slide-up">
-        {/* 🌟 統一的立體圓形關閉按鈕 */}
         <button onClick={() => setShowFilterModal(false)} className="absolute top-4 right-4 z-50 bg-gray-100 text-gray-500 p-2 rounded-full hover:bg-gray-200 transition-colors">
           <X size={20} strokeWidth={2.5} />
         </button>
@@ -615,7 +616,7 @@ const FilterModal = ({ showFilterModal, setShowFilterModal, filterOpenOnly, setF
           </label>
           <label className="flex items-center justify-between p-4 bg-gray-50 rounded-xl cursor-pointer hover:bg-opacity-80 transition-colors" style={{ hover: { backgroundColor: hexToRgba(currentPrimaryColor, 0.05) } }}>
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full flex items-center justify-center bg-blue-100 text-blue-600"><ArrowUp size={20} /></div>
+              <div className="w-10 h-10 rounded-full flex items-center justify-center bg-blue-100 text-blue-600"><SafeChevronUp size={20} /></div>
               <span className="font-medium text-gray-700">{t('onlyElevator')}</span>
             </div>
             <div className={`w-12 h-6 rounded-full p-1 transition-colors ${filterElevator ? '' : 'bg-gray-300'}`} style={filterElevator ? { backgroundColor: '#2563eb' } : {}} onClick={(e) => { e.preventDefault(); setFilterElevator(!filterElevator); }}>
@@ -625,7 +626,7 @@ const FilterModal = ({ showFilterModal, setShowFilterModal, filterOpenOnly, setF
           {hasAnyEventsInVillage && (
             <label className="flex items-center justify-between p-4 bg-gray-50 rounded-xl cursor-pointer hover:bg-opacity-80 transition-colors" style={{ hover: { backgroundColor: hexToRgba(currentPrimaryColor, 0.05) } }}>
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full flex items-center justify-center bg-orange-100 text-orange-600"><Sparkles size={20} /></div>
+                <div className="w-10 h-10 rounded-full flex items-center justify-center bg-orange-100 text-orange-600"><SafeStar size={20} /></div>
                 <span className="font-medium text-gray-700">{t('onlySpecialEvent')}</span>
               </div>
               <div className={`w-12 h-6 rounded-full p-1 transition-colors ${filterEventOnly ? '' : 'bg-gray-300'}`} style={filterEventOnly ? { backgroundColor: '#ea580c' } : {}} onClick={(e) => { e.preventDefault(); setFilterEventOnly(!filterEventOnly); }}>
@@ -646,7 +647,6 @@ const UserModal = ({ showUserModal, setShowUserModal, userProfile, t, APP_CONFIG
     <div className="fixed inset-0 z-[60] flex items-end justify-center sm:items-center p-4 animate-fade-in">
       <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setShowUserModal(false)}></div>
       <div className="relative w-full max-w-sm bg-white rounded-t-3xl sm:rounded-3xl p-6 space-y-6 animate-slide-up">
-        {/* 🌟 統一的立體圓形關閉按鈕 */}
         <button onClick={() => setShowUserModal(false)} className="absolute top-4 right-4 z-50 bg-gray-100 text-gray-500 p-2 rounded-full hover:bg-gray-200 transition-colors">
           <X size={20} strokeWidth={2.5} />
         </button>
@@ -786,7 +786,6 @@ export default function App() {
           if (data.offset) offset = data.offset; else break;
         }
         
-        // 在內部解析處理紀錄
         const processedShops = allRecords.map(record => {
             const f = record.fields;
             let categories = [];
@@ -1177,26 +1176,14 @@ export default function App() {
           <img src={`/${villageData[selectedVillage]?.bgFile}`} alt="Village Background" className="w-full h-full object-cover opacity-80" style={{ animation: 'slowFloat 20s ease-in-out infinite' }} onError={(e) => e.target.style.display = 'none'} />
         </div>
 
-        {/* 前景動態落葉 */}
-        <div className="fixed inset-y-0 w-full max-w-md z-30 pointer-events-none">
-          {(() => {
-             const vData = villageData[selectedVillage];
-             if (!vData) return null;
-             const AnimIcon = vData.animIcon || Leaf; 
-             const animColor = vData.animColor || 'text-emerald-500/30';
-             return (
-               <>
-                 <div className="absolute top-[-10%] left-[10%] animate-fall-1"><AnimIcon className={animColor} size={24} /></div>
-                 <div className="absolute top-[-10%] left-[50%] animate-fall-2"><AnimIcon className={animColor} size={32} /></div>
-                 <div className="absolute top-[-10%] left-[80%] animate-fall-3"><AnimIcon className={animColor} size={20} /></div>
-               </>
-             );
-          })()}
-        </div>
-
         {/* 內容層 */}
         <div className="relative z-10">
           
+          {/* 🌟 渲染 AR 導航模組 */}
+          {arTargetShop && (
+             <ARNavigation targetShop={arTargetShop} userLoc={userLocation} onClose={() => setArTargetShop(null)} />
+          )}
+
           {/* Header */}
           <div className="px-6 pt-12 pb-4 flex justify-between items-center bg-white/80 sticky top-0 z-20 backdrop-blur-md border-b border-gray-100">
             <div className="flex items-center gap-1">
@@ -1235,7 +1222,7 @@ export default function App() {
                  if (announcements.length === 0) return null; 
                  return (
                     <div className="px-4 mb-6 animate-fade-in">
-                      <h3 className="text-sm font-bold mb-3 px-2 flex items-center gap-1" style={{ color: currentDarkColor }}><Sparkles size={16} /> 最新消息 & 活動</h3>
+                      <h3 className="text-sm font-bold mb-3 px-2 flex items-center gap-1" style={{ color: currentDarkColor }}><SafeStar size={16} /> 最新消息 & 活動</h3>
                       <div className="flex gap-3 overflow-x-auto no-scrollbar snap-x pb-2">
                         {announcements.map(ann => {
                            const hasImage = ann.images && ann.images.length > 0;
@@ -1245,7 +1232,7 @@ export default function App() {
                                    <img src={ann.images[0]} alt={ann.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                                 ) : (
                                    <div className="w-full h-full flex flex-col items-center justify-center p-4 bg-gradient-to-br from-gray-50 to-gray-200">
-                                      <Sparkles size={32} className="text-gray-400 mb-2" />
+                                      <SafeStar size={32} className="text-gray-400 mb-2" />
                                       <h4 className="font-bold text-gray-700 text-lg text-center truncate w-full">{ann.name}</h4>
                                    </div>
                                 )}
@@ -1277,8 +1264,8 @@ export default function App() {
           <div className="px-6 mb-4 flex justify-between items-center">
               <h2 className="text-lg font-bold text-gray-800 bg-white/50 px-2 rounded-lg backdrop-blur-sm">{currentView === 'favorites' ? t('favoritesList') : t('featured')}</h2>
               <div className="flex items-center gap-2">
-                {filterElevator && <span className="text-xs font-medium px-2 py-1 rounded-lg flex items-center gap-1 border bg-blue-50 text-blue-700 border-blue-200 backdrop-blur-sm"><ArrowUp size={12} /> 有電梯</span>}
-                {filterEventOnly && <span className="text-xs font-medium px-2 py-1 rounded-lg flex items-center gap-1 border bg-orange-50 text-orange-700 border-orange-200 backdrop-blur-sm"><Sparkles size={12} /> 特色活動</span>}
+                {filterElevator && <span className="text-xs font-medium px-2 py-1 rounded-lg flex items-center gap-1 border bg-blue-50 text-blue-700 border-blue-200 backdrop-blur-sm"><SafeChevronUp size={12} /> 有電梯</span>}
+                {filterEventOnly && <span className="text-xs font-medium px-2 py-1 rounded-lg flex items-center gap-1 border bg-orange-50 text-orange-700 border-orange-200 backdrop-blur-sm"><SafeStar size={12} /> 特色活動</span>}
                 {filterOpenOnly && <span className="text-xs font-medium px-2 py-1 rounded-lg flex items-center gap-1 border bg-white/80 backdrop-blur-sm" style={{ color: currentDarkColor, borderColor: hexToRgba(currentPrimaryColor, 0.2) }}><Clock size={12} /> {t('openNow')}</span>}
                 {userLocation && <span className="text-xs font-medium px-2 py-1 rounded-lg flex items-center gap-1 bg-white/80 backdrop-blur-sm" style={{ color: currentDarkColor }}><LocateFixed size={12} /> {t('distance')}</span>}
                 <div className="flex items-center gap-1 text-xs px-2 py-1 rounded-lg bg-white/80 backdrop-blur-sm" style={{ color: currentDarkColor }}><Star size={12} style={{ fill: currentDarkColor }} /><span>{processedShops.length} {t('shopsCount')}</span></div>
@@ -1364,7 +1351,7 @@ export default function App() {
                       </div>
 
                       <div className="flex flex-wrap gap-2 mb-3">
-                        {shop.hasElevator && <span className="text-[10px] bg-blue-50 text-blue-600 border border-blue-200 px-2 py-1 rounded-md font-bold flex items-center gap-1"><ArrowUp size={12} /> 有電梯</span>}
+                        {shop.hasElevator && <span className="text-[10px] bg-blue-50 text-blue-600 border border-blue-200 px-2 py-1 rounded-md font-bold flex items-center gap-1"><SafeChevronUp size={12} /> 有電梯</span>}
                         {shop.services.slice(0, 3).map((service, idx) => <span key={idx} className="text-[10px] bg-gray-100 text-gray-600 px-2 py-1 rounded-md font-medium">{service}</span>)}
                         {shop.services.length > 3 && <span className="text-[10px] text-gray-400 px-1 py-1">+{shop.services.length - 3}</span>}
                       </div>
@@ -1381,6 +1368,7 @@ export default function App() {
                         {shop.tel && <a href={`tel:${shop.tel}`} className="w-11 h-11 rounded-xl flex items-center justify-center transition-colors border hover:opacity-80" style={{ backgroundColor: hexToRgba(shopCardColor, 0.05), borderColor: hexToRgba(shopCardColor, 0.2), color: shopCardColor }}><Phone size={18} /></a>}
                         {shop.line_url && <a href={shop.line_url} target="_blank" rel="noopener noreferrer" className="w-11 h-11 bg-green-500 hover:bg-green-600 text-white rounded-xl flex items-center justify-center transition-colors shadow-sm"><span className="font-extrabold text-[10px]">LINE</span></a>}
                         {shop.fbLink && <a href={shop.fbLink} target="_blank" rel="noopener noreferrer" className="w-11 h-11 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-xl flex items-center justify-center transition-colors"><Facebook size={18} /></a>}
+                        {shop.ig_url && <a href={shop.ig_url} target="_blank" rel="noopener noreferrer" className="w-11 h-11 bg-pink-50 hover:bg-pink-100 text-pink-600 rounded-xl flex items-center justify-center transition-colors"><SafeInstagram size={18} /></a>}
                       </div>
                     </div>
                   </div>
