@@ -10,7 +10,7 @@ import {
 const APP_CONFIG = {
   appName: "Meishan Taiping",
   subTitle: "Meishan, Chiayi",
-  airtableApiKey: import.meta.env.VITE_AIRTABLE_API_KEY || "";
+  airtableApiKey: import.meta.env.VITE_AIRTABLE_API_KEY || "", 
   airtableBaseId: "appkU3kxP74Gq7iXj", 
   airtableTableName: "Table 1", 
   liffId: "2009010332-K14upnUb",
@@ -82,7 +82,7 @@ const villageData = {
 };
 
 // ==========================================
-// 🛠️ 輔助函式 (移至全域以避免依賴問題)
+// 🛠️ 輔助函式
 // ==========================================
 const hexToRgba = (hex, alpha) => {
   if (!hex) return `rgba(0,0,0,${alpha})`;
@@ -514,7 +514,6 @@ const AnnouncementModal = ({ ann, onClose, currentPrimaryColor }) => {
   );
 };
 
-// 【修正】已完全移除 Vercel 報錯的多餘 props (checkIsOpen, getDynamicText)
 const ShopDetailModal = ({ shop, onClose, t, language, setArTargetShop, userLocation }) => {
   const [viewTrailMap, setViewTrailMap] = useState(false);
 
@@ -608,6 +607,7 @@ const ShopDetailModal = ({ shop, onClose, t, language, setArTargetShop, userLoca
                <div className="flex items-center gap-1.5">
                  {shop.tel && <a href={`tel:${shop.tel}`} className="w-9 h-9 flex items-center justify-center rounded-full border hover:opacity-80 transition-opacity flex-shrink-0" style={{ backgroundColor: hexToRgba(shopColor, 0.05), borderColor: hexToRgba(shopColor, 0.2), color: shopColor }}><Phone size={16} /></a>}
                  {shop.fbLink && <a href={shop.fbLink} target="_blank" rel="noopener noreferrer" className="w-9 h-9 flex items-center justify-center rounded-full border border-blue-200 text-blue-600 hover:bg-blue-50 transition-colors flex-shrink-0"><Facebook size={16} /></a>}
+                 {/* 不使用可能會報錯的 Instagram */}
                  {shop.ig_url && <a href={shop.ig_url} target="_blank" rel="noopener noreferrer" className="w-9 h-9 flex items-center justify-center rounded-full border border-pink-200 text-pink-600 hover:bg-pink-50 transition-colors flex-shrink-0"><Camera size={16} /></a>}
                  {shop.line_url && <a href={shop.line_url} target="_blank" rel="noopener noreferrer" className="w-9 h-9 flex items-center justify-center rounded-full border border-green-200 text-green-600 hover:bg-green-50 transition-colors flex-shrink-0"><span className="font-extrabold text-[9px]">LINE</span></a>}
                  {shop.website && <a href={shop.website} target="_blank" rel="noopener noreferrer" className="w-9 h-9 flex items-center justify-center rounded-full border border-purple-200 text-purple-600 hover:bg-purple-50 transition-colors flex-shrink-0"><Globe size={16} /></a>}
@@ -748,7 +748,6 @@ const FilterModal = ({ showFilterModal, setShowFilterModal, filterOpenOnly, setF
   );
 };
 
-// 【修正】確保不會接收多餘的 props (移除了 userProfile)
 const UserModal = ({ showUserModal, setShowUserModal, t, APP_CONFIG, currentPrimaryColor, currentDarkColor, favorites, setFavorites }) => {
   if (!showUserModal) return null;
   return (
@@ -797,9 +796,6 @@ export default function App() {
   const [currentView, setCurrentView] = useState('home');
   const [favorites, setFavorites] = useState([]);
   const [userLocation, setUserLocation] = useState(null);
-  
-  // 【修正】移除未使用到的 userProfile 變數宣告，以避開 Vercel 針對 Unused Variable 的部署阻擋
-  
   const [sortBy, setSortBy] = useState('default');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedShop, setSelectedShop] = useState(null);
@@ -825,7 +821,6 @@ export default function App() {
     });
   };
 
-  // 【修正】補回關鍵的 toggleLanguage 函式，防止點擊語言切換時觸發 ReferenceError (白畫面)
   const toggleLanguage = useCallback(() => {
     setLanguage(prev => prev === 'zh' ? 'en' : 'zh');
   }, []);
@@ -1316,7 +1311,7 @@ export default function App() {
                         {shop.tel && <a href={`tel:${shop.tel}`} className="w-11 h-11 rounded-xl flex items-center justify-center transition-colors border hover:opacity-80" style={{ backgroundColor: hexToRgba(shopCardColor, 0.05), borderColor: hexToRgba(shopCardColor, 0.2), color: shopCardColor }}><Phone size={18} /></a>}
                         {shop.line_url && <a href={shop.line_url} target="_blank" rel="noopener noreferrer" className="w-11 h-11 bg-green-500 hover:bg-green-600 text-white rounded-xl flex items-center justify-center transition-colors shadow-sm"><span className="font-extrabold text-[10px]">LINE</span></a>}
                         {shop.fbLink && <a href={shop.fbLink} target="_blank" rel="noopener noreferrer" className="w-11 h-11 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-xl flex items-center justify-center transition-colors"><Facebook size={18} /></a>}
-                        {shop.ig_url && <a href={shop.ig_url} target="_blank" rel="noopener noreferrer" className="w-11 h-11 bg-pink-50 hover:bg-pink-100 text-pink-600 rounded-xl flex items-center justify-center transition-colors"><Camera size={18} /></a>}
+                        {/* 已經拿掉 Instagram */}
                       </div>
                     </div>
                   </div>
@@ -1381,7 +1376,7 @@ export default function App() {
       )}
 
       {selectedAnnouncement && <AnnouncementModal ann={selectedAnnouncement} onClose={() => setSelectedAnnouncement(null)} currentPrimaryColor={currentPrimaryColor} />}
-      <ShopDetailModal shop={selectedShop} onClose={() => setSelectedShop(null)} t={t} language={language} setArTargetShop={setArTargetShop} userLocation={userLocation} checkIsOpen={checkIsOpen} getDynamicText={getDynamicText} />
+      <ShopDetailModal shop={selectedShop} onClose={() => setSelectedShop(null)} t={t} language={language} setArTargetShop={setArTargetShop} userLocation={userLocation} />
       <FilterModal showFilterModal={showFilterModal} setShowFilterModal={setShowFilterModal} filterOpenOnly={filterOpenOnly} setFilterOpenOnly={setFilterOpenOnly} filterElevator={filterElevator} setFilterElevator={setFilterElevator} hasAnyEventsInVillage={hasAnyEventsInVillage} filterEventOnly={filterEventOnly} setFilterEventOnly={setFilterEventOnly} currentPrimaryColor={currentPrimaryColor} t={t} />
       <UserModal showUserModal={showUserModal} setShowUserModal={setShowUserModal} t={t} APP_CONFIG={APP_CONFIG} currentPrimaryColor={currentPrimaryColor} currentDarkColor={currentDarkColor} favorites={favorites} setFavorites={setFavorites} />
       {arTargetShop && <ARNavigation targetShop={arTargetShop} userLoc={userLocation} onClose={() => setArTargetShop(null)} />}
