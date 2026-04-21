@@ -10,7 +10,7 @@ import {
 const APP_CONFIG = {
   appName: "Meishan Taiping",
   subTitle: "Meishan, Chiayi",
-  airtableApiKey: import.meta.env.VITE_AIRTABLE_API_KEY || "", 
+  airtableApiKey: import.meta.env.VITE_AIRTABLE_API_KEY ||  "", 
   airtableBaseId: "appkU3kxP74Gq7iXj", 
   airtableTableName: "Table 1", 
   liffId: "2009010332-K14upnUb",
@@ -677,6 +677,7 @@ const ShopDetailModal = ({ shop, onClose, t, language, setArTargetShop, userLoca
                         return;
                       }
                       setArTargetShop(shop); 
+                      onClose();
                    }}
                    className="flex-1 bg-gray-900 text-white py-3 rounded-xl flex items-center justify-center gap-1.5 transition-colors font-bold shadow-lg hover:opacity-90"
                    style={{ boxShadow: `0 4px 14px 0 rgba(0,0,0,0.3)` }}>
