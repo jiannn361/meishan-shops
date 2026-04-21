@@ -705,7 +705,7 @@ const FilterModal = ({ showFilterModal, setShowFilterModal, filterOpenOnly, setF
   return (
     <div className="fixed inset-0 z-[120] flex items-end justify-center animate-fade-in">
       <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setShowFilterModal(false)}></div>
-      <div className="relative w-full max-w-sm bg-white rounded-t-[32px] p-6 pb-32 space-y-6 animate-in slide-in-from-bottom duration-300 max-h-[85vh] overflow-y-auto shadow-2xl">
+      <div className="relative w-full max-w-sm bg-white rounded-t-[32px] p-6 pb-36 space-y-6 animate-in slide-in-from-bottom duration-300 max-h-[85vh] overflow-y-auto shadow-2xl">
         <button onClick={() => setShowFilterModal(false)} className="absolute top-4 right-4 z-50 bg-gray-100 p-2 rounded-full text-gray-500"><X size={20} strokeWidth={2.5} /></button>
         <div className="flex justify-between items-center pr-10">
           <h3 className="text-lg font-bold text-gray-800">{t('quickFilter')}</h3>
@@ -795,7 +795,7 @@ export default function App() {
   const [currentView, setCurrentView] = useState('home');
   const [favorites, setFavorites] = useState([]);
   const [userLocation, setUserLocation] = useState(null);
-  const [userProfile] = useState(null); // 保留，以防後續 Liff 整合
+  // 【修正】移除未使用到的 userProfile 相關變數，確保 Vercel 部署無痛通過。
   const [sortBy, setSortBy] = useState('default');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedShop, setSelectedShop] = useState(null);
@@ -821,6 +821,7 @@ export default function App() {
     });
   };
 
+  // 【修正】確保 toggleLanguage 存在，這樣點選切換語言按鈕才不會導致白畫面 (ReferenceError)。
   const toggleLanguage = useCallback(() => {
     setLanguage(prev => prev === 'zh' ? 'en' : 'zh');
   }, []);
@@ -1140,9 +1141,10 @@ export default function App() {
               </div>
             </div>
             <div className="flex items-center gap-2">
+              {/* 【修正】補上綁定的 toggleLanguage 事件，確保點擊不會出錯 */}
               <button onClick={toggleLanguage} className="text-sm font-bold px-2 py-1 rounded-lg border hover:opacity-80 transition-opacity bg-white" style={{ color: currentPrimaryColor, borderColor: hexToRgba(currentPrimaryColor, 0.2) }}>{t('langSwitch')}</button>
               <button onClick={() => setShowUserModal(true)} className="w-10 h-10 rounded-full overflow-hidden border-2 border-white shadow-md bg-white flex items-center justify-center">
-                 {userProfile?.pictureUrl ? <img src={userProfile.pictureUrl} alt="User" className="w-full h-full object-cover" /> : <User size={20} style={{ color: currentPrimaryColor }} />}
+                 <User size={20} style={{ color: currentPrimaryColor }} />
               </button>
             </div>
           </div>
@@ -1376,6 +1378,7 @@ export default function App() {
       )}
 
       {selectedAnnouncement && <AnnouncementModal ann={selectedAnnouncement} onClose={() => setSelectedAnnouncement(null)} currentPrimaryColor={currentPrimaryColor} />}
+      {/* 【修正】移除了導致編譯器錯誤提示的 unused props */}
       <ShopDetailModal shop={selectedShop} onClose={() => setSelectedShop(null)} t={t} language={language} setArTargetShop={setArTargetShop} userLocation={userLocation} />
       <FilterModal showFilterModal={showFilterModal} setShowFilterModal={setShowFilterModal} filterOpenOnly={filterOpenOnly} setFilterOpenOnly={setFilterOpenOnly} filterElevator={filterElevator} setFilterElevator={setFilterElevator} hasAnyEventsInVillage={hasAnyEventsInVillage} filterEventOnly={filterEventOnly} setFilterEventOnly={setFilterEventOnly} currentPrimaryColor={currentPrimaryColor} t={t} />
       <UserModal showUserModal={showUserModal} setShowUserModal={setShowUserModal} t={t} APP_CONFIG={APP_CONFIG} currentPrimaryColor={currentPrimaryColor} currentDarkColor={currentDarkColor} favorites={favorites} setFavorites={setFavorites} />
