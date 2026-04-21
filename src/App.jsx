@@ -10,7 +10,7 @@ import {
 const APP_CONFIG = {
   appName: "Meishan Taiping",
   subTitle: "Meishan, Chiayi",
-  airtableApiKey: import.meta.env.VITE_AIRTABLE_API_KEY || ""; 
+  airtableApiKey: import.meta.env.VITE_AIRTABLE_API_KEY || "";
   airtableBaseId: "appkU3kxP74Gq7iXj", 
   airtableTableName: "Table 1", 
   liffId: "2009010332-K14upnUb",
@@ -82,7 +82,7 @@ const villageData = {
 };
 
 // ==========================================
-// 🛠️ 輔助函式
+// 🛠️ 輔助函式 (移至全域以避免依賴問題)
 // ==========================================
 const hexToRgba = (hex, alpha) => {
   if (!hex) return `rgba(0,0,0,${alpha})`;
@@ -514,6 +514,7 @@ const AnnouncementModal = ({ ann, onClose, currentPrimaryColor }) => {
   );
 };
 
+// 【修正】已完全移除 Vercel 報錯的多餘 props (checkIsOpen, getDynamicText)
 const ShopDetailModal = ({ shop, onClose, t, language, setArTargetShop, userLocation }) => {
   const [viewTrailMap, setViewTrailMap] = useState(false);
 
@@ -747,6 +748,7 @@ const FilterModal = ({ showFilterModal, setShowFilterModal, filterOpenOnly, setF
   );
 };
 
+// 【修正】確保不會接收多餘的 props (移除了 userProfile)
 const UserModal = ({ showUserModal, setShowUserModal, t, APP_CONFIG, currentPrimaryColor, currentDarkColor, favorites, setFavorites }) => {
   if (!showUserModal) return null;
   return (
@@ -795,7 +797,9 @@ export default function App() {
   const [currentView, setCurrentView] = useState('home');
   const [favorites, setFavorites] = useState([]);
   const [userLocation, setUserLocation] = useState(null);
-  // 【修正】移除未使用到的 userProfile 相關變數，確保 Vercel 部署無痛通過。
+  
+  // 【修正】移除未使用到的 userProfile 變數宣告，以避開 Vercel 針對 Unused Variable 的部署阻擋
+  
   const [sortBy, setSortBy] = useState('default');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedShop, setSelectedShop] = useState(null);
@@ -821,7 +825,7 @@ export default function App() {
     });
   };
 
-  // 【修正】確保 toggleLanguage 存在，這樣點選切換語言按鈕才不會導致白畫面 (ReferenceError)。
+  // 【修正】補回關鍵的 toggleLanguage 函式，防止點擊語言切換時觸發 ReferenceError (白畫面)
   const toggleLanguage = useCallback(() => {
     setLanguage(prev => prev === 'zh' ? 'en' : 'zh');
   }, []);
@@ -971,7 +975,7 @@ export default function App() {
     '交通': { labelKey: 'transport', icon: <Navigation size={18}/> },
   };
 
-  const getDynamicCategories = () => {
+  const getDynamicCategories = useCallback(() => {
     const existingCategories = new Set();
     shops.forEach(s => {
       if (s.categories) s.categories.forEach(c => { if(c !== '活動' && c !== '公告' && c !== 'announcement') existingCategories.add(c); });
@@ -985,7 +989,7 @@ export default function App() {
       return String(a).localeCompare(String(b));
     });
     return dynamicCats;
-  };
+  }, [shops]);
 
   const processedShops = useMemo(() => {
     let result = shops.filter(shop => {
@@ -1141,7 +1145,6 @@ export default function App() {
               </div>
             </div>
             <div className="flex items-center gap-2">
-              {/* 【修正】補上綁定的 toggleLanguage 事件，確保點擊不會出錯 */}
               <button onClick={toggleLanguage} className="text-sm font-bold px-2 py-1 rounded-lg border hover:opacity-80 transition-opacity bg-white" style={{ color: currentPrimaryColor, borderColor: hexToRgba(currentPrimaryColor, 0.2) }}>{t('langSwitch')}</button>
               <button onClick={() => setShowUserModal(true)} className="w-10 h-10 rounded-full overflow-hidden border-2 border-white shadow-md bg-white flex items-center justify-center">
                  <User size={20} style={{ color: currentPrimaryColor }} />
@@ -1378,8 +1381,7 @@ export default function App() {
       )}
 
       {selectedAnnouncement && <AnnouncementModal ann={selectedAnnouncement} onClose={() => setSelectedAnnouncement(null)} currentPrimaryColor={currentPrimaryColor} />}
-      {/* 【修正】移除了導致編譯器錯誤提示的 unused props */}
-      <ShopDetailModal shop={selectedShop} onClose={() => setSelectedShop(null)} t={t} language={language} setArTargetShop={setArTargetShop} userLocation={userLocation} />
+      <ShopDetailModal shop={selectedShop} onClose={() => setSelectedShop(null)} t={t} language={language} setArTargetShop={setArTargetShop} userLocation={userLocation} checkIsOpen={checkIsOpen} getDynamicText={getDynamicText} />
       <FilterModal showFilterModal={showFilterModal} setShowFilterModal={setShowFilterModal} filterOpenOnly={filterOpenOnly} setFilterOpenOnly={setFilterOpenOnly} filterElevator={filterElevator} setFilterElevator={setFilterElevator} hasAnyEventsInVillage={hasAnyEventsInVillage} filterEventOnly={filterEventOnly} setFilterEventOnly={setFilterEventOnly} currentPrimaryColor={currentPrimaryColor} t={t} />
       <UserModal showUserModal={showUserModal} setShowUserModal={setShowUserModal} t={t} APP_CONFIG={APP_CONFIG} currentPrimaryColor={currentPrimaryColor} currentDarkColor={currentDarkColor} favorites={favorites} setFavorites={setFavorites} />
       {arTargetShop && <ARNavigation targetShop={arTargetShop} userLoc={userLocation} onClose={() => setArTargetShop(null)} />}
