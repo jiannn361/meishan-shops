@@ -10,13 +10,13 @@ import {
 const APP_CONFIG = {
   appName: "Meishan Taiping",
   subTitle: "Meishan, Chiayi",
-  airtableApiKey: import.meta.env.VITE_AIRTABLE_API_KEY || "", 
+  airtableApiKey: import.meta.env.VITE_AIRTABLE_API_KEY ||"", 
   airtableBaseId: "appkU3kxP74Gq7iXj", 
   airtableTableName: "Table 1", 
   liffId: "2009010332-K14upnUb",
   aboutUsUrl: "https://www.facebook.com/TaipingSuspensionBridge?locale=zh_TW", 
   notionUrl: "https://www.notion.so/2a11f9fee71981239a89ebdbb2f25441?source=copy_link", 
-  contactLineUrl: "https://lin.ee/Vh4u87i", 
+  contactLineUrl: "https://line.me/R/ti/p/@taiping", 
 };
 
 // 特色活動設定
@@ -40,7 +40,7 @@ const translations = {
     distance: '距離', shopsCount: '間', loading: '快到了再等一下...',
     noFavorites: '您的口袋名單還是空的喔！', noShops: '哎呀，找不到符合的店家...',
     goToExplore: '去探索店家', showAll: '顯示全部', googleInfo: 'Google 資訊',
-    fbAnnouncement: '粉專公告', navigate: '導航', arNavigate: 'AR 找店', aboutUs: '關於我們',
+    fbAnnouncement: '粉公告', navigate: '導航', arNavigate: 'AR 找店', aboutUs: '關於我們',
     contactSupport: '聯絡客服', trailGuide: '周邊步道攻略', clearFavorites: '清空收藏紀錄',
     quickFilter: '快速篩選', onlyOpenNow: '只顯示營業中', onlyElevator: '只顯示有電梯/無障礙',
     onlySpecialEvent: '只顯示特色活動地點', confirm: '確認', shopIntro: '店家介紹',
@@ -76,7 +76,7 @@ const villageData = {
   '太平村': { color: '#b8caa5', textDark: '#506638', textBadge: '#ffffff', bgFile: 'bg-taiping.png', iconFile: 'icon-taiping.png', animColor: 'text-gray-400/50', zh: '太平村', en: 'Taiping', desc_zh: '雲梯與老街', desc_en: 'Sky Bridge & Old Street', intro: '漫步在雲端上的太平雲梯，俯瞰嘉南平原的壯麗景色。' },
   '太興村': { color: '#ea994d', textDark: '#a35a0f', textBadge: '#ffffff', bgFile: 'bg-taixing.png', iconFile: 'icon-taixing.png', animColor: 'text-amber-700/40', zh: '太興村', en: 'Taixing', desc_zh: '萬鷺朝鳳', desc_en: 'Herons Migration', intro: '每年秋季限定的「萬鷺朝鳳」奇景令人嘆為觀止。' },
   '碧湖/龍眼村': { color: '#80a4aa', textDark: '#3a595e', textBadge: '#ffffff', bgFile: 'bg-bihu.png', iconFile: 'icon-bihu.png', animColor: 'text-emerald-600/40', zh: '碧湖/龍眼村', en: 'Bihu / Longyan', desc_zh: '觀光茶園', desc_en: 'Tea Gardens', intro: '被群山環繞的翠綠觀光茶園，層層疊疊的茶樹宛如綠色地毯。' },
-  '瑞里/仁壽村': { color: '#d2cbe3', textDark: '#5a5270', textBadge: '#413a54', bgFile: 'bg-ruili.png', iconFile: 'icon-ruili.png', animColor: 'text-purple-500/50', zh: '瑞里村', en: 'Ruili', desc_zh: '紫色山城', desc_en: 'Purple Mountain Town', intro: '著名的浪漫紫色山城，春季紫藤花盛開時如夢似幻。' },
+  '瑞里/仁壽村': { color: '#d2cbe3', textDark: '#5a5270', textBadge: '#413a54', bgFile: 'bg-ruili.png', iconFile: 'icon-ruili.png', animColor: 'text-purple-500/50', zh: '瑞里/仁壽村', en: 'Ruili / Renshou', desc_zh: '紫色山城', desc_en: 'Purple Mountain Town', intro: '著名的浪漫紫色山城，春季紫藤花盛開時如夢似幻。' },
   '瑞峰村': { color: '#dd785b', textDark: '#8a371c', textBadge: '#ffffff', bgFile: 'bg-ruifeng.png', iconFile: 'icon-ruifeng.png', animColor: 'text-orange-500/50', zh: '瑞峰村', en: 'Ruifeng', desc_zh: '日出與步道', desc_en: 'Sunrise & Trails', intro: '坐擁絕美的日出勝地與竹坑溪步道，清晨的雲海與壯闊的山林景緻交織。' },
   '太和村': { color: '#c4b28e', textDark: '#70603d', textBadge: '#ffffff', bgFile: 'bg-taihe.png', iconFile: 'icon-taihe.png', animColor: 'text-lime-700/40', zh: '太和村', en: 'Taihe', desc_zh: '茶園秘境', desc_en: 'Hidden Tea Farms', intro: '隱藏在深山中的茶園秘境，保留了最原始純粹的自然風貌。' },
 };
@@ -796,6 +796,7 @@ export default function App() {
   const [currentView, setCurrentView] = useState('home');
   const [favorites, setFavorites] = useState([]);
   const [userLocation, setUserLocation] = useState(null);
+  
   const [sortBy, setSortBy] = useState('default');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedShop, setSelectedShop] = useState(null);
@@ -926,7 +927,7 @@ export default function App() {
               id: record.id,
               name: f['name'] || f['Name'] || f['店家名稱'] || '未命名店家',
               name_en: f['name_en'] || f['Name_en'] || f['店家名稱_英'] || '',
-              village: f['village'] || f['Village'] || f['村落名稱'] || f['村落'] || '太平村',
+              village: String(f['village'] || f['Village'] || f['村落名稱'] || f['村落'] || '太平村').replace('瑞里村', '瑞里/仁壽村'),
               categories: categories, category: categories[0] || 'food',
               address: f['address'] || f['Address'] || f['地址'] || '',
               address_en: f['address_en'] || f['地址_英'] || '',
@@ -1376,7 +1377,7 @@ export default function App() {
       )}
 
       {selectedAnnouncement && <AnnouncementModal ann={selectedAnnouncement} onClose={() => setSelectedAnnouncement(null)} currentPrimaryColor={currentPrimaryColor} />}
-      <ShopDetailModal shop={selectedShop} onClose={() => setSelectedShop(null)} t={t} language={language} setArTargetShop={setArTargetShop} userLocation={userLocation} />
+      <ShopDetailModal shop={selectedShop} onClose={() => setSelectedShop(null)} t={t} language={language} setArTargetShop={setArTargetShop} userLocation={userLocation} checkIsOpen={checkIsOpen} getDynamicText={getDynamicText} />
       <FilterModal showFilterModal={showFilterModal} setShowFilterModal={setShowFilterModal} filterOpenOnly={filterOpenOnly} setFilterOpenOnly={setFilterOpenOnly} filterElevator={filterElevator} setFilterElevator={setFilterElevator} hasAnyEventsInVillage={hasAnyEventsInVillage} filterEventOnly={filterEventOnly} setFilterEventOnly={setFilterEventOnly} currentPrimaryColor={currentPrimaryColor} t={t} />
       <UserModal showUserModal={showUserModal} setShowUserModal={setShowUserModal} t={t} APP_CONFIG={APP_CONFIG} currentPrimaryColor={currentPrimaryColor} currentDarkColor={currentDarkColor} favorites={favorites} setFavorites={setFavorites} />
       {arTargetShop && <ARNavigation targetShop={arTargetShop} userLoc={userLocation} onClose={() => setArTargetShop(null)} />}
