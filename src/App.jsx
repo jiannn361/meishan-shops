@@ -42,7 +42,7 @@ const translations = {
     goToExplore: '去探索店家', showAll: '顯示全部', googleInfo: 'Google 資訊',
     fbAnnouncement: '粉公告', navigate: '導航', arNavigate: 'AR 找店', aboutUs: '關於我們',
     contactSupport: '聯絡客服', trailGuide: '周邊步道攻略', clearFavorites: '清空收藏紀錄',
-    quickFilter: '快速篩選', onlyOpenNow: '只顯示營業中', onlyElevator: '只顯示有電梯/無障礙',
+    quickFilter: '快速篩選', onlyOpenNow: '只顯示營業中', onlyElevator: '只顯示有無障礙設施',
     onlySpecialEvent: '只顯示特色活動地點', confirm: '確認', shopIntro: '店家介紹',
     googleReviews: '查看 Google 評論', paymentMethod: '付款方式', notice: '溫馨提醒',
     guest: '訪客', welcome: '歡迎來到梅山', switchVillage: '切換村落',
@@ -649,7 +649,7 @@ const ShopDetailModal = ({ shop, onClose, t, language, setArTargetShop, userLoca
           </div>
 
           <div className="flex flex-wrap gap-2">
-            {shop.hasElevator && <span className="px-2 py-1 bg-blue-50 text-blue-600 border border-blue-200 text-xs rounded-md font-bold flex items-center gap-1"><Star size={14} /> 有電梯</span>}
+            {shop.hasElevator && <span className="px-2 py-1 bg-blue-50 text-blue-600 border border-blue-200 text-xs rounded-md font-bold flex items-center gap-1"><Star size={14} /> 有無障礙設施</span>}
             {shop.services?.map((s, i) => <span key={i} className="px-2 py-1 bg-gray-100 text-gray-500 text-xs rounded-md">#{s}</span>)}
           </div>
 
@@ -1205,7 +1205,7 @@ export default function App() {
           <div className="px-6 mb-4 flex justify-between items-center">
               <h2 className="text-lg font-bold text-gray-800 bg-white/50 px-2 rounded-lg backdrop-blur-sm">{currentView === 'favorites' ? t('favoritesList') : t('featured')}</h2>
               <div className="flex items-center gap-2">
-                {filterElevator && <span className="text-xs font-medium px-2 py-1 rounded-lg flex items-center gap-1 border bg-blue-50 text-blue-700 border-blue-200 backdrop-blur-sm"><Star size={12} /> 有電梯</span>}
+                {filterElevator && <span className="text-xs font-medium px-2 py-1 rounded-lg flex items-center gap-1 border bg-blue-50 text-blue-700 border-blue-200 backdrop-blur-sm"><Star size={12} /> 有無障礙設施</span>}
                 {filterEventOnly && <span className="text-xs font-medium px-2 py-1 rounded-lg flex items-center gap-1 border bg-orange-50 text-orange-700 border-orange-200 backdrop-blur-sm"><Star size={12} /> 特色活動</span>}
                 {filterOpenOnly && <span className="text-xs font-medium px-2 py-1 rounded-lg flex items-center gap-1 border bg-white/80 backdrop-blur-sm" style={{ color: currentDarkColor, borderColor: hexToRgba(currentPrimaryColor, 0.2) }}><Clock size={12} /> {t('openNow')}</span>}
                 {userLocation && <span className="text-xs font-medium px-2 py-1 rounded-lg flex items-center gap-1 bg-white/80 backdrop-blur-sm" style={{ color: currentDarkColor }}><Navigation size={12} /> {t('distance')}</span>}
@@ -1295,7 +1295,7 @@ export default function App() {
                       </div>
 
                       <div className="flex flex-wrap gap-2 mb-3">
-                        {shop.hasElevator && <span className="text-[10px] bg-blue-50 text-blue-600 border border-blue-200 px-2 py-1 rounded-md font-bold flex items-center gap-1"><Star size={12} /> 有電梯</span>}
+                        {shop.hasElevator && <span className="text-[10px] bg-blue-50 text-blue-600 border border-blue-200 px-2 py-1 rounded-md font-bold flex items-center gap-1"><Star size={12} /> 有無障礙設施</span>}
                         {shop.services?.slice(0, 3).map((service, idx) => <span key={idx} className="text-[10px] bg-gray-100 text-gray-600 px-2 py-1 rounded-md font-medium">{service}</span>)}
                         {shop.services?.length > 3 && <span className="text-[10px] text-gray-400 px-1 py-1">+{shop.services.length - 3}</span>}
                       </div>
