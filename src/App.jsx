@@ -40,7 +40,7 @@ const translations = {
     distance: '距離', shopsCount: '間', loading: '快到了再等一下...',
     noFavorites: '您的口袋名單還是空的喔！', noShops: '哎呀，找不到符合的店家...',
     goToExplore: '去探索店家', showAll: '顯示全部', googleInfo: 'Google 資訊',
-    fbAnnouncement: '粉公告', navigate: '導航', arNavigate: 'AR 找店', aboutUs: '關於我們',
+    fbAnnouncement: '粉專公告', navigate: '導航', arNavigate: 'AR 找店', aboutUs: '關於我們',
     contactSupport: '聯絡客服', trailGuide: '周邊步道攻略', clearFavorites: '清空收藏紀錄',
     quickFilter: '快速篩選', onlyOpenNow: '只顯示營業中', onlyElevator: '只顯示有無障礙設施',
     onlySpecialEvent: '只顯示特色活動地點', confirm: '確認', shopIntro: '店家介紹',
@@ -1386,16 +1386,23 @@ export default function App() {
                           {shop.services?.length > 3 && <span className="text-[11px] text-gray-400 px-1 py-1 font-bold">+{shop.services.length - 3}</span>}
                         </div>
                         
-                        <div className="flex items-center text-sm font-medium mb-6" style={{ color: villageData[shop.village]?.textDark || '#4b5563' }}>
-                          <MapPin size={16} className="mr-1.5 shrink-0" style={{ color: shopCardColor }} />
-                          <span className="truncate leading-relaxed">{displayAddress}</span>
+                        <div className="flex flex-col gap-2 mb-6">
+                          <div className="flex items-center text-sm font-medium" style={{ color: villageData[shop.village]?.textDark || '#4b5563' }}>
+                            <MapPin size={16} className="mr-1.5 shrink-0" style={{ color: shopCardColor }} />
+                            <span className="truncate leading-relaxed">{displayAddress}</span>
+                          </div>
+                          {shop.tel && (
+                            <div className="flex items-center text-sm font-medium" style={{ color: villageData[shop.village]?.textDark || '#4b5563' }}>
+                              <Phone size={16} className="mr-1.5 shrink-0" style={{ color: shopCardColor }} />
+                              <a href={`tel:${shop.tel}`} onClick={(e) => e.stopPropagation()} className="truncate leading-relaxed hover:underline">{shop.tel}</a>
+                            </div>
+                          )}
                         </div>
 
                         <div className="flex flex-wrap gap-2 mt-auto pt-4" onClick={(e) => e.stopPropagation()}>
                           <a href={shop.nav_link || getGoogleMapLink(shop.name, shop.address)} target="_blank" rel="noopener noreferrer" className="flex-1 min-w-[120px] text-white py-3 rounded-xl flex items-center justify-center gap-2 transition-colors font-bold shadow-lg hover:opacity-90 active:scale-95" style={{ backgroundColor: shopCardColor, boxShadow: `0 4px 14px 0 ${hexToRgba(shopCardColor, 0.4)}` }}>
                             <Navigation size={18} /><span>{t('navigate')}</span>
                           </a>
-                          {shop.tel && <a href={`tel:${shop.tel}`} className="w-12 h-12 rounded-xl flex items-center justify-center transition-transform hover:scale-105 border shadow-sm" style={{ backgroundColor: hexToRgba(shopCardColor, 0.05), borderColor: hexToRgba(shopCardColor, 0.2), color: shopCardColor }}><Phone size={20} /></a>}
                           {shop.line_url && <a href={shop.line_url} target="_blank" rel="noopener noreferrer" className="w-12 h-12 bg-green-500 hover:bg-green-600 text-white rounded-xl flex items-center justify-center transition-transform hover:scale-105 shadow-sm"><span className="font-black text-[11px] tracking-wider">LINE</span></a>}
                           {shop.fbLink && <a href={shop.fbLink} target="_blank" rel="noopener noreferrer" className="w-12 h-12 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-xl flex items-center justify-center transition-transform hover:scale-105 border border-blue-100"><Facebook size={20} /></a>}
                           {shop.ig_url && <a href={shop.ig_url} target="_blank" rel="noopener noreferrer" className="w-12 h-12 bg-pink-50 hover:bg-pink-100 text-pink-600 rounded-xl flex items-center justify-center transition-transform hover:scale-105 border border-pink-100"><span className="font-black text-sm tracking-wider">IG</span></a>}
