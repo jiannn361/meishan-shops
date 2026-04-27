@@ -40,7 +40,7 @@ const translations = {
     distance: '距離', shopsCount: '間', loading: '快到了再等一下...',
     noFavorites: '您的口袋名單還是空的喔！', noShops: '哎呀，找不到符合的店家...',
     goToExplore: '去探索店家', showAll: '顯示全部', googleInfo: 'Google 資訊',
-    fbAnnouncement: '粉專公告', navigate: '導航', arNavigate: 'AR 找店', aboutUs: '關於我們',
+    fbAnnouncement: '粉公告', navigate: '導航', arNavigate: 'AR 找店', aboutUs: '關於我們',
     contactSupport: '聯絡客服', trailGuide: '周邊步道攻略', clearFavorites: '清空收藏紀錄',
     quickFilter: '快速篩選', onlyOpenNow: '只顯示營業中', onlyElevator: '只顯示有無障礙設施',
     onlySpecialEvent: '只顯示特色活動地點', confirm: '確認', shopIntro: '店家介紹',
@@ -488,13 +488,13 @@ const AnnouncementModal = ({ ann, onClose, currentPrimaryColor }) => {
   return (
     <div className="fixed inset-0 z-[110] flex items-center justify-center px-4 animate-fade-in">
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose}></div>
-      <div className="relative w-full max-w-sm bg-white rounded-3xl overflow-hidden shadow-2xl animate-in zoom-in duration-300 max-h-[85vh] flex flex-col">
+      <div className="relative w-full max-w-md sm:max-w-lg bg-white rounded-3xl overflow-hidden shadow-2xl animate-in zoom-in duration-300 max-h-[85vh] flex flex-col">
         <button onClick={onClose} className="absolute top-4 right-4 z-50 bg-white text-gray-800 p-2.5 rounded-full shadow-[0_2px_12px_rgba(0,0,0,0.25)] hover:bg-gray-50 transition-transform active:scale-95">
           <X size={20} strokeWidth={3} />
         </button>
         
         {hasImage && (
-          <div className="w-full h-48 sm:h-56 relative shrink-0">
+          <div className="w-full h-48 sm:h-64 relative shrink-0">
              <img src={ann.images[0]} alt={ann.name} className="w-full h-full object-cover" />
              <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-black/60 to-transparent"></div>
           </div>
@@ -564,16 +564,16 @@ const ShopDetailModal = ({ shop, onClose, t, language, setArTargetShop, userLoca
          </div>
       )}
 
-      <div className="relative w-full max-w-sm bg-white rounded-3xl overflow-hidden shadow-2xl animate-in zoom-in duration-300 max-h-[85vh] overflow-y-auto flex flex-col">
+      <div className="relative w-full w-[90%] max-w-md sm:max-w-xl bg-white rounded-3xl overflow-hidden shadow-2xl animate-in zoom-in duration-300 max-h-[85vh] overflow-y-auto flex flex-col">
         <button onClick={onClose} className="absolute top-4 right-4 z-50 bg-white text-gray-800 p-2.5 rounded-full shadow-[0_2px_12px_rgba(0,0,0,0.25)] hover:bg-gray-50 transition-transform active:scale-95">
           <X size={20} strokeWidth={3} />
         </button>
 
-        <div className="h-64 relative shrink-0">
+        <div className="h-64 sm:h-72 relative shrink-0">
           <ImageCarousel images={shop.images} onClick={(e) => e.stopPropagation()} />
           <div className="absolute bottom-0 inset-x-0 h-24 bg-gradient-to-t from-black/80 to-transparent pointer-events-none"></div>
           <div className="absolute bottom-4 left-5 right-5 text-white pointer-events-none pr-10">
-            <h3 className="text-2xl font-bold mb-1 pointer-events-auto">{displayName}</h3>
+            <h3 className="text-2xl sm:text-3xl font-bold mb-1 pointer-events-auto">{displayName}</h3>
             <div className="flex items-center gap-3 text-sm pointer-events-auto">
               {shop.rating && (
                 <div className="flex items-center gap-1 text-yellow-400">
@@ -724,9 +724,9 @@ const ShopDetailModal = ({ shop, onClose, t, language, setArTargetShop, userLoca
 const FilterModal = ({ showFilterModal, setShowFilterModal, filterOpenOnly, setFilterOpenOnly, filterElevator, setFilterElevator, hasAnyEventsInVillage, filterEventOnly, setFilterEventOnly, currentPrimaryColor, t }) => {
   if (!showFilterModal) return null;
   return (
-    <div className="fixed inset-0 z-[120] flex items-end justify-center animate-fade-in">
+    <div className="fixed inset-0 z-[120] flex items-end sm:items-center justify-center animate-fade-in">
       <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setShowFilterModal(false)}></div>
-      <div className="relative w-full max-w-sm bg-white rounded-t-[32px] p-6 pb-36 space-y-6 animate-in slide-in-from-bottom duration-300 max-h-[85vh] overflow-y-auto shadow-2xl">
+      <div className="relative w-full max-w-sm sm:max-w-md bg-white rounded-t-[32px] sm:rounded-[32px] p-6 pb-36 sm:pb-8 space-y-6 animate-in slide-in-from-bottom duration-300 max-h-[85vh] overflow-y-auto shadow-2xl">
         <button onClick={() => setShowFilterModal(false)} className="absolute top-4 right-4 z-50 bg-gray-100 p-2 rounded-full text-gray-500"><X size={20} strokeWidth={2.5} /></button>
         <div className="flex justify-between items-center pr-10">
           <h3 className="text-lg font-bold text-gray-800">{t('quickFilter')}</h3>
@@ -771,9 +771,9 @@ const FilterModal = ({ showFilterModal, setShowFilterModal, filterOpenOnly, setF
 const UserModal = ({ showUserModal, setShowUserModal, t, APP_CONFIG, currentPrimaryColor, currentDarkColor, favorites, setFavorites }) => {
   if (!showUserModal) return null;
   return (
-    <div className="fixed inset-0 z-[120] flex items-end justify-center animate-fade-in">
+    <div className="fixed inset-0 z-[120] flex items-end sm:items-center justify-center animate-fade-in">
       <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setShowUserModal(false)}></div>
-      <div className="relative w-full max-w-sm bg-white rounded-t-[32px] p-6 pb-32 space-y-6 animate-in slide-in-from-bottom duration-300 max-h-[85vh] overflow-y-auto shadow-2xl">
+      <div className="relative w-full max-w-sm sm:max-w-md bg-white rounded-t-[32px] sm:rounded-[32px] p-6 pb-32 sm:pb-8 space-y-6 animate-in slide-in-from-bottom duration-300 max-h-[85vh] overflow-y-auto shadow-2xl">
         <button onClick={() => setShowUserModal(false)} className="absolute top-4 right-4 z-50 bg-gray-100 p-2 rounded-full text-gray-500"><X size={20} strokeWidth={2.5} /></button>
         <div className="text-center pt-2">
           <div className="w-20 h-20 mx-auto rounded-full overflow-hidden border-4 shadow-lg mb-4 flex items-center justify-center" style={{ borderColor: hexToRgba(currentPrimaryColor, 0.2), backgroundColor: hexToRgba(currentPrimaryColor, 0.05) }}>
@@ -941,7 +941,7 @@ export default function App() {
                 }
             });
 
-            const hasElevator = f['電梯'] === true || f['Elevator'] === true || f['有電梯'] === true || String(f['電梯']).toLowerCase() === 'true';
+            const hasElevator = f['電梯'] === true || f['Elevator'] === true || f['有無障礙設施'] === true || String(f['電梯']).toLowerCase() === 'true';
 
             const bookingPlatforms = [
                 { key: 'booking', label: 'Booking.com' }, { key: 'agoda', label: 'Agoda' },
@@ -1073,13 +1073,13 @@ export default function App() {
   if (!appStarted) {
     return (
       <div className="min-h-[100dvh] bg-gray-50 font-sans flex justify-center overflow-hidden">
-        <div className="w-full max-w-md relative shadow-2xl overflow-hidden flex flex-col bg-gray-100">
+        <div className="w-full h-full relative shadow-2xl overflow-hidden flex flex-col bg-gray-100">
           <img src="/bg.png" alt="Background" className="absolute inset-0 w-full h-full object-cover z-0" onError={(e) => { e.target.style.display = 'none'; e.target.parentElement.classList.add('bg-gradient-to-br', 'from-[#f2cfc9]', 'via-[#d2cbe3]', 'to-[#b4d8d4]'); }} />
           <div className="absolute inset-0 bg-white/20 backdrop-blur-[2px] z-0"></div>
           <div className="relative z-10 flex flex-col w-full h-full">
             {landingStep === 'welcome' && (
-              <div className="flex-1 flex flex-col items-center justify-center p-8 animate-fade-in">
-                <div className="flex flex-col items-center space-y-8 p-8 bg-white/60 backdrop-blur-xl rounded-[40px] shadow-2xl border border-white/60 w-full text-center transform transition-all hover:scale-105">
+              <div className="flex-1 flex flex-col items-center justify-center p-8 animate-fade-in w-full max-w-7xl mx-auto">
+                <div className="flex flex-col items-center space-y-8 p-8 bg-white/60 backdrop-blur-xl rounded-[40px] shadow-2xl border border-white/60 w-full max-w-md text-center transform transition-all hover:scale-105">
                   <Mascot size={120} animation="bounce" className="drop-shadow-xl" />
                   <div className="space-y-2"><p className="text-sm font-bold text-gray-600 tracking-widest uppercase">{APP_CONFIG.subTitle}</p></div>
                   <button onClick={() => setLandingStep('select')} className="group relative w-full py-4 bg-gray-900 text-white rounded-2xl font-bold text-lg shadow-xl hover:shadow-2xl hover:-translate-y-1 transition-all active:translate-y-0 flex items-center justify-center gap-3 overflow-hidden">
@@ -1089,12 +1089,12 @@ export default function App() {
               </div>
             )}
             {landingStep === 'select' && (
-              <div className="flex-1 flex flex-col p-6 animate-fade-in overflow-y-auto">
-                <div className="flex justify-between items-center mb-6 mt-4">
+              <div className="flex-1 flex flex-col p-6 animate-fade-in overflow-y-auto w-full max-w-7xl mx-auto">
+                <div className="flex justify-between items-center mb-6 mt-4 w-full">
                    <h2 className="text-2xl font-bold text-gray-900 drop-shadow-sm bg-white/50 px-4 py-2 rounded-2xl backdrop-blur-sm border border-white/50">{t('welcomeTitle')}</h2>
                    <button onClick={() => setLandingStep('welcome')} className="bg-white/50 p-2 rounded-full backdrop-blur-sm text-gray-700 hover:bg-white/80 transition-colors"><ChevronLeft size={24} /></button>
                 </div>
-                <div className="grid grid-cols-2 gap-4 pb-10">
+                <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6 pb-10 w-full">
                   {Object.keys(villageData).map((vKey) => {
                     const vData = villageData[vKey];
                     return (
@@ -1112,9 +1112,9 @@ export default function App() {
               </div>
             )}
             {previewVillage && (
-               <div className="absolute inset-0 z-50 flex items-end animate-fade-in">
+               <div className="absolute inset-0 z-50 flex items-end sm:items-center justify-center animate-fade-in">
                   <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setPreviewVillage(null)}></div>
-                  <div className="relative w-full bg-white rounded-t-[40px] p-8 space-y-6 animate-slide-up shadow-2xl flex flex-col" style={{ borderTop: `8px solid ${villageData[previewVillage].color}` }}>
+                  <div className="relative w-full max-w-lg bg-white rounded-t-[40px] sm:rounded-[40px] p-8 space-y-6 animate-slide-up shadow-2xl flex flex-col" style={{ borderTop: `8px solid ${villageData[previewVillage].color}` }}>
                      <button onClick={() => setPreviewVillage(null)} className="absolute top-5 right-5 text-gray-400 hover:text-gray-600 p-2 bg-gray-100 rounded-full transition-colors"><X size={20} /></button>
                      <div className="flex items-center gap-4">
                         <div className="w-16 h-16 rounded-2xl flex items-center justify-center shadow-md relative overflow-hidden" style={{ backgroundColor: hexToRgba(villageData[previewVillage].color, 0.15), color: villageData[previewVillage].textDark }}>
@@ -1153,60 +1153,66 @@ export default function App() {
         `}
       </style>
 
-      {/* 主畫面容器 */}
-      <div className="w-full max-w-md bg-gray-50 min-h-[100dvh] relative shadow-2xl overflow-y-auto pb-32 no-scrollbar">
+      {/* 主畫面容器 (全螢幕滿版) */}
+      <div className="w-full bg-gray-50 min-h-[100dvh] relative shadow-2xl overflow-y-auto pb-32 no-scrollbar">
         
-        <div className="fixed inset-y-0 w-full max-w-md z-0 pointer-events-none overflow-hidden">
+        {/* 動態背景 (全螢幕滿版) */}
+        <div className="fixed inset-0 w-full h-full z-0 pointer-events-none overflow-hidden">
           <img src={`/${villageData[selectedVillage]?.bgFile}`} alt="Village Background" className="w-full h-full object-cover opacity-80" style={{ animation: 'slowFloat 20s ease-in-out infinite' }} onError={(e) => e.target.style.display = 'none'} />
         </div>
 
-        <div className="relative z-10">
+        <div className="relative z-10 w-full">
           
-          <div className="px-6 pt-12 pb-4 flex justify-between items-center bg-white/80 sticky top-0 z-20 backdrop-blur-md border-b border-gray-100">
-            <div className="flex items-center gap-1">
-              <button onClick={() => { if (currentView === 'favorites') { setCurrentView('home'); } else { setAppStarted(false); setLandingStep('select'); setPreviewVillage(null); } }} className="w-10 h-10 -ml-3 rounded-full flex items-center justify-center transition-colors hover:bg-white/50 active:bg-gray-200" style={{ color: currentPrimaryColor }}>
-                <ChevronLeft size={28} />
-              </button>
-              <div onClick={() => setSidebarOpen(true)} className="group flex flex-col items-start cursor-pointer">
-                <div className="flex items-center gap-1 mb-0.5" style={{ color: currentPrimaryColor }}><MapPin size={14} /><span className="text-xs font-bold tracking-wide uppercase" style={{ color: currentDarkColor }}>{APP_CONFIG.subTitle}</span></div>
-                <div className="flex items-center gap-1.5 hover:bg-white/50 px-2 py-1 -ml-2 rounded-lg transition-colors">
-                  <h1 className="text-xl font-extrabold text-gray-900">{currentView === 'favorites' ? t('myFavorites') : (villageData[selectedVillage]?.[language] || selectedVillage)}</h1>
-                  <ChevronDown size={20} className="text-gray-400 group-hover:text-gray-700 transition-colors" />
+          {/* 頂部導航列 */}
+          <div className="px-6 pt-12 pb-4 bg-white/80 sticky top-0 z-20 backdrop-blur-md border-b border-gray-100">
+            <div className="max-w-7xl mx-auto w-full flex justify-between items-center">
+              <div className="flex items-center gap-1">
+                <button onClick={() => { if (currentView === 'favorites') { setCurrentView('home'); } else { setAppStarted(false); setLandingStep('select'); setPreviewVillage(null); } }} className="w-10 h-10 -ml-3 rounded-full flex items-center justify-center transition-colors hover:bg-white/50 active:bg-gray-200" style={{ color: currentPrimaryColor }}>
+                  <ChevronLeft size={28} />
+                </button>
+                <div onClick={() => setSidebarOpen(true)} className="group flex flex-col items-start cursor-pointer">
+                  <div className="flex items-center gap-1 mb-0.5" style={{ color: currentPrimaryColor }}><MapPin size={14} /><span className="text-xs font-bold tracking-wide uppercase" style={{ color: currentDarkColor }}>{APP_CONFIG.subTitle}</span></div>
+                  <div className="flex items-center gap-1.5 hover:bg-white/50 px-2 py-1 -ml-2 rounded-lg transition-colors">
+                    <h1 className="text-xl font-extrabold text-gray-900">{currentView === 'favorites' ? t('myFavorites') : (villageData[selectedVillage]?.[language] || selectedVillage)}</h1>
+                    <ChevronDown size={20} className="text-gray-400 group-hover:text-gray-700 transition-colors" />
+                  </div>
                 </div>
               </div>
-            </div>
-            <div className="flex items-center gap-2">
-              <button onClick={handleShareApp} className="w-9 h-9 rounded-full border bg-white flex items-center justify-center hover:opacity-80 transition-opacity shadow-sm" style={{ color: currentPrimaryColor, borderColor: hexToRgba(currentPrimaryColor, 0.2) }}>
-                <Share2 size={16} />
-              </button>
-              <button onClick={toggleLanguage} className="text-sm font-bold px-2 py-1 rounded-lg border hover:opacity-80 transition-opacity bg-white shadow-sm" style={{ color: currentPrimaryColor, borderColor: hexToRgba(currentPrimaryColor, 0.2) }}>{t('langSwitch')}</button>
-              <button onClick={() => setShowUserModal(true)} className="w-10 h-10 rounded-full overflow-hidden border-2 border-white shadow-md bg-white flex items-center justify-center">
-                 <User size={20} style={{ color: currentPrimaryColor }} />
-              </button>
+              <div className="flex items-center gap-2">
+                <button onClick={handleShareApp} className="w-9 h-9 rounded-full border bg-white flex items-center justify-center hover:opacity-80 transition-opacity shadow-sm" style={{ color: currentPrimaryColor, borderColor: hexToRgba(currentPrimaryColor, 0.2) }}>
+                  <Share2 size={16} />
+                </button>
+                <button onClick={toggleLanguage} className="text-sm font-bold px-2 py-1 rounded-lg border hover:opacity-80 transition-opacity bg-white shadow-sm" style={{ color: currentPrimaryColor, borderColor: hexToRgba(currentPrimaryColor, 0.2) }}>{t('langSwitch')}</button>
+                <button onClick={() => setShowUserModal(true)} className="w-10 h-10 rounded-full overflow-hidden border-2 border-white shadow-md bg-white flex items-center justify-center">
+                   <User size={20} style={{ color: currentPrimaryColor }} />
+                </button>
+              </div>
             </div>
           </div>
 
           {currentView === 'home' && (
             <>
+              {/* 搜尋列 */}
               <div className="px-6 my-4">
-                <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-3 flex items-center gap-3 border border-transparent focus-within:bg-white focus-within:shadow-lg transition-all" style={{ outlineColor: currentPrimaryColor }}>
+                <div className="max-w-7xl mx-auto bg-white/90 backdrop-blur-sm rounded-2xl p-3 flex items-center gap-3 border border-transparent focus-within:bg-white focus-within:shadow-lg transition-all" style={{ outlineColor: currentPrimaryColor }}>
                   <Search className="text-gray-400" size={20} />
                   <input type="text" placeholder={t('searchPlaceholder')} value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="bg-transparent border-none outline-none text-gray-700 placeholder-gray-400 flex-1 text-sm font-medium" />
                   {searchQuery && <button onClick={() => setSearchQuery('')} className="text-gray-400 hover:text-gray-600 p-1"><X size={16} /></button>}
                 </div>
               </div>
 
+              {/* 最新消息與活動 */}
               {(() => {
                  const announcements = shops.filter(s => (s.categories?.includes('活動') || s.categories?.includes('公告') || s.categories?.includes('announcement')) && s.village === selectedVillage);
                  if (announcements.length === 0) return null; 
                  return (
-                    <div className="px-4 mb-6 animate-fade-in">
+                    <div className="px-4 mb-6 animate-fade-in w-full max-w-7xl mx-auto">
                       <h3 className="text-sm font-bold mb-3 px-2 flex items-center gap-1" style={{ color: currentDarkColor }}><Star size={16} /> 最新消息 & 活動</h3>
-                      <div className="flex gap-3 overflow-x-auto no-scrollbar snap-x pb-2">
+                      <div className="flex gap-3 overflow-x-auto no-scrollbar snap-x pb-2 px-2">
                         {announcements.map(ann => {
                            const hasImage = ann.images && ann.images.length > 0;
                            return (
-                             <div key={ann.id} onClick={() => setSelectedAnnouncement(ann)} className="snap-center shrink-0 w-[92%] h-44 rounded-2xl overflow-hidden relative shadow-md border cursor-pointer group bg-white/90" style={{ borderColor: hexToRgba(currentPrimaryColor, 0.3) }}>
+                             <div key={ann.id} onClick={() => setSelectedAnnouncement(ann)} className="snap-center shrink-0 w-[85%] sm:w-80 md:w-96 h-44 rounded-2xl overflow-hidden relative shadow-md border cursor-pointer group bg-white/90" style={{ borderColor: hexToRgba(currentPrimaryColor, 0.3) }}>
                                 {hasImage ? (
                                    <img src={ann.images?.[0]} alt={ann.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                                 ) : (
@@ -1223,8 +1229,9 @@ export default function App() {
                  );
               })()}
 
+              {/* 分類按鈕 */}
               <div className="px-6 mb-6">
-                <div className="flex gap-3 overflow-x-auto pb-2 no-scrollbar">
+                <div className="flex gap-3 overflow-x-auto pb-2 no-scrollbar max-w-7xl mx-auto">
                   {availableCategories.map((catKey) => {
                     const config = categoryConfig[catKey] || { labelKey: 'all', icon: <Tag size={18}/> };
                     const isActive = activeCategory === catKey;
@@ -1240,124 +1247,131 @@ export default function App() {
             </>
           )}
 
-          <div className="px-6 mb-4 flex justify-between items-center">
+          {/* 列表標題狀態 */}
+          <div className="px-6 mb-4">
+            <div className="flex justify-between items-center max-w-7xl mx-auto w-full">
               <h2 className="text-lg font-bold text-gray-800 bg-white/50 px-2 rounded-lg backdrop-blur-sm">{currentView === 'favorites' ? t('favoritesList') : t('featured')}</h2>
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center justify-end gap-2">
                 {filterElevator && <span className="text-xs font-medium px-2 py-1 rounded-lg flex items-center gap-1 border bg-blue-50 text-blue-700 border-blue-200 backdrop-blur-sm"><Star size={12} /> 有無障礙設施</span>}
                 {filterEventOnly && <span className="text-xs font-medium px-2 py-1 rounded-lg flex items-center gap-1 border bg-orange-50 text-orange-700 border-orange-200 backdrop-blur-sm"><Star size={12} /> 特色活動</span>}
                 {filterOpenOnly && <span className="text-xs font-medium px-2 py-1 rounded-lg flex items-center gap-1 border bg-white/80 backdrop-blur-sm" style={{ color: currentDarkColor, borderColor: hexToRgba(currentPrimaryColor, 0.2) }}><Clock size={12} /> {t('openNow')}</span>}
                 {userLocation && <span className="text-xs font-medium px-2 py-1 rounded-lg flex items-center gap-1 bg-white/80 backdrop-blur-sm" style={{ color: currentDarkColor }}><Navigation size={12} /> {t('distance')}</span>}
                 <div className="flex items-center gap-1 text-xs px-2 py-1 rounded-lg bg-white/80 backdrop-blur-sm" style={{ color: currentDarkColor }}><Star size={12} style={{ fill: currentDarkColor }} /><span>{processedShops.length} {t('shopsCount')}</span></div>
               </div>
+            </div>
           </div>
 
-          <div className="px-6 space-y-6">
+          {/* 店家卡片清單 (RWD Grid 智慧網格) */}
+          <div className="px-6 w-full">
             {loading ? (
-               <div className="flex flex-col items-center justify-center py-16 bg-white/70 backdrop-blur-md rounded-3xl border border-white shadow-xl mx-2">
+               <div className="flex flex-col items-center justify-center py-16 bg-white/70 backdrop-blur-md rounded-3xl border border-white shadow-xl mx-auto max-w-sm">
                  <Mascot imageUrl="/mascot-run.png" size={120} animation="ride" className="mb-2" />
                  <div className="w-48 h-2 bg-gray-200 rounded-full overflow-hidden mt-2 mb-4 relative"><div className="absolute top-0 left-0 h-full w-1/2 rounded-full bg-emerald-500 animate-pulse"></div></div>
                  <p className="font-bold tracking-widest" style={{ color: currentDarkColor }}>{t('loading')}</p>
                </div>
             ) : processedShops.length > 0 ? (
-              processedShops.map((shop) => {
-                const isOpen = checkIsOpen(shop.hours);
-                const isFav = favorites.includes(shop.id);
-                const displayName = getDynamicText(shop, 'name', language);
-                const displayAddress = getDynamicText(shop, 'address', language);
-                const isAccommodation = shop.categories && shop.categories.includes('accommodation');
-                const hasHours = !!shop.hours;
-                const showAccommodationBadge = isAccommodation && !hasHours;
-                const accBadgeText = shop.bookings && shop.bookings.length > 0 ? t('bookNow') : t('byAppointment');
-                const hideCardHours = !shop.hours || String(shop.hours).trim().toLowerCase() === 'google' || String(shop.hours).trim().toLowerCase() === 'fb' || String(shop.hours).includes('預約制');
-                const shopCardColor = villageData[shop.village]?.color || '#059669';
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 max-w-7xl mx-auto pb-10">
+                {processedShops.map((shop) => {
+                  const isOpen = checkIsOpen(shop.hours);
+                  const isFav = favorites.includes(shop.id);
+                  const displayName = getDynamicText(shop, 'name', language);
+                  const displayAddress = getDynamicText(shop, 'address', language);
+                  const isAccommodation = shop.categories && shop.categories.includes('accommodation');
+                  const hasHours = !!shop.hours;
+                  const showAccommodationBadge = isAccommodation && !hasHours;
+                  const accBadgeText = shop.bookings && shop.bookings.length > 0 ? t('bookNow') : t('byAppointment');
+                  const hideCardHours = !shop.hours || String(shop.hours).trim().toLowerCase() === 'google' || String(shop.hours).trim().toLowerCase() === 'fb' || String(shop.hours).includes('預約制');
+                  const shopCardColor = villageData[shop.village]?.color || '#059669';
 
-                return (
-                  <div key={shop.id} className="group relative bg-white/95 backdrop-blur-md rounded-[24px] overflow-hidden shadow-[0_8px_30px_rgb(0,0,0,0.06)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.12)] transition-shadow border border-white">
-                    <div className="h-48 w-full relative overflow-hidden bg-gray-100">
-                      <ImageCarousel images={shop.images} onClick={() => setSelectedShop(shop)} />
-                      <button onClick={(e) => { e.preventDefault(); toggleFavorite(shop.id); }} className="absolute top-3 right-3 bg-white/90 backdrop-blur-md p-2 rounded-full shadow-sm hover:scale-110 transition-all z-10"><Heart size={18} className={isFav ? "fill-rose-500 text-rose-500" : "text-gray-400"} /></button>
+                  return (
+                    <div key={shop.id} className="group relative bg-white/95 backdrop-blur-md rounded-[24px] overflow-hidden shadow-[0_8px_30px_rgb(0,0,0,0.06)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.12)] transition-shadow border border-white flex flex-col h-full">
+                      <div className="h-48 md:h-56 w-full relative overflow-hidden bg-gray-100 shrink-0">
+                        <ImageCarousel images={shop.images} onClick={() => setSelectedShop(shop)} />
+                        <button onClick={(e) => { e.preventDefault(); toggleFavorite(shop.id); }} className="absolute top-3 right-3 bg-white/90 backdrop-blur-md p-2 rounded-full shadow-sm hover:scale-110 transition-all z-10"><Heart size={18} className={isFav ? "fill-rose-500 text-rose-500" : "text-gray-400"} /></button>
 
-                      {shop.matchedEvents && shop.matchedEvents.length > 0 && (
-                         <div className="absolute top-3 right-14 z-10 flex flex-col gap-1.5 items-end">
-                           {shop.matchedEvents.map((evt, idx) => {
-                              const IconComponent = evt.icon;
-                              return (
-                                <div key={idx} className="px-3 py-1.5 rounded-full shadow-[0_2px_8px_rgba(0,0,0,0.15)] backdrop-blur-md bg-white/95 flex items-center gap-1.5 border border-white" style={{ color: evt.color }}>
-                                   {IconComponent && !evt.customImg && <IconComponent size={16} />}
-                                   {evt.customImg && <img src={evt.customImg} alt={evt.label} className="w-5 h-5 object-contain" />}
-                                   <span className="text-xs font-bold whitespace-nowrap">{evt.label}</span>
-                                </div>
-                              );
-                           })}
-                         </div>
-                      )}
-                      <div className="absolute top-3 left-3 px-2 py-1 rounded-lg z-10 pointer-events-none shadow-sm" style={{ backgroundColor: shopCardColor, color: villageData[shop.village]?.textBadge || '#ffffff' }}>
-                          <span className="text-xs font-bold tracking-wide">{villageData[shop.village]?.[language] || shop.village}</span>
-                      </div>
-
-                      {showAccommodationBadge || isOpen === 'appointment' ? (
-                        <div className="absolute bottom-3 left-3 backdrop-blur-md pl-2 pr-3 py-1 rounded-full flex items-center gap-1.5 shadow-lg z-10 pointer-events-none" style={{ backgroundColor: hexToRgba(villageData[shop.village]?.textDark || '#047857', 0.95) }}>
-                          <Calendar size={12} className="text-white" /><span className="text-xs font-bold text-white tracking-wide">{showAccommodationBadge ? accBadgeText : t('byAppointment')}</span>
+                        {shop.matchedEvents && shop.matchedEvents.length > 0 && (
+                           <div className="absolute top-3 right-14 z-10 flex flex-col gap-1.5 items-end">
+                             {shop.matchedEvents.map((evt, idx) => {
+                                const IconComponent = evt.icon;
+                                return (
+                                  <div key={idx} className="px-3 py-1.5 rounded-full shadow-[0_2px_8px_rgba(0,0,0,0.15)] backdrop-blur-md bg-white/95 flex items-center gap-1.5 border border-white" style={{ color: evt.color }}>
+                                     {IconComponent && !evt.customImg && <IconComponent size={16} />}
+                                     {evt.customImg && <img src={evt.customImg} alt={evt.label} className="w-5 h-5 object-contain" />}
+                                     <span className="text-xs font-bold whitespace-nowrap">{evt.label}</span>
+                                  </div>
+                                );
+                             })}
+                           </div>
+                        )}
+                        <div className="absolute top-3 left-3 px-2 py-1 rounded-lg z-10 pointer-events-none shadow-sm" style={{ backgroundColor: shopCardColor, color: villageData[shop.village]?.textBadge || '#ffffff' }}>
+                            <span className="text-xs font-bold tracking-wide">{villageData[shop.village]?.[language] || shop.village}</span>
                         </div>
-                      ) : isOpen === 'google' ? (
-                         <div className="absolute bottom-3 left-3 bg-blue-500/90 backdrop-blur-md pl-2 pr-3 py-1 rounded-full flex items-center gap-1.5 shadow-lg z-10 pointer-events-none"><Info size={12} className="text-white" /><span className="text-xs font-bold text-white tracking-wide">{t('googleInfo')}</span></div>
-                      ) : isOpen === 'fb' ? (
-                        <div className="absolute bottom-3 left-3 bg-indigo-500/90 backdrop-blur-md pl-2 pr-3 py-1 rounded-full flex items-center gap-1.5 shadow-lg z-10 pointer-events-none"><Facebook size={12} className="text-white" /><span className="text-xs font-bold text-white tracking-wide">{t('fbAnnouncement')}</span></div>
-                      ) : isOpen === true ? (
-                        <div className="absolute bottom-3 left-3 backdrop-blur-md pl-2 pr-3 py-1 rounded-full flex items-center gap-1.5 shadow-lg z-10 pointer-events-none" style={{ backgroundColor: villageData[shop.village]?.textDark || '#047857' }}>
-                          <span className="relative flex h-2.5 w-2.5"><span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 bg-white"></span><span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-white"></span></span><span className="text-xs font-bold text-white tracking-wide">{t('openNow')}</span>
+
+                        {showAccommodationBadge || isOpen === 'appointment' ? (
+                          <div className="absolute bottom-3 left-3 backdrop-blur-md pl-2 pr-3 py-1 rounded-full flex items-center gap-1.5 shadow-lg z-10 pointer-events-none" style={{ backgroundColor: hexToRgba(villageData[shop.village]?.textDark || '#047857', 0.95) }}>
+                            <Calendar size={12} className="text-white" /><span className="text-xs font-bold text-white tracking-wide">{showAccommodationBadge ? accBadgeText : t('byAppointment')}</span>
+                          </div>
+                        ) : isOpen === 'google' ? (
+                           <div className="absolute bottom-3 left-3 bg-blue-500/90 backdrop-blur-md pl-2 pr-3 py-1 rounded-full flex items-center gap-1.5 shadow-lg z-10 pointer-events-none"><Info size={12} className="text-white" /><span className="text-xs font-bold text-white tracking-wide">{t('googleInfo')}</span></div>
+                        ) : isOpen === 'fb' ? (
+                          <div className="absolute bottom-3 left-3 bg-indigo-500/90 backdrop-blur-md pl-2 pr-3 py-1 rounded-full flex items-center gap-1.5 shadow-lg z-10 pointer-events-none"><Facebook size={12} className="text-white" /><span className="text-xs font-bold text-white tracking-wide">{t('fbAnnouncement')}</span></div>
+                        ) : isOpen === true ? (
+                          <div className="absolute bottom-3 left-3 backdrop-blur-md pl-2 pr-3 py-1 rounded-full flex items-center gap-1.5 shadow-lg z-10 pointer-events-none" style={{ backgroundColor: villageData[shop.village]?.textDark || '#047857' }}>
+                            <span className="relative flex h-2.5 w-2.5"><span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 bg-white"></span><span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-white"></span></span><span className="text-xs font-bold text-white tracking-wide">{t('openNow')}</span>
+                          </div>
+                        ) : isOpen === 'opening_soon' ? (
+                          <div className="absolute bottom-3 left-3 bg-amber-500/90 backdrop-blur-md pl-2 pr-3 py-1 rounded-full flex items-center gap-1.5 shadow-lg z-10 pointer-events-none"><span className="relative flex h-2.5 w-2.5"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-200 opacity-75"></span><span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-white"></span></span><span className="text-xs font-bold text-white tracking-wide">{t('openingSoon')}</span></div>
+                        ) : isOpen === 'closing_soon' ? (
+                          <div className="absolute bottom-3 left-3 bg-orange-500/90 backdrop-blur-md pl-2 pr-3 py-1 rounded-full flex items-center gap-1.5 shadow-lg z-10 pointer-events-none"><span className="relative flex h-2.5 w-2.5"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-200 opacity-75"></span><span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-white"></span></span><span className="text-xs font-bold text-white tracking-wide">{t('closingSoon')}</span></div>
+                        ) : isOpen === false ? (
+                           <div className="absolute bottom-3 left-3 bg-gray-600/90 backdrop-blur-md pl-2 pr-3 py-1 rounded-full flex items-center gap-1.5 shadow-lg z-10 pointer-events-none"><span className="h-2.5 w-2.5 rounded-full bg-gray-400"></span><span className="text-xs font-bold text-white tracking-wide">{t('closed')}</span></div>
+                        ) : null}
+                      </div>
+
+                      <div className="p-5 cursor-pointer flex flex-col flex-1" onClick={() => setSelectedShop(shop)}>
+                        <div className="flex justify-between items-start mb-2">
+                          <h3 className="text-xl font-bold text-gray-900 leading-tight">{displayName}</h3>
+                          {shop.distance && <span className="text-xs font-bold px-2 py-1 rounded-md shrink-0 ml-2" style={{ backgroundColor: hexToRgba(shopCardColor, 0.1), color: villageData[shop.village]?.textDark }}>{shop.distance} km</span>}
                         </div>
-                      ) : isOpen === 'opening_soon' ? (
-                        <div className="absolute bottom-3 left-3 bg-amber-500/90 backdrop-blur-md pl-2 pr-3 py-1 rounded-full flex items-center gap-1.5 shadow-lg z-10 pointer-events-none"><span className="relative flex h-2.5 w-2.5"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-200 opacity-75"></span><span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-white"></span></span><span className="text-xs font-bold text-white tracking-wide">{t('openingSoon')}</span></div>
-                      ) : isOpen === 'closing_soon' ? (
-                        <div className="absolute bottom-3 left-3 bg-orange-500/90 backdrop-blur-md pl-2 pr-3 py-1 rounded-full flex items-center gap-1.5 shadow-lg z-10 pointer-events-none"><span className="relative flex h-2.5 w-2.5"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-200 opacity-75"></span><span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-white"></span></span><span className="text-xs font-bold text-white tracking-wide">{t('closingSoon')}</span></div>
-                      ) : isOpen === false ? (
-                         <div className="absolute bottom-3 left-3 bg-gray-600/90 backdrop-blur-md pl-2 pr-3 py-1 rounded-full flex items-center gap-1.5 shadow-lg z-10 pointer-events-none"><span className="h-2.5 w-2.5 rounded-full bg-gray-400"></span><span className="text-xs font-bold text-white tracking-wide">{t('closed')}</span></div>
-                      ) : null}
-                    </div>
+                        
+                        <div className="flex flex-wrap items-center gap-2 mb-3">
+                            {shop.rating && <div className="flex items-center gap-1 text-xs font-bold text-gray-800 bg-yellow-50 px-2 py-1 rounded-md border border-yellow-100"><Star size={10} className="text-yellow-500 fill-yellow-500" />{shop.rating}</div>}
+                            {!hideCardHours && (
+                              <div className="flex items-center gap-1.5 text-xs px-2 py-1 rounded-md border border-gray-100 bg-gray-50 text-gray-500 max-w-full overflow-hidden">
+                                <Clock size={10} className="flex-shrink-0" />
+                                <span className="truncate">{String(shop.hours).split('|')[0]}</span>
+                              </div>
+                            )}
+                        </div>
 
-                    <div className="p-5 cursor-pointer" onClick={() => setSelectedShop(shop)}>
-                      <div className="flex justify-between items-start mb-2">
-                        <h3 className="text-xl font-bold text-gray-900 leading-tight">{displayName}</h3>
-                        {shop.distance && <span className="text-xs font-bold px-2 py-1 rounded-md" style={{ backgroundColor: hexToRgba(shopCardColor, 0.1), color: villageData[shop.village]?.textDark }}>{shop.distance} km</span>}
-                      </div>
-                      
-                      <div className="flex flex-wrap items-center gap-2 mb-3">
-                          {shop.rating && <div className="flex items-center gap-1 text-xs font-bold text-gray-800 bg-yellow-50 px-2 py-1 rounded-md border border-yellow-100"><Star size={10} className="text-yellow-500 fill-yellow-500" />{shop.rating}</div>}
-                          {!hideCardHours && (
-                            <div className="flex items-center gap-1.5 text-xs px-2 py-1 rounded-md border border-gray-100 bg-gray-50 text-gray-500 max-w-full overflow-hidden">
-                              <Clock size={10} className="flex-shrink-0" />
-                              <span className="truncate">{String(shop.hours).split('|')[0]}</span>
-                            </div>
-                          )}
-                      </div>
+                        <div className="flex flex-wrap gap-2 mb-3">
+                          {shop.hasElevator && <span className="text-[10px] bg-blue-50 text-blue-600 border border-blue-200 px-2 py-1 rounded-md font-bold flex items-center gap-1"><Star size={12} /> 有無障礙設施</span>}
+                          {shop.services?.slice(0, 3).map((service, idx) => <span key={idx} className="text-[10px] bg-gray-100 text-gray-600 px-2 py-1 rounded-md font-medium">{service}</span>)}
+                          {shop.services?.length > 3 && <span className="text-[10px] text-gray-400 px-1 py-1">+{shop.services.length - 3}</span>}
+                        </div>
+                        
+                        <div className="flex items-center text-xs mb-5" style={{ color: villageData[shop.village]?.textDark || '#4b5563' }}>
+                          <MapPin size={12} className="mr-1" style={{ color: shopCardColor }} />
+                          <span className="truncate">{displayAddress}</span>
+                        </div>
 
-                      <div className="flex flex-wrap gap-2 mb-3">
-                        {shop.hasElevator && <span className="text-[10px] bg-blue-50 text-blue-600 border border-blue-200 px-2 py-1 rounded-md font-bold flex items-center gap-1"><Star size={12} /> 有無障礙設施</span>}
-                        {shop.services?.slice(0, 3).map((service, idx) => <span key={idx} className="text-[10px] bg-gray-100 text-gray-600 px-2 py-1 rounded-md font-medium">{service}</span>)}
-                        {shop.services?.length > 3 && <span className="text-[10px] text-gray-400 px-1 py-1">+{shop.services.length - 3}</span>}
-                      </div>
-                      
-                      <div className="flex items-center text-xs mb-5" style={{ color: villageData[shop.village]?.textDark || '#4b5563' }}>
-                        <MapPin size={12} className="mr-1" style={{ color: shopCardColor }} />
-                        <span className="truncate">{displayAddress}</span>
-                      </div>
-
-                      <div className="flex flex-wrap gap-2 mt-auto pt-2" onClick={(e) => e.stopPropagation()}>
-                        <a href={shop.nav_link || getGoogleMapLink(shop.name, shop.address)} target="_blank" rel="noopener noreferrer" className="flex-1 min-w-[100px] text-white py-2.5 rounded-xl flex items-center justify-center gap-2 transition-colors font-medium shadow-lg hover:opacity-90" style={{ backgroundColor: shopCardColor, boxShadow: `0 4px 14px 0 ${hexToRgba(shopCardColor, 0.4)}` }}>
-                          <Navigation size={16} /><span className="text-sm">{t('navigate')}</span>
-                        </a>
-                        {shop.tel && <a href={`tel:${shop.tel}`} className="w-11 h-11 rounded-xl flex items-center justify-center transition-colors border hover:opacity-80" style={{ backgroundColor: hexToRgba(shopCardColor, 0.05), borderColor: hexToRgba(shopCardColor, 0.2), color: shopCardColor }}><Phone size={18} /></a>}
-                        {shop.line_url && <a href={shop.line_url} target="_blank" rel="noopener noreferrer" className="w-11 h-11 bg-green-500 hover:bg-green-600 text-white rounded-xl flex items-center justify-center transition-colors shadow-sm"><span className="font-extrabold text-[10px]">LINE</span></a>}
-                        {shop.fbLink && <a href={shop.fbLink} target="_blank" rel="noopener noreferrer" className="w-11 h-11 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-xl flex items-center justify-center transition-colors"><Facebook size={18} /></a>}
-                        {shop.ig_url && <a href={shop.ig_url} target="_blank" rel="noopener noreferrer" className="w-11 h-11 bg-pink-50 hover:bg-pink-100 text-pink-600 rounded-xl flex items-center justify-center transition-colors"><span className="font-extrabold text-[13px]">IG</span></a>}
+                        {/* 卡片底部的按鈕群組會自動被推到底部對齊 */}
+                        <div className="flex flex-wrap gap-2 mt-auto pt-4" onClick={(e) => e.stopPropagation()}>
+                          <a href={shop.nav_link || getGoogleMapLink(shop.name, shop.address)} target="_blank" rel="noopener noreferrer" className="flex-1 min-w-[100px] text-white py-2.5 rounded-xl flex items-center justify-center gap-2 transition-colors font-medium shadow-lg hover:opacity-90" style={{ backgroundColor: shopCardColor, boxShadow: `0 4px 14px 0 ${hexToRgba(shopCardColor, 0.4)}` }}>
+                            <Navigation size={16} /><span className="text-sm">{t('navigate')}</span>
+                          </a>
+                          {shop.tel && <a href={`tel:${shop.tel}`} className="w-11 h-11 rounded-xl flex items-center justify-center transition-colors border hover:opacity-80" style={{ backgroundColor: hexToRgba(shopCardColor, 0.05), borderColor: hexToRgba(shopCardColor, 0.2), color: shopCardColor }}><Phone size={18} /></a>}
+                          {shop.line_url && <a href={shop.line_url} target="_blank" rel="noopener noreferrer" className="w-11 h-11 bg-green-500 hover:bg-green-600 text-white rounded-xl flex items-center justify-center transition-colors shadow-sm"><span className="font-extrabold text-[10px]">LINE</span></a>}
+                          {shop.fbLink && <a href={shop.fbLink} target="_blank" rel="noopener noreferrer" className="w-11 h-11 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-xl flex items-center justify-center transition-colors"><Facebook size={18} /></a>}
+                          {shop.ig_url && <a href={shop.ig_url} target="_blank" rel="noopener noreferrer" className="w-11 h-11 bg-pink-50 hover:bg-pink-100 text-pink-600 rounded-xl flex items-center justify-center transition-colors"><span className="font-extrabold text-[13px]">IG</span></a>}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                );
-              })
+                  );
+                })}
+              </div>
             ) : (
-               <div className="text-center py-10 bg-white/60 backdrop-blur-md rounded-3xl border border-white">
+               <div className="text-center py-10 bg-white/60 backdrop-blur-md rounded-3xl border border-white max-w-sm mx-auto">
                  <Mascot size={72} animation="bounce" className="mx-auto mb-4 opacity-60 grayscale" />
                  <p className="text-gray-500 font-medium">{currentView === 'favorites' ? t('noFavorites') : t('noShops')}</p>
                  <button onClick={() => {setCurrentView('home'); setActiveCategory('all'); setSearchQuery('');}} className="text-sm mt-2 font-bold hover:underline" style={{ color: currentPrimaryColor }}>
@@ -1369,10 +1383,11 @@ export default function App() {
         </div>
       </div>
 
+      {/* 底部懸浮選單 (Dock) */}
       <div className="fixed bottom-6 left-0 right-0 flex justify-center z-[85] pointer-events-none">
         <div className="relative flex justify-center pointer-events-none">
           {(!selectedShop && !selectedAnnouncement && !arTargetShop && !showFilterModal && !showUserModal) && (
-            <div className="absolute bottom-[30px] left-1/2 -translate-x-1/2 pointer-events-auto z-0 animate-float-mascot">
+            <div className="absolute bottom-[30px] left-1/2 -translate-x-1/2 pointer-events-auto z-0 animate-float-mascot hidden sm:block">
                <img src="/mascot.png" alt="Mascot" className="w-[110px] h-[110px] object-bottom object-contain drop-shadow-[0_-8px_16px_rgba(0,0,0,0.15)] hover:-translate-y-3 transition-transform duration-300 cursor-pointer" onError={(e) => { e.target.onerror = null; e.target.src='https://cdn-icons-png.flaticon.com/512/3466/3466395.png'; }} />
             </div>
           )}
