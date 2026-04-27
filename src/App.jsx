@@ -10,7 +10,7 @@ import {
 const APP_CONFIG = {
   appName: "Meishan Taiping",
   subTitle: "Meishan, Chiayi",
-  airtableApiKey: import.meta.env.VITE_AIRTABLE_API_KEY || "", 
+  airtableApiKey:import.meta.env.VITE_AIRTABLE_API_KEY || "", 
   airtableBaseId: "appkU3kxP74Gq7iXj", 
   airtableTableName: "Table 1", 
   liffId: "2009010332-K14upnUb",
@@ -676,7 +676,8 @@ const ShopDetailModal = ({ shop, onClose, t, language, setArTargetShop, userLoca
                </div>
 
                <div className="flex items-center gap-1.5">
-                 {shop.tel && <a href={`tel:${shop.tel}`} className="w-9 h-9 flex items-center justify-center rounded-full border hover:opacity-80 transition-opacity flex-shrink-0" style={{ backgroundColor: hexToRgba(shopColor, 0.05), borderColor: hexToRgba(shopColor, 0.2), color: shopColor }}><Phone size={16} /></a>}
+                 {/* 手機版：顯示小電話按鈕 (加入 md:hidden) */}
+                 {shop.tel && <a href={`tel:${shop.tel}`} className="md:hidden w-9 h-9 flex items-center justify-center rounded-full border hover:opacity-80 transition-opacity flex-shrink-0" style={{ backgroundColor: hexToRgba(shopColor, 0.05), borderColor: hexToRgba(shopColor, 0.2), color: shopColor }}><Phone size={16} /></a>}
                  {shop.fbLink && <a href={shop.fbLink} target="_blank" rel="noopener noreferrer" className="w-9 h-9 flex items-center justify-center rounded-full border border-blue-200 text-blue-600 hover:bg-blue-50 transition-colors flex-shrink-0"><Facebook size={16} /></a>}
                  {shop.ig_url && <a href={shop.ig_url} target="_blank" rel="noopener noreferrer" className="w-9 h-9 flex items-center justify-center rounded-full border border-pink-200 text-pink-600 hover:bg-pink-50 transition-colors flex-shrink-0"><span className="font-extrabold text-[11px]">IG</span></a>}
                  {shop.line_url && <a href={shop.line_url} target="_blank" rel="noopener noreferrer" className="w-9 h-9 flex items-center justify-center rounded-full border border-green-200 text-green-600 hover:bg-green-50 transition-colors flex-shrink-0"><span className="font-extrabold text-[9px]">LINE</span></a>}
@@ -717,6 +718,10 @@ const ShopDetailModal = ({ shop, onClose, t, language, setArTargetShop, userLoca
 
           <div className="space-y-3">
             <div className="flex items-start gap-3 text-sm text-gray-600"><MapPin size={18} className="mt-0.5 shrink-0" style={{ color: shopColor }} /><span>{displayAddress}</span></div>
+            {/* 電腦版：顯示電話號碼文字 (加入 hidden md:flex) */}
+            {shop.tel && (
+              <div className="hidden md:flex items-center gap-3 text-sm text-gray-600"><Phone size={18} className="shrink-0" style={{ color: shopColor }} /><a href={`tel:${shop.tel}`} className="hover:underline">{shop.tel}</a></div>
+            )}
           </div>
 
           <div className="flex flex-wrap gap-2">
@@ -1391,8 +1396,9 @@ export default function App() {
                             <MapPin size={16} className="mr-1.5 shrink-0" style={{ color: shopCardColor }} />
                             <span className="truncate leading-relaxed">{displayAddress}</span>
                           </div>
+                          {/* 電腦版卡片：顯示電話號碼文字 (加入 hidden md:flex) */}
                           {shop.tel && (
-                            <div className="flex items-center text-sm font-medium" style={{ color: villageData[shop.village]?.textDark || '#4b5563' }}>
+                            <div className="hidden md:flex items-center text-sm font-medium" style={{ color: villageData[shop.village]?.textDark || '#4b5563' }}>
                               <Phone size={16} className="mr-1.5 shrink-0" style={{ color: shopCardColor }} />
                               <a href={`tel:${shop.tel}`} onClick={(e) => e.stopPropagation()} className="truncate leading-relaxed hover:underline">{shop.tel}</a>
                             </div>
@@ -1403,6 +1409,8 @@ export default function App() {
                           <a href={shop.nav_link || getGoogleMapLink(shop.name, shop.address)} target="_blank" rel="noopener noreferrer" className="flex-1 min-w-[120px] text-white py-3 rounded-xl flex items-center justify-center gap-2 transition-colors font-bold shadow-lg hover:opacity-90 active:scale-95" style={{ backgroundColor: shopCardColor, boxShadow: `0 4px 14px 0 ${hexToRgba(shopCardColor, 0.4)}` }}>
                             <Navigation size={18} /><span>{t('navigate')}</span>
                           </a>
+                          {/* 手機版卡片：顯示大電話按鈕 (加入 md:hidden) */}
+                          {shop.tel && <a href={`tel:${shop.tel}`} className="md:hidden w-12 h-12 rounded-xl flex items-center justify-center transition-transform hover:scale-105 border shadow-sm" style={{ backgroundColor: hexToRgba(shopCardColor, 0.05), borderColor: hexToRgba(shopCardColor, 0.2), color: shopCardColor }}><Phone size={20} /></a>}
                           {shop.line_url && <a href={shop.line_url} target="_blank" rel="noopener noreferrer" className="w-12 h-12 bg-green-500 hover:bg-green-600 text-white rounded-xl flex items-center justify-center transition-transform hover:scale-105 shadow-sm"><span className="font-black text-[11px] tracking-wider">LINE</span></a>}
                           {shop.fbLink && <a href={shop.fbLink} target="_blank" rel="noopener noreferrer" className="w-12 h-12 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-xl flex items-center justify-center transition-transform hover:scale-105 border border-blue-100"><Facebook size={20} /></a>}
                           {shop.ig_url && <a href={shop.ig_url} target="_blank" rel="noopener noreferrer" className="w-12 h-12 bg-pink-50 hover:bg-pink-100 text-pink-600 rounded-xl flex items-center justify-center transition-transform hover:scale-105 border border-pink-100"><span className="font-black text-sm tracking-wider">IG</span></a>}
