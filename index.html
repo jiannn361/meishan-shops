@@ -1,11 +1,29 @@
 <!doctype html>
-<html lang="en">
+<html lang="zh-TW">
   <head>
-    <link rel="manifest" href="/manifest.json">
     <meta charset="UTF-8" />
+    <link rel="manifest" href="/manifest.json">
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>meishan-app</title>
+    <!-- 加入 maximum-scale=1.0 可以防止手機版輸入文字時畫面被意外放大 -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    
+    <!-- ========================================== -->
+    <!-- 🌟 網站標題與描述 (用於 Google 搜尋) -->
+    <!-- ========================================== -->
+    <title>梅山太平旅遊導覽 | 最在地的景點與美食推薦</title>
+    <meta name="description" content="探索梅山、太平雲梯、瑞峰日出與瑞里紫藤花的最佳指南。提供在地美食、民宿、交通導航與 AR 找店功能！" />
+
+    <!-- ========================================== -->
+    <!-- 📱 Open Graph (用於 LINE, FB 等社群分享預覽卡片) -->
+    <!-- ========================================== -->
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="梅山太平旅遊導覽 | 最在地的景點推薦" />
+    <meta property="og:description" content="探索梅山、太平雲梯、瑞峰日出與瑞里紫藤花的最佳指南，提供 AR 導航與最新活動資訊！" />
+    <!-- 建議：請在 public 資料夾中放入一張漂亮的風景圖，並命名為 og-image.jpg (建議比例 1200x630) -->
+    <meta property="og:image" content="/og-image.jpg" /> 
+    <!-- 記得將下方的網址換成您 Vercel 部署後的真實網址 -->
+    <meta property="og:url" content="https://meishan-shops.vercel.app" /> 
+
   </head>
   <body>
     <div id="root"></div>

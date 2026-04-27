@@ -3,7 +3,7 @@ import {
   Search, MapPin, Phone, Navigation, Facebook, Star, Home, Coffee, Gift, User, 
   Filter, Heart, X, Mountain, Loader2, Camera, Tag, Clock, ChevronLeft, 
   ChevronRight, Info, LocateFixed, Globe, MessageCircle, Map as MapIcon, 
-  ExternalLink, Calendar, Banknote, AlertCircle, ChevronDown, Play, ArrowRight 
+  ExternalLink, Calendar, Banknote, AlertCircle, ChevronDown, Play, ArrowRight, Share2 
 } from 'lucide-react';
 
 // 【網站設定區】
@@ -40,7 +40,7 @@ const translations = {
     distance: '距離', shopsCount: '間', loading: '快到了再等一下...',
     noFavorites: '您的口袋名單還是空的喔！', noShops: '哎呀，找不到符合的店家...',
     goToExplore: '去探索店家', showAll: '顯示全部', googleInfo: 'Google 資訊',
-    fbAnnouncement: '粉公告', navigate: '導航', arNavigate: 'AR 找店', aboutUs: '關於我們',
+    fbAnnouncement: '粉專公告', navigate: '導航', arNavigate: 'AR 找店', aboutUs: '關於我們',
     contactSupport: '聯絡客服', trailGuide: '周邊步道攻略', clearFavorites: '清空收藏紀錄',
     quickFilter: '快速篩選', onlyOpenNow: '只顯示營業中', onlyElevator: '只顯示有無障礙設施',
     onlySpecialEvent: '只顯示特色活動地點', confirm: '確認', shopIntro: '店家介紹',
@@ -48,7 +48,8 @@ const translations = {
     guest: '訪客', welcome: '歡迎來到梅山', switchVillage: '切換村落',
     confirmClearFav: '確定要清空所有收藏嗎？', langSwitch: 'EN',
     aboutUsText: "歡迎您來到梅山！\n我們致力於推廣梅山在地觀光，\n讓您輕鬆找到最棒的民宿與美食。",
-    welcomeTitle: "今天想去哪裡呢?", enterVillage: "開始探索"
+    welcomeTitle: "今天想去哪裡呢?", enterVillage: "開始探索",
+    shareApp: '分享導覽', shareShop: '分享', shareSuccess: '已複製連結！'
   },
   en: {
     explore: 'Explore', pocketList: 'Pocket List', myFavorites: 'Favorites',
@@ -68,7 +69,8 @@ const translations = {
     guest: 'Guest', welcome: 'Welcome to Meishan', switchVillage: 'Switch Village',
     confirmClearFav: 'Clear all favorites?', langSwitch: '中',
     aboutUsText: "Welcome to Meishan!",
-    welcomeTitle: "Where to explore?", enterVillage: "Enter Village"
+    welcomeTitle: "Where to explore?", enterVillage: "Enter Village",
+    shareApp: 'Share', shareShop: 'Share', shareSuccess: 'Link copied!'
   }
 };
 
@@ -536,6 +538,20 @@ const ShopDetailModal = ({ shop, onClose, t, language, setArTargetShop, userLoca
   const shopDistanceNum = shop.distance ? parseFloat(shop.distance) : null;
   const showArButton = hasLocationData && (!userLocation || shopDistanceNum <= 2.0);
 
+  const handleShareShop = async () => {
+    const shareData = {
+      title: displayName,
+      text: `推薦你梅山的好地方：${displayName}\n${displayAddress}`,
+      url: window.location.href
+    };
+    if (navigator.share) {
+      try { await navigator.share(shareData); } catch (e) {}
+    } else {
+      navigator.clipboard.writeText(window.location.href);
+      alert(t('shareSuccess'));
+    }
+  };
+
   return (
     <div className="fixed inset-0 z-[110] flex items-center justify-center px-4 animate-fade-in">
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose}></div>
@@ -667,6 +683,10 @@ const ShopDetailModal = ({ shop, onClose, t, language, setArTargetShop, userLoca
                  <Navigation size={18} /> <span className="text-sm">{t('navigate')}</span>
                </a>
                
+               <button onClick={handleShareShop} className="flex-1 bg-white border py-3 rounded-xl flex items-center justify-center gap-1.5 transition-colors font-bold shadow-sm hover:bg-gray-50" style={{ borderColor: shopColor, color: shopColor }}>
+                 <Share2 size={16} /> <span className="text-sm">{t('shareShop')}</span>
+               </button>
+
                {showArButton && (
                  <button 
                    onClick={(e) => { 
@@ -825,6 +845,21 @@ export default function App() {
   const toggleLanguage = useCallback(() => {
     setLanguage(prev => prev === 'zh' ? 'en' : 'zh');
   }, []);
+
+  const handleShareApp = async () => {
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: APP_CONFIG.appName,
+          text: '來看看這個超棒的梅山太平旅遊導覽 App！',
+          url: window.location.href,
+        });
+      } catch (e) {}
+    } else {
+      navigator.clipboard.writeText(window.location.href);
+      alert(t('shareSuccess'));
+    }
+  };
 
   const handleGetLocation = () => {
     if (!navigator.geolocation) {
@@ -1141,7 +1176,10 @@ export default function App() {
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <button onClick={toggleLanguage} className="text-sm font-bold px-2 py-1 rounded-lg border hover:opacity-80 transition-opacity bg-white" style={{ color: currentPrimaryColor, borderColor: hexToRgba(currentPrimaryColor, 0.2) }}>{t('langSwitch')}</button>
+              <button onClick={handleShareApp} className="w-9 h-9 rounded-full border bg-white flex items-center justify-center hover:opacity-80 transition-opacity shadow-sm" style={{ color: currentPrimaryColor, borderColor: hexToRgba(currentPrimaryColor, 0.2) }}>
+                <Share2 size={16} />
+              </button>
+              <button onClick={toggleLanguage} className="text-sm font-bold px-2 py-1 rounded-lg border hover:opacity-80 transition-opacity bg-white shadow-sm" style={{ color: currentPrimaryColor, borderColor: hexToRgba(currentPrimaryColor, 0.2) }}>{t('langSwitch')}</button>
               <button onClick={() => setShowUserModal(true)} className="w-10 h-10 rounded-full overflow-hidden border-2 border-white shadow-md bg-white flex items-center justify-center">
                  <User size={20} style={{ color: currentPrimaryColor }} />
               </button>
