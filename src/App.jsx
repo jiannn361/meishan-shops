@@ -40,7 +40,7 @@ const translations = {
     distance: '距離', shopsCount: '間', loading: '快到了再等一下...',
     noFavorites: '您的口袋名單還是空的喔！', noShops: '哎呀，找不到符合的店家...',
     goToExplore: '去探索店家', showAll: '顯示全部', googleInfo: 'Google 資訊',
-    fbAnnouncement: '粉專公告', navigate: '導航', arNavigate: 'AR 找店', aboutUs: '關於我們',
+    fbAnnouncement: '粉公告', navigate: '導航', arNavigate: 'AR 找店', aboutUs: '關於我們',
     contactSupport: '聯絡客服', trailGuide: '周邊步道攻略', clearFavorites: '清空收藏紀錄',
     quickFilter: '快速篩選', onlyOpenNow: '只顯示營業中', onlyElevator: '只顯示有無障礙設施',
     onlySpecialEvent: '只顯示特色活動地點', confirm: '確認', shopIntro: '店家介紹',
@@ -700,11 +700,11 @@ const ShopDetailModal = ({ shop, onClose, t, language, setArTargetShop, userLoca
                 </div>
               )}
               {displayNotice && (
-                <div className="bg-rose-50 p-3 rounded-2xl border border-rose-200 flex items-start gap-3">
-                  <div className="bg-rose-100 p-2 rounded-full text-rose-600 shrink-0"><AlertCircle size={18} /></div>
+                <div className="bg-blue-50 p-3 rounded-2xl border border-blue-200 flex items-start gap-3">
+                  <div className="bg-blue-100 p-2 rounded-full text-blue-600 shrink-0"><AlertCircle size={18} /></div>
                   <div className="w-full">
-                    <h4 className="text-[13px] font-bold text-rose-800 mb-0.5">{t('notice')}</h4>
-                    <FormattedText text={displayNotice} className="text-sm text-rose-700 font-medium" />
+                    <h4 className="text-[13px] font-bold text-blue-800 mb-0.5">{t('notice')}</h4>
+                    <FormattedText text={displayNotice} className="text-sm text-blue-700 font-medium" />
                   </div>
                 </div>
               )}
