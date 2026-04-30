@@ -768,6 +768,12 @@ const ShopDetailModal = ({ shop, onClose, t, language, setArTargetShop, userLoca
                         <div className="w-full pt-0.5">
                           <h4 className="text-[13px] font-bold text-blue-800 mb-1">停車資訊</h4>
                           <FormattedText text={shop.parking} className="text-sm text-gray-600" />
+                          {/* 🅿️ 新增停車場導航按鈕 */}
+                          {shop.parkingLink && (
+                             <a href={shop.parkingLink} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 mt-2.5 px-3.5 py-2 bg-blue-600 text-white text-xs font-bold rounded-lg hover:bg-blue-700 transition-colors shadow-sm active:scale-95">
+                               <Navigation size={14} /> 導航至停車場
+                             </a>
+                          )}
                         </div>
                       </div>
                     )}
@@ -1092,6 +1098,7 @@ export default function App() {
               busInfo: f['busInfo'] || f['公車資訊'] || f['大眾運輸'] || f['公車'] || '',
               busLink: f['busLink'] || f['公車連結'] || f['動態連結'] || '',
               parking: f['parking'] || f['停車資訊'] || f['停車場'] || f['停車'] || '',
+              parkingLink: f['parkingLink'] || f['停車連結'] || f['停車場連結'] || f['停車導航'] || '',
               bookings: shopBookings, hours: String(f['hours'] || f['Hours'] || f['營業時間'] || ''),
               description: f['description'] || f['Description'] || f['介紹'] || f['店家介紹'] || '暫無詳細介紹，歡迎親自蒞臨體驗！',
             };
