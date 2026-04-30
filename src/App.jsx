@@ -1058,10 +1058,15 @@ export default function App() {
   const categoryConfig = {
     'all': { labelKey: 'all', icon: <Search size={18}/> },
     'accommodation': { labelKey: 'accommodation', icon: <Home size={18}/> },
+    '民宿': { labelKey: 'accommodation', icon: <Home size={18}/> },
     'food': { labelKey: 'food', icon: <Coffee size={18}/> },
+    '美食': { labelKey: 'food', icon: <Coffee size={18}/> },
     'gift': { labelKey: 'gift', icon: <Gift size={18}/> },
+    '伴手禮': { labelKey: 'gift', icon: <Gift size={18}/> },
     'attraction': { labelKey: 'attraction', icon: <Camera size={18}/> },
+    '景點': { labelKey: 'attraction', icon: <Camera size={18}/> },
     'experience': { labelKey: 'experience', icon: <Tag size={18}/> },
+    '體驗': { labelKey: 'experience', icon: <Tag size={18}/> },
     'transport': { labelKey: 'transport', icon: <Navigation size={18}/> },
     '交通': { labelKey: 'transport', icon: <Navigation size={18}/> },
   };
