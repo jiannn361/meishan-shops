@@ -3,7 +3,8 @@ import {
   Search, MapPin, Phone, Navigation, Facebook, Star, Home, Coffee, Gift, User, 
   Filter, Heart, X, Mountain, Loader2, Camera, Tag, Clock, ChevronLeft, 
   ChevronRight, Info, LocateFixed, Globe, MessageCircle, Map as MapIcon, 
-  ExternalLink, Calendar, Banknote, AlertCircle, ChevronDown, Play, ArrowRight, Share2 
+  ExternalLink, Calendar, Banknote, AlertCircle, ChevronDown, ChevronUp, Play, ArrowRight, Share2,
+  Bus, Car
 } from 'lucide-react';
 
 // 【網站設定區】
@@ -302,7 +303,7 @@ const ImageCarousel = ({ images, onClick }) => {
 };
 
 // ==========================================
-// 📢 最新消息輪播組件 (針對需求 5 獨立建立)
+// 📢 最新消息輪播組件
 // ==========================================
 const AnnouncementCarousel = ({ announcements, onSelect, currentPrimaryColor }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -573,6 +574,7 @@ const AnnouncementModal = ({ ann, onClose, currentPrimaryColor }) => {
 
 const ShopDetailModal = ({ shop, onClose, t, language, setArTargetShop, userLocation }) => {
   const [viewTrailMap, setViewTrailMap] = useState(false);
+  const [showTransport, setShowTransport] = useState(false);
 
   if (!shop) return null;
   const isOpen = checkIsOpen(shop.hours);
@@ -718,7 +720,7 @@ const ShopDetailModal = ({ shop, onClose, t, language, setArTargetShop, userLoca
 
           <div className="space-y-3">
             <div className="flex items-start gap-3 text-sm text-gray-600"><MapPin size={18} className="mt-0.5 shrink-0" style={{ color: shopColor }} /><span>{displayAddress}</span></div>
-            {/* 電腦版：顯示電話號碼文字 (加入 hidden md:flex) */}
+            {/* 電腦版：顯示電話號碼文字 */}
             {shop.tel && (
               <div className="hidden md:flex items-center gap-3 text-sm text-gray-600"><Phone size={18} className="shrink-0" style={{ color: shopColor }} /><a href={`tel:${shop.tel}`} className="hover:underline">{shop.tel}</a></div>
             )}
@@ -728,6 +730,51 @@ const ShopDetailModal = ({ shop, onClose, t, language, setArTargetShop, userLoca
             {shop.hasElevator && <span className="px-2 py-1 bg-blue-50 text-blue-600 border border-blue-200 text-xs rounded-md font-bold flex items-center gap-1"><Star size={14} /> 有無障礙設施</span>}
             {shop.services?.map((s, i) => <span key={i} className="px-2 py-1 bg-gray-100 text-gray-500 text-xs rounded-md">#{s}</span>)}
           </div>
+
+          {/* 🚍 交通與停車資訊 (摺疊面板，有資料才會顯示) */}
+          {(shop.busInfo || shop.parking) && (
+            <div className="mt-4 border border-gray-200 rounded-2xl overflow-hidden shadow-sm">
+               <button
+                 onClick={() => setShowTransport(!showTransport)}
+                 className="w-full py-3.5 px-4 flex items-center justify-between font-bold bg-gray-50 hover:bg-gray-100 transition-colors text-gray-700"
+               >
+                 <div className="flex items-center gap-2">
+                   <Bus size={18} className="text-emerald-600" />
+                   <span>查看交通與停車資訊</span>
+                 </div>
+                 {showTransport ? <ChevronUp size={18} className="text-gray-400" /> : <ChevronDown size={18} className="text-gray-400" />}
+               </button>
+
+               {showTransport && (
+                 <div className="p-4 bg-white border-t border-gray-100 space-y-4 animate-in slide-in-from-top-2 duration-200">
+                    {shop.busInfo && (
+                      <div className="flex items-start gap-3">
+                        <div className="p-1.5 bg-emerald-100 text-emerald-600 rounded-lg shrink-0"><Bus size={16} /></div>
+                        <div className="w-full pt-0.5">
+                          <h4 className="text-[13px] font-bold text-emerald-800 mb-1">大眾運輸</h4>
+                          <FormattedText text={shop.busInfo} className="text-sm text-gray-600" />
+                          {shop.busLink && (
+                             <a href={shop.busLink} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 mt-2.5 px-3.5 py-2 bg-emerald-600 text-white text-xs font-bold rounded-lg hover:bg-emerald-700 transition-colors shadow-sm active:scale-95">
+                               <Bus size={14} /> 查詢公車即時動態
+                             </a>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {shop.parking && (
+                      <div className="flex items-start gap-3 pt-3 border-t border-gray-100">
+                        <div className="p-1.5 bg-blue-100 text-blue-600 rounded-lg shrink-0"><Car size={16} /></div>
+                        <div className="w-full pt-0.5">
+                          <h4 className="text-[13px] font-bold text-blue-800 mb-1">停車資訊</h4>
+                          <FormattedText text={shop.parking} className="text-sm text-gray-600" />
+                        </div>
+                      </div>
+                    )}
+                 </div>
+               )}
+            </div>
+          )}
 
           {shop.trail_map && (
             <button onClick={() => setViewTrailMap(true)} className="w-full py-3 mb-2 rounded-2xl flex items-center justify-center gap-2 font-bold shadow-sm transition-transform active:scale-95 mt-4" style={{ backgroundColor: hexToRgba(shopColor, 0.1), color: shopDarkColor, border: `1px solid ${hexToRgba(shopColor, 0.3)}` }}>
@@ -1042,6 +1089,9 @@ export default function App() {
               payment_en: f['payment_en'] || f['付款方式_英'] || '',
               notice: f['notice'] || f['注意事項'] || f['提醒'] || f['備註'] || '',
               notice_en: f['notice_en'] || f['注意事項_英'] || '',
+              busInfo: f['busInfo'] || f['公車資訊'] || f['大眾運輸'] || f['公車'] || '',
+              busLink: f['busLink'] || f['公車連結'] || f['動態連結'] || '',
+              parking: f['parking'] || f['停車資訊'] || f['停車場'] || f['停車'] || '',
               bookings: shopBookings, hours: String(f['hours'] || f['Hours'] || f['營業時間'] || ''),
               description: f['description'] || f['Description'] || f['介紹'] || f['店家介紹'] || '暫無詳細介紹，歡迎親自蒞臨體驗！',
             };
