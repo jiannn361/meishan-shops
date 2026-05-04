@@ -11,7 +11,7 @@ import {
 const APP_CONFIG = {
   appName: "Meishan Taiping",
   subTitle: "Meishan, Chiayi",
-  airtableApiKey:import.meta.env.VITE_AIRTABLE_API_KEY || "", 
+  airtableApiKey: import.meta.env.VITE_AIRTABLE_API_KEY || "", 
   airtableBaseId: "appkU3kxP74Gq7iXj", 
   airtableTableName: "Table 1", 
   liffId: "2009010332-K14upnUb",
@@ -736,13 +736,17 @@ const ShopDetailModal = ({ shop, onClose, t, language, setArTargetShop, userLoca
             <div className="mt-4 border border-gray-200 rounded-2xl overflow-hidden shadow-sm">
                <button
                  onClick={() => setShowTransport(!showTransport)}
-                 className="w-full py-3.5 px-4 flex items-center justify-between font-bold bg-gray-50 hover:bg-gray-100 transition-colors text-gray-700"
+                 // 👇 這裡把 justify-between 改成 justify-center，並加上 relative
+                 className="relative w-full py-3.5 px-4 flex items-center justify-center font-bold bg-gray-50 hover:bg-gray-100 transition-colors text-gray-700"
                >
                  <div className="flex items-center gap-2">
                    <Bus size={18} className="text-emerald-600" />
                    <span>查看交通與停車資訊</span>
                  </div>
-                 {showTransport ? <ChevronUp size={18} className="text-gray-400" /> : <ChevronDown size={18} className="text-gray-400" />}
+                 {/* 👇 這裡用一個絕對定位的 div 把箭頭固定在最右邊 */}
+                 <div className="absolute right-4 flex items-center">
+                   {showTransport ? <ChevronUp size={18} className="text-gray-400" /> : <ChevronDown size={18} className="text-gray-400" />}
+                 </div>
                </button>
 
                {showTransport && (
