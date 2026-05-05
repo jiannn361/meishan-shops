@@ -360,7 +360,7 @@ const AnnouncementCarousel = ({ announcements, onSelect, currentPrimaryColor }) 
 // ==========================================
 // 🧭 AR 導航模組
 // ==========================================
-const ARNavigation = ({ targetShop, userLoc, onClose }) => {
+const ARNavigation = ({ targetShop, userLoc, onClose, language }) => {
   const videoRef = useRef(null);
   const streamRef = useRef(null); 
   const [compassHeading, setCompassHeading] = useState(null);
@@ -459,19 +459,21 @@ const ARNavigation = ({ targetShop, userLoc, onClose }) => {
   }
   const isTargetVisible = Math.abs(diffAngle) < 35;
   
+  const displayArName = language === 'en' ? (targetShop?.name_en || targetShop?.name) : targetShop?.name;
+
   return (
     <div className="fixed inset-0 z-[100] bg-black overflow-hidden flex flex-col items-center">
       <video ref={videoRef} autoPlay playsInline muted className="absolute inset-0 w-full h-full object-cover z-0 opacity-80" />
       
       <div className="absolute top-0 inset-x-0 p-6 z-20 bg-gradient-to-b from-black/70 to-transparent flex justify-between items-start">
-         <div className="text-white">
-            <h2 className="text-2xl font-black drop-shadow-md">{targetShop?.name}</h2>
+         <div className="text-white pr-4">
+            <h2 className="text-2xl font-black drop-shadow-md leading-tight">{displayArName}</h2>
             <div className="flex items-center gap-2 mt-1">
                <MapPin size={16} className="text-emerald-400" />
                <span className="font-bold text-emerald-50 drop-shadow-md">距離 {targetDistance} km</span>
             </div>
          </div>
-         <button onClick={onClose} className="bg-white/90 hover:bg-white text-gray-800 p-2.5 rounded-full shadow-[0_2px_10px_rgba(0,0,0,0.3)] backdrop-blur-md transition-transform active:scale-95">
+         <button onClick={onClose} className="bg-white/90 hover:bg-white text-gray-800 p-2.5 rounded-full shadow-[0_2px_10px_rgba(0,0,0,0.3)] backdrop-blur-md transition-transform active:scale-95 shrink-0">
             <X size={20} strokeWidth={3} />
          </button>
       </div>
@@ -578,7 +580,12 @@ const ShopDetailModal = ({ shop, onClose, t, language, setArTargetShop, userLoca
 
   if (!shop) return null;
   const isOpen = checkIsOpen(shop.hours);
-  const displayName = getDynamicText(shop, 'name', language);
+  
+  // 語言名稱顯示邏輯
+  const isEn = language === 'en';
+  const displayMainName = isEn ? (shop.name_en || shop.name) : shop.name;
+  const displaySubName = (!isEn && shop.name_en) ? shop.name_en : null;
+
   const displayDesc = getDynamicText(shop, 'description', language);
   const displayAddress = getDynamicText(shop, 'address', language);
   const displayPayment = getDynamicText(shop, 'payment', language);
@@ -597,8 +604,8 @@ const ShopDetailModal = ({ shop, onClose, t, language, setArTargetShop, userLoca
 
   const handleShareShop = async () => {
     const shareData = {
-      title: displayName,
-      text: `推薦你梅山的好地方：${displayName}\n${displayAddress}`,
+      title: displayMainName,
+      text: `推薦你梅山的好地方：${displayMainName}\n${displayAddress}`,
       url: window.location.href
     };
     if (navigator.share) {
@@ -628,10 +635,17 @@ const ShopDetailModal = ({ shop, onClose, t, language, setArTargetShop, userLoca
 
         <div className="h-64 sm:h-72 relative shrink-0">
           <ImageCarousel images={shop.images} onClick={(e) => e.stopPropagation()} />
-          <div className="absolute bottom-0 inset-x-0 h-24 bg-gradient-to-t from-black/80 to-transparent pointer-events-none"></div>
+          <div className="absolute bottom-0 inset-x-0 h-32 bg-gradient-to-t from-black/90 to-transparent pointer-events-none"></div>
           <div className="absolute bottom-4 left-5 right-5 text-white pointer-events-none pr-10">
-            <h3 className="text-2xl sm:text-3xl font-bold mb-1 pointer-events-auto">{displayName}</h3>
-            <div className="flex items-center gap-3 text-sm pointer-events-auto">
+            <h3 className="text-2xl sm:text-3xl font-bold mb-0.5 pointer-events-auto leading-tight drop-shadow-md">
+              {displayMainName}
+            </h3>
+            {displaySubName && (
+              <div className="text-sm sm:text-base font-medium text-white/80 mb-2 pointer-events-auto drop-shadow-md tracking-wide">
+                {displaySubName}
+              </div>
+            )}
+            <div className="flex items-center gap-3 text-sm pointer-events-auto mt-2">
               {shop.rating && (
                 <div className="flex items-center gap-1 text-yellow-400">
                    <Star size={16} className="fill-yellow-400" />
@@ -736,14 +750,12 @@ const ShopDetailModal = ({ shop, onClose, t, language, setArTargetShop, userLoca
             <div className="mt-4 border border-gray-200 rounded-2xl overflow-hidden shadow-sm">
                <button
                  onClick={() => setShowTransport(!showTransport)}
-                 // 👇 這裡把 justify-between 改成 justify-center，並加上 relative
                  className="relative w-full py-3.5 px-4 flex items-center justify-center font-bold bg-gray-50 hover:bg-gray-100 transition-colors text-gray-700"
                >
                  <div className="flex items-center gap-2">
                    <Bus size={18} className="text-emerald-600" />
                    <span>查看交通與停車資訊</span>
                  </div>
-                 {/* 👇 這裡用一個絕對定位的 div 把箭頭固定在最右邊 */}
                  <div className="absolute right-4 flex items-center">
                    {showTransport ? <ChevronUp size={18} className="text-gray-400" /> : <ChevronDown size={18} className="text-gray-400" />}
                  </div>
@@ -772,7 +784,6 @@ const ShopDetailModal = ({ shop, onClose, t, language, setArTargetShop, userLoca
                         <div className="w-full pt-0.5">
                           <h4 className="text-[13px] font-bold text-blue-800 mb-1">停車資訊</h4>
                           <FormattedText text={shop.parking} className="text-sm text-gray-600" />
-                          {/* 🅿️ 新增停車場導航按鈕 */}
                           {shop.parkingLink && (
                              <a href={shop.parkingLink} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 mt-2.5 px-3.5 py-2 bg-blue-600 text-white text-xs font-bold rounded-lg hover:bg-blue-700 transition-colors shadow-sm active:scale-95">
                                <Navigation size={14} /> 導航至停車場
@@ -1381,7 +1392,12 @@ export default function App() {
                 {processedShops.map((shop) => {
                   const isOpen = checkIsOpen(shop.hours);
                   const isFav = favorites.includes(shop.id);
-                  const displayName = getDynamicText(shop, 'name', language);
+                  
+                  // 卡片標題名稱顯示邏輯
+                  const isEn = language === 'en';
+                  const displayMainName = isEn ? (shop.name_en || shop.name) : shop.name;
+                  const displaySubName = (!isEn && shop.name_en) ? shop.name_en : null;
+
                   const displayAddress = getDynamicText(shop, 'address', language);
                   const isAccommodation = shop.categories && shop.categories.includes('accommodation');
                   const hasHours = !!shop.hours;
@@ -1437,8 +1453,13 @@ export default function App() {
 
                       <div className="p-6 cursor-pointer flex flex-col flex-1" onClick={() => setSelectedShop(shop)}>
                         <div className="flex justify-between items-start mb-3">
-                          <h3 className="text-xl md:text-2xl font-extrabold text-gray-900 leading-tight">{displayName}</h3>
-                          {shop.distance && <span className="text-[11px] font-bold px-2 py-1 rounded-lg shrink-0 ml-2 border" style={{ backgroundColor: hexToRgba(shopCardColor, 0.05), color: villageData[shop.village]?.textDark, borderColor: hexToRgba(shopCardColor, 0.2) }}>{shop.distance} km</span>}
+                          <div className="flex flex-col pr-2">
+                             <h3 className="text-xl md:text-2xl font-extrabold text-gray-900 leading-tight">{displayMainName}</h3>
+                             {displaySubName && (
+                                <span className="text-xs md:text-sm font-bold text-gray-400 mt-1 tracking-wide">{displaySubName}</span>
+                             )}
+                          </div>
+                          {shop.distance && <span className="text-[11px] font-bold px-2 py-1 rounded-lg shrink-0 border mt-1" style={{ backgroundColor: hexToRgba(shopCardColor, 0.05), color: villageData[shop.village]?.textDark, borderColor: hexToRgba(shopCardColor, 0.2) }}>{shop.distance} km</span>}
                         </div>
                         
                         <div className="flex flex-wrap items-center gap-2.5 mb-4">
@@ -1462,7 +1483,7 @@ export default function App() {
                             <MapPin size={16} className="mr-1.5 shrink-0" style={{ color: shopCardColor }} />
                             <span className="truncate leading-relaxed">{displayAddress}</span>
                           </div>
-                          {/* 電腦版卡片：顯示電話號碼文字 (加入 hidden md:flex) */}
+                          {/* 電腦版卡片：顯示電話號碼文字 */}
                           {shop.tel && (
                             <div className="hidden md:flex items-center text-sm font-medium" style={{ color: villageData[shop.village]?.textDark || '#4b5563' }}>
                               <Phone size={16} className="mr-1.5 shrink-0" style={{ color: shopCardColor }} />
@@ -1475,7 +1496,7 @@ export default function App() {
                           <a href={shop.nav_link || getGoogleMapLink(shop.name, shop.address)} target="_blank" rel="noopener noreferrer" className="flex-1 min-w-[120px] text-white py-3 rounded-xl flex items-center justify-center gap-2 transition-colors font-bold shadow-lg hover:opacity-90 active:scale-95" style={{ backgroundColor: shopCardColor, boxShadow: `0 4px 14px 0 ${hexToRgba(shopCardColor, 0.4)}` }}>
                             <Navigation size={18} /><span>{t('navigate')}</span>
                           </a>
-                          {/* 手機版卡片：顯示大電話按鈕 (加入 md:hidden) */}
+                          {/* 手機版卡片：顯示大電話按鈕 */}
                           {shop.tel && <a href={`tel:${shop.tel}`} className="md:hidden w-12 h-12 rounded-xl flex items-center justify-center transition-transform hover:scale-105 border shadow-sm" style={{ backgroundColor: hexToRgba(shopCardColor, 0.05), borderColor: hexToRgba(shopCardColor, 0.2), color: shopCardColor }}><Phone size={20} /></a>}
                           {shop.line_url && <a href={shop.line_url} target="_blank" rel="noopener noreferrer" className="w-12 h-12 bg-green-500 hover:bg-green-600 text-white rounded-xl flex items-center justify-center transition-transform hover:scale-105 shadow-sm"><span className="font-black text-[11px] tracking-wider">LINE</span></a>}
                           {shop.fbLink && <a href={shop.fbLink} target="_blank" rel="noopener noreferrer" className="w-12 h-12 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-xl flex items-center justify-center transition-transform hover:scale-105 border border-blue-100"><Facebook size={20} /></a>}
@@ -1502,7 +1523,7 @@ export default function App() {
       <div className="fixed bottom-6 left-0 right-0 flex justify-center z-[85] pointer-events-none">
         <div className="relative flex justify-center pointer-events-none">
           
-          {/* 探頭吉祥物 (取消隱藏，所有設備皆顯示) */}
+          {/* 探頭吉祥物 */}
           {(!selectedShop && !selectedAnnouncement && !arTargetShop && !showFilterModal && !showUserModal) && (
             <div className="absolute bottom-[30px] left-1/2 -translate-x-1/2 pointer-events-auto z-0 animate-float-mascot">
                <img src="/mascot.png" alt="Mascot" className="w-[100px] h-[100px] md:w-[110px] md:h-[110px] object-bottom object-contain drop-shadow-[0_-8px_16px_rgba(0,0,0,0.15)] hover:-translate-y-3 transition-transform duration-300 cursor-pointer" onError={(e) => { e.target.onerror = null; e.target.src='https://cdn-icons-png.flaticon.com/512/3466/3466395.png'; }} />
@@ -1547,10 +1568,10 @@ export default function App() {
       )}
 
       {selectedAnnouncement && <AnnouncementModal ann={selectedAnnouncement} onClose={() => setSelectedAnnouncement(null)} currentPrimaryColor={currentPrimaryColor} />}
-      <ShopDetailModal shop={selectedShop} onClose={() => setSelectedShop(null)} t={t} language={language} setArTargetShop={setArTargetShop} userLocation={userLocation} checkIsOpen={checkIsOpen} getDynamicText={getDynamicText} />
+      <ShopDetailModal shop={selectedShop} onClose={() => setSelectedShop(null)} t={t} language={language} setArTargetShop={setArTargetShop} userLocation={userLocation} />
       <FilterModal showFilterModal={showFilterModal} setShowFilterModal={setShowFilterModal} filterOpenOnly={filterOpenOnly} setFilterOpenOnly={setFilterOpenOnly} filterElevator={filterElevator} setFilterElevator={setFilterElevator} hasAnyEventsInVillage={hasAnyEventsInVillage} filterEventOnly={filterEventOnly} setFilterEventOnly={setFilterEventOnly} currentPrimaryColor={currentPrimaryColor} t={t} />
       <UserModal showUserModal={showUserModal} setShowUserModal={setShowUserModal} t={t} APP_CONFIG={APP_CONFIG} currentPrimaryColor={currentPrimaryColor} currentDarkColor={currentDarkColor} favorites={favorites} setFavorites={setFavorites} />
-      {arTargetShop && <ARNavigation targetShop={arTargetShop} userLoc={userLocation} onClose={() => setArTargetShop(null)} />}
+      {arTargetShop && <ARNavigation targetShop={arTargetShop} userLoc={userLocation} onClose={() => setArTargetShop(null)} language={language} />}
     </div>
   );
 }
