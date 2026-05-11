@@ -4,14 +4,14 @@ import {
   Filter, Heart, X, Mountain, Loader2, Camera, Tag, Clock, ChevronLeft, 
   ChevronRight, Info, LocateFixed, Globe, MessageCircle, Map as MapIcon, 
   ExternalLink, Calendar, Banknote, AlertCircle, ChevronDown, ChevronUp, Play, ArrowRight, Share2,
-  Bus, Car
+  Bus, Car, Type
 } from 'lucide-react';
 
 // 【網站設定區】
 const APP_CONFIG = {
   appName: "Meishan Taiping",
   subTitle: "Meishan, Chiayi",
-  airtableApiKey: import.meta.env.VITE_AIRTABLE_API_KEY || "", 
+  airtableApiKey: import.meta.env.VITE_AIRTABLE_API_KEY | "", 
   airtableBaseId: "appkU3kxP74Gq7iXj", 
   airtableTableName: "Table 1", 
   liffId: "2009010332-K14upnUb",
@@ -50,7 +50,8 @@ const translations = {
     confirmClearFav: '確定要清空所有收藏嗎？', langSwitch: 'EN',
     aboutUsText: "歡迎您來到梅山！\n我們致力於推廣梅山在地觀光，\n讓您輕鬆找到最棒的民宿與美食。",
     welcomeTitle: "今天想去哪裡呢?", enterVillage: "開始探索",
-    shareApp: '分享導覽', shareShop: '分享', shareSuccess: '已複製連結！'
+    shareApp: '分享導覽', shareShop: '分享', shareSuccess: '已複製連結！',
+    fontSize: '字體大小', fontNormal: '標準', fontLarge: '大', fontXLarge: '特大'
   },
   en: {
     explore: 'Explore', pocketList: 'Pocket List', myFavorites: 'Favorites',
@@ -71,7 +72,8 @@ const translations = {
     confirmClearFav: 'Clear all favorites?', langSwitch: '中',
     aboutUsText: "Welcome to Meishan!",
     welcomeTitle: "Where to explore?", enterVillage: "Enter Village",
-    shareApp: 'Share', shareShop: 'Share', shareSuccess: 'Link copied!'
+    shareApp: 'Share', shareShop: 'Share', shareSuccess: 'Link copied!',
+    fontSize: 'Font Size', fontNormal: 'Normal', fontLarge: 'Large', fontXLarge: 'X-Large'
   }
 };
 
@@ -910,7 +912,8 @@ const UserModal = ({ showUserModal, setShowUserModal, t, APP_CONFIG, currentPrim
           <h3 className="text-xl font-bold text-gray-800">{t('guest')}</h3>
           <p className="text-sm text-gray-500">{t('welcome')}</p>
         </div>
-        <div className="space-y-2">
+
+        <div className="space-y-2 pt-2 border-t border-gray-100">
           {APP_CONFIG.notionUrl && (
             <button className="w-full flex items-center justify-between p-4 hover:opacity-80 rounded-xl transition-colors text-left border" style={{ backgroundColor: hexToRgba(currentPrimaryColor, 0.05), borderColor: hexToRgba(currentPrimaryColor, 0.2) }} onClick={() => window.open(APP_CONFIG.notionUrl, '_blank')}>
               <span className="flex items-center gap-3 font-bold" style={{ color: currentDarkColor }}><MapIcon size={18} /> {t('trailGuide')}</span><ChevronRight size={16} style={{ color: currentPrimaryColor }} />
@@ -956,6 +959,7 @@ export default function App() {
   const [filterElevator, setFilterElevator] = useState(false);
   const [filterEventOnly, setFilterEventOnly] = useState(false);
   const [isSidebarOpen, setSidebarOpen] = useState(false);
+  const [fontSizeLevel, setFontSizeLevel] = useState(localStorage.getItem('meishan_font_size') || 'normal');
 
   const t = useCallback((key) => (translations[language]?.[key] || key), [language]);
   const currentPrimaryColor = villageData[selectedVillage]?.color || '#059669';
@@ -973,6 +977,15 @@ export default function App() {
   const toggleLanguage = useCallback(() => {
     setLanguage(prev => prev === 'zh' ? 'en' : 'zh');
   }, []);
+
+  // 監聽字體大小變更，應用到整個網頁根節點
+  useEffect(() => {
+    if (fontSizeLevel === 'large') document.documentElement.style.fontSize = '112.5%';
+    else if (fontSizeLevel === 'xlarge') document.documentElement.style.fontSize = '125%';
+    else document.documentElement.style.fontSize = '100%';
+    
+    localStorage.setItem('meishan_font_size', fontSizeLevel);
+  }, [fontSizeLevel]);
 
   const handleShareApp = async () => {
     if (navigator.share) {
@@ -1315,13 +1328,27 @@ export default function App() {
                   </div>
                 </div>
               </div>
-              <div className="flex items-center gap-2">
-                <button onClick={handleShareApp} className="w-9 h-9 rounded-full border bg-white flex items-center justify-center hover:opacity-80 transition-opacity shadow-sm" style={{ color: currentPrimaryColor, borderColor: hexToRgba(currentPrimaryColor, 0.2) }}>
+              <div className="flex items-center gap-1.5 sm:gap-2">
+                
+                {/* 膠囊型字體切換器 (直接顯示於頁面) */}
+                <div className="flex bg-white rounded-full p-0.5 border shadow-sm items-center" style={{ borderColor: hexToRgba(currentPrimaryColor, 0.2) }}>
+                  <button onClick={() => setFontSizeLevel('normal')} className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center transition-all ${fontSizeLevel === 'normal' ? 'bg-gray-100 shadow-sm scale-105' : 'hover:bg-gray-50'}`} style={{ color: fontSizeLevel === 'normal' ? currentPrimaryColor : '#9ca3af' }}>
+                     <span className="text-[11px] font-black leading-none">A</span>
+                  </button>
+                  <button onClick={() => setFontSizeLevel('large')} className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center transition-all ${fontSizeLevel === 'large' ? 'bg-gray-100 shadow-sm scale-105' : 'hover:bg-gray-50'}`} style={{ color: fontSizeLevel === 'large' ? currentPrimaryColor : '#9ca3af' }}>
+                     <span className="text-sm font-black leading-none">A</span>
+                  </button>
+                  <button onClick={() => setFontSizeLevel('xlarge')} className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center transition-all ${fontSizeLevel === 'xlarge' ? 'bg-gray-100 shadow-sm scale-105' : 'hover:bg-gray-50'}`} style={{ color: fontSizeLevel === 'xlarge' ? currentPrimaryColor : '#9ca3af' }}>
+                     <span className="text-base font-black leading-none">A</span>
+                  </button>
+                </div>
+
+                <button onClick={handleShareApp} className="w-8 h-8 sm:w-9 sm:h-9 rounded-full border bg-white flex items-center justify-center hover:opacity-80 transition-opacity shadow-sm" style={{ color: currentPrimaryColor, borderColor: hexToRgba(currentPrimaryColor, 0.2) }}>
                   <Share2 size={16} />
                 </button>
-                <button onClick={toggleLanguage} className="text-sm font-bold px-2 py-1 rounded-lg border hover:opacity-80 transition-opacity bg-white shadow-sm" style={{ color: currentPrimaryColor, borderColor: hexToRgba(currentPrimaryColor, 0.2) }}>{t('langSwitch')}</button>
-                <button onClick={() => setShowUserModal(true)} className="w-10 h-10 rounded-full overflow-hidden border-2 border-white shadow-md bg-white flex items-center justify-center">
-                   <User size={20} style={{ color: currentPrimaryColor }} />
+                <button onClick={toggleLanguage} className="text-xs sm:text-sm font-bold px-2 py-1 h-8 sm:h-9 rounded-lg border hover:opacity-80 transition-opacity bg-white shadow-sm flex items-center justify-center" style={{ color: currentPrimaryColor, borderColor: hexToRgba(currentPrimaryColor, 0.2) }}>{t('langSwitch')}</button>
+                <button onClick={() => setShowUserModal(true)} className="w-8 h-8 sm:w-10 sm:h-10 rounded-full overflow-hidden border-2 border-white shadow-md bg-white flex items-center justify-center shrink-0">
+                   <User size={18} style={{ color: currentPrimaryColor }} />
                 </button>
               </div>
             </div>
