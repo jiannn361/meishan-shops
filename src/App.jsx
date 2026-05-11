@@ -51,7 +51,7 @@ const translations = {
     aboutUsText: "歡迎您來到梅山！\n我們致力於推廣梅山在地觀光，\n讓您輕鬆找到最棒的民宿與美食。",
     welcomeTitle: "今天想去哪裡呢?", enterVillage: "開始探索",
     shareApp: '分享導覽', shareShop: '分享', shareSuccess: '已複製連結！',
-    fontSize: '字體大小', fontNormal: '標準', fontLarge: '大', fontXLarge: '特大'
+    fontSize: '字體大小', fontNormal: '標準', fontLarge: '放大', fontXLarge: '特大'
   },
   en: {
     explore: 'Explore', pocketList: 'Pocket List', myFavorites: 'Favorites',
@@ -898,7 +898,7 @@ const FilterModal = ({ showFilterModal, setShowFilterModal, filterOpenOnly, setF
   );
 };
 
-const UserModal = ({ showUserModal, setShowUserModal, t, APP_CONFIG, currentPrimaryColor, currentDarkColor, favorites, setFavorites }) => {
+const UserModal = ({ showUserModal, setShowUserModal, t, APP_CONFIG, currentPrimaryColor, currentDarkColor, favorites, setFavorites, fontSizeLevel, setFontSizeLevel }) => {
   if (!showUserModal) return null;
   return (
     <div className="fixed inset-0 z-[120] flex items-end sm:items-center justify-center animate-fade-in">
@@ -913,7 +913,48 @@ const UserModal = ({ showUserModal, setShowUserModal, t, APP_CONFIG, currentPrim
           <p className="text-sm text-gray-500">{t('welcome')}</p>
         </div>
 
-        <div className="space-y-2 pt-2 border-t border-gray-100">
+        {/* 字體大小調整拉桿區塊 */}
+        <div className="space-y-4 mt-6 pt-4 border-t border-gray-100">
+          <div className="flex items-center gap-2 mb-2">
+            <div className="p-1.5 bg-gray-100 rounded-lg text-gray-600"><Type size={16} /></div>
+            <h4 className="text-sm font-bold text-gray-700">{t('fontSize')}</h4>
+          </div>
+          
+          <div className="px-4 pb-2">
+            <div className="flex items-center justify-between relative cursor-pointer" onClick={(e) => {
+               const rect = e.currentTarget.getBoundingClientRect();
+               const x = e.clientX - rect.left;
+               const ratio = x / rect.width;
+               if (ratio < 0.33) setFontSizeLevel('normal');
+               else if (ratio < 0.66) setFontSizeLevel('large');
+               else setFontSizeLevel('xlarge');
+            }}>
+              {/* 拉桿底部灰線 */}
+              <div className="absolute left-0 right-0 h-1.5 bg-gray-200 rounded-full top-1/2 -translate-y-1/2 z-0"></div>
+              {/* 拉桿進度色線 */}
+              <div className="absolute left-0 h-1.5 rounded-full top-1/2 -translate-y-1/2 z-0 transition-all duration-300" style={{ backgroundColor: currentPrimaryColor, width: fontSizeLevel === 'normal' ? '0%' : fontSizeLevel === 'large' ? '50%' : '100%' }}></div>
+
+              {/* 三個節點圓圈 */}
+              {['normal', 'large', 'xlarge'].map((level) => (
+                <button
+                  key={level}
+                  onClick={(e) => { e.stopPropagation(); setFontSizeLevel(level); }}
+                  className={`relative z-10 w-6 h-6 rounded-full border-[3px] transition-all shadow-sm ${fontSizeLevel === level ? 'bg-white scale-110' : 'bg-gray-100 border-white hover:scale-105'}`}
+                  style={{ borderColor: fontSizeLevel === level ? currentPrimaryColor : 'white' }}
+                />
+              ))}
+            </div>
+            
+            {/* 節點下方的文字標籤 */}
+            <div className="flex justify-between text-xs font-bold text-gray-400 mt-3 -mx-4">
+              <button onClick={() => setFontSizeLevel('normal')} className={`transition-colors hover:text-gray-700 w-14 text-center ${fontSizeLevel === 'normal' ? 'text-gray-900 scale-105' : ''}`}>{t('fontNormal')}</button>
+              <button onClick={() => setFontSizeLevel('large')} className={`transition-colors hover:text-gray-700 w-14 text-center ${fontSizeLevel === 'large' ? 'text-gray-900 scale-105' : ''}`}>{t('fontLarge')}</button>
+              <button onClick={() => setFontSizeLevel('xlarge')} className={`transition-colors hover:text-gray-700 w-14 text-center ${fontSizeLevel === 'xlarge' ? 'text-gray-900 scale-105' : ''}`}>{t('fontXLarge')}</button>
+            </div>
+          </div>
+        </div>
+
+        <div className="space-y-2 pt-4 border-t border-gray-100">
           {APP_CONFIG.notionUrl && (
             <button className="w-full flex items-center justify-between p-4 hover:opacity-80 rounded-xl transition-colors text-left border" style={{ backgroundColor: hexToRgba(currentPrimaryColor, 0.05), borderColor: hexToRgba(currentPrimaryColor, 0.2) }} onClick={() => window.open(APP_CONFIG.notionUrl, '_blank')}>
               <span className="flex items-center gap-3 font-bold" style={{ color: currentDarkColor }}><MapIcon size={18} /> {t('trailGuide')}</span><ChevronRight size={16} style={{ color: currentPrimaryColor }} />
@@ -960,7 +1001,6 @@ export default function App() {
   const [filterEventOnly, setFilterEventOnly] = useState(false);
   const [isSidebarOpen, setSidebarOpen] = useState(false);
   const [fontSizeLevel, setFontSizeLevel] = useState(localStorage.getItem('meishan_font_size') || 'normal');
-  const [showFontPicker, setShowFontPicker] = useState(false);
 
   const t = useCallback((key) => (translations[language]?.[key] || key), [language]);
   const currentPrimaryColor = villageData[selectedVillage]?.color || '#059669';
@@ -1330,54 +1370,6 @@ export default function App() {
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                <div className="relative flex items-center">
-                  <button onClick={() => setShowFontPicker(!showFontPicker)} className="w-9 h-9 rounded-full border bg-white flex items-center justify-center hover:opacity-80 transition-opacity shadow-sm" style={{ color: currentPrimaryColor, borderColor: hexToRgba(currentPrimaryColor, 0.2) }} title={t('fontSize')}>
-                     <span className="font-extrabold text-sm flex items-center leading-none">A<span className="text-[10px] ml-[1px]">{fontSizeLevel === 'normal' ? '' : fontSizeLevel === 'large' ? '+' : '++'}</span></span>
-                  </button>
-                  
-                  {showFontPicker && (
-                    <>
-                      <div className="fixed inset-0 z-40" onClick={() => setShowFontPicker(false)}></div>
-                      <div className="absolute top-12 right-0 bg-white shadow-2xl rounded-3xl p-5 border border-gray-100 z-50 w-64 animate-in slide-in-from-top-2 origin-top-right">
-                        <h4 className="text-sm font-bold text-gray-800 mb-6 flex items-center gap-2"><Type size={16} style={{ color: currentPrimaryColor }}/> {t('fontSize')}</h4>
-                        
-                        <div className="px-2">
-                          <div className="flex items-center justify-between relative cursor-pointer" onClick={(e) => {
-                             const rect = e.currentTarget.getBoundingClientRect();
-                             const x = e.clientX - rect.left;
-                             const ratio = x / rect.width;
-                             if (ratio < 0.33) setFontSizeLevel('normal');
-                             else if (ratio < 0.66) setFontSizeLevel('large');
-                             else setFontSizeLevel('xlarge');
-                          }}>
-                            {/* 拉桿底部灰線 */}
-                            <div className="absolute left-0 right-0 h-1.5 bg-gray-200 rounded-full top-1/2 -translate-y-1/2 z-0"></div>
-                            {/* 拉桿進度色線 */}
-                            <div className="absolute left-0 h-1.5 rounded-full top-1/2 -translate-y-1/2 z-0 transition-all duration-300" style={{ backgroundColor: currentPrimaryColor, width: fontSizeLevel === 'normal' ? '0%' : fontSizeLevel === 'large' ? '50%' : '100%' }}></div>
-
-                            {/* 三個節點圓圈 */}
-                            {['normal', 'large', 'xlarge'].map((level) => (
-                              <button
-                                key={level}
-                                onClick={(e) => { e.stopPropagation(); setFontSizeLevel(level); }}
-                                className={`relative z-10 w-5 h-5 rounded-full border-[3px] transition-all shadow-sm ${fontSizeLevel === level ? 'bg-white scale-125' : 'bg-gray-100 border-white hover:scale-110'}`}
-                                style={{ borderColor: fontSizeLevel === level ? currentPrimaryColor : 'white' }}
-                              />
-                            ))}
-                          </div>
-                          
-                          {/* 節點下方的文字標籤 */}
-                          <div className="flex justify-between text-xs font-bold text-gray-400 mt-4 -mx-3">
-                            <button onClick={() => setFontSizeLevel('normal')} className={`transition-colors hover:text-gray-700 w-12 text-center ${fontSizeLevel === 'normal' ? 'text-gray-900 scale-105' : ''}`}>{t('fontNormal')}</button>
-                            <button onClick={() => setFontSizeLevel('large')} className={`transition-colors hover:text-gray-700 w-12 text-center ${fontSizeLevel === 'large' ? 'text-gray-900 scale-105' : ''}`}>{t('fontLarge')}</button>
-                            <button onClick={() => setFontSizeLevel('xlarge')} className={`transition-colors hover:text-gray-700 w-12 text-center ${fontSizeLevel === 'xlarge' ? 'text-gray-900 scale-105' : ''}`}>{t('fontXLarge')}</button>
-                          </div>
-                        </div>
-                      </div>
-                    </>
-                  )}
-                </div>
-
                 <button onClick={handleShareApp} className="w-9 h-9 rounded-full border bg-white flex items-center justify-center hover:opacity-80 transition-opacity shadow-sm" style={{ color: currentPrimaryColor, borderColor: hexToRgba(currentPrimaryColor, 0.2) }}>
                   <Share2 size={16} />
                 </button>
@@ -1632,7 +1624,7 @@ export default function App() {
       {selectedAnnouncement && <AnnouncementModal ann={selectedAnnouncement} onClose={() => setSelectedAnnouncement(null)} currentPrimaryColor={currentPrimaryColor} />}
       <ShopDetailModal shop={selectedShop} onClose={() => setSelectedShop(null)} t={t} language={language} setArTargetShop={setArTargetShop} userLocation={userLocation} />
       <FilterModal showFilterModal={showFilterModal} setShowFilterModal={setShowFilterModal} filterOpenOnly={filterOpenOnly} setFilterOpenOnly={setFilterOpenOnly} filterElevator={filterElevator} setFilterElevator={setFilterElevator} hasAnyEventsInVillage={hasAnyEventsInVillage} filterEventOnly={filterEventOnly} setFilterEventOnly={setFilterEventOnly} currentPrimaryColor={currentPrimaryColor} t={t} />
-      <UserModal showUserModal={showUserModal} setShowUserModal={setShowUserModal} t={t} APP_CONFIG={APP_CONFIG} currentPrimaryColor={currentPrimaryColor} currentDarkColor={currentDarkColor} favorites={favorites} setFavorites={setFavorites} />
+      <UserModal showUserModal={showUserModal} setShowUserModal={setShowUserModal} t={t} APP_CONFIG={APP_CONFIG} currentPrimaryColor={currentPrimaryColor} currentDarkColor={currentDarkColor} favorites={favorites} setFavorites={setFavorites} fontSizeLevel={fontSizeLevel} setFontSizeLevel={setFontSizeLevel} />
       {arTargetShop && <ARNavigation targetShop={arTargetShop} userLoc={userLocation} onClose={() => setArTargetShop(null)} language={language} />}
     </div>
   );
