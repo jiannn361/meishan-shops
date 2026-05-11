@@ -11,7 +11,7 @@ import {
 const APP_CONFIG = {
   appName: "Meishan Taiping",
   subTitle: "Meishan, Chiayi",
-  airtableApiKey: import.meta.env.VITE_AIRTABLE_API_KEY || ""; 
+  airtableApiKey: import.meta.env.VITE_AIRTABLE_API_KEY || "", 
   airtableBaseId: "appkU3kxP74Gq7iXj", 
   airtableTableName: "Table 1", 
   liffId: "2009010332-K14upnUb",
