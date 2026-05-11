@@ -11,7 +11,7 @@ import {
 const APP_CONFIG = {
   appName: "Meishan Taiping",
   subTitle: "Meishan, Chiayi",
-  airtableApiKey: import.meta.env.VITE_AIRTABLE_API_KEY || "", 
+  airtableApiKey: import.meta.env.VITE_AIRTABLE_API_KEY || ""; 
   airtableBaseId: "appkU3kxP74Gq7iXj", 
   airtableTableName: "Table 1", 
   liffId: "2009010332-K14upnUb",
@@ -960,6 +960,7 @@ export default function App() {
   const [filterEventOnly, setFilterEventOnly] = useState(false);
   const [isSidebarOpen, setSidebarOpen] = useState(false);
   const [fontSizeLevel, setFontSizeLevel] = useState(localStorage.getItem('meishan_font_size') || 'normal');
+  const [showFontPicker, setShowFontPicker] = useState(false);
 
   const t = useCallback((key) => (translations[language]?.[key] || key), [language]);
   const currentPrimaryColor = villageData[selectedVillage]?.color || '#059669';
@@ -1328,27 +1329,61 @@ export default function App() {
                   </div>
                 </div>
               </div>
-              <div className="flex items-center gap-1.5 sm:gap-2">
-                
-                {/* 膠囊型字體切換器 (直接顯示於頁面) */}
-                <div className="flex bg-white rounded-full p-0.5 border shadow-sm items-center" style={{ borderColor: hexToRgba(currentPrimaryColor, 0.2) }}>
-                  <button onClick={() => setFontSizeLevel('normal')} className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center transition-all ${fontSizeLevel === 'normal' ? 'bg-gray-100 shadow-sm scale-105' : 'hover:bg-gray-50'}`} style={{ color: fontSizeLevel === 'normal' ? currentPrimaryColor : '#9ca3af' }}>
-                     <span className="text-[11px] font-black leading-none">A</span>
+              <div className="flex items-center gap-2">
+                <div className="relative flex items-center">
+                  <button onClick={() => setShowFontPicker(!showFontPicker)} className="w-9 h-9 rounded-full border bg-white flex items-center justify-center hover:opacity-80 transition-opacity shadow-sm" style={{ color: currentPrimaryColor, borderColor: hexToRgba(currentPrimaryColor, 0.2) }} title={t('fontSize')}>
+                     <span className="font-extrabold text-sm flex items-center leading-none">A<span className="text-[10px] ml-[1px]">{fontSizeLevel === 'normal' ? '' : fontSizeLevel === 'large' ? '+' : '++'}</span></span>
                   </button>
-                  <button onClick={() => setFontSizeLevel('large')} className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center transition-all ${fontSizeLevel === 'large' ? 'bg-gray-100 shadow-sm scale-105' : 'hover:bg-gray-50'}`} style={{ color: fontSizeLevel === 'large' ? currentPrimaryColor : '#9ca3af' }}>
-                     <span className="text-sm font-black leading-none">A</span>
-                  </button>
-                  <button onClick={() => setFontSizeLevel('xlarge')} className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center transition-all ${fontSizeLevel === 'xlarge' ? 'bg-gray-100 shadow-sm scale-105' : 'hover:bg-gray-50'}`} style={{ color: fontSizeLevel === 'xlarge' ? currentPrimaryColor : '#9ca3af' }}>
-                     <span className="text-base font-black leading-none">A</span>
-                  </button>
+                  
+                  {showFontPicker && (
+                    <>
+                      <div className="fixed inset-0 z-40" onClick={() => setShowFontPicker(false)}></div>
+                      <div className="absolute top-12 right-0 bg-white shadow-2xl rounded-3xl p-5 border border-gray-100 z-50 w-64 animate-in slide-in-from-top-2 origin-top-right">
+                        <h4 className="text-sm font-bold text-gray-800 mb-6 flex items-center gap-2"><Type size={16} style={{ color: currentPrimaryColor }}/> {t('fontSize')}</h4>
+                        
+                        <div className="px-2">
+                          <div className="flex items-center justify-between relative cursor-pointer" onClick={(e) => {
+                             const rect = e.currentTarget.getBoundingClientRect();
+                             const x = e.clientX - rect.left;
+                             const ratio = x / rect.width;
+                             if (ratio < 0.33) setFontSizeLevel('normal');
+                             else if (ratio < 0.66) setFontSizeLevel('large');
+                             else setFontSizeLevel('xlarge');
+                          }}>
+                            {/* 拉桿底部灰線 */}
+                            <div className="absolute left-0 right-0 h-1.5 bg-gray-200 rounded-full top-1/2 -translate-y-1/2 z-0"></div>
+                            {/* 拉桿進度色線 */}
+                            <div className="absolute left-0 h-1.5 rounded-full top-1/2 -translate-y-1/2 z-0 transition-all duration-300" style={{ backgroundColor: currentPrimaryColor, width: fontSizeLevel === 'normal' ? '0%' : fontSizeLevel === 'large' ? '50%' : '100%' }}></div>
+
+                            {/* 三個節點圓圈 */}
+                            {['normal', 'large', 'xlarge'].map((level) => (
+                              <button
+                                key={level}
+                                onClick={(e) => { e.stopPropagation(); setFontSizeLevel(level); }}
+                                className={`relative z-10 w-5 h-5 rounded-full border-[3px] transition-all shadow-sm ${fontSizeLevel === level ? 'bg-white scale-125' : 'bg-gray-100 border-white hover:scale-110'}`}
+                                style={{ borderColor: fontSizeLevel === level ? currentPrimaryColor : 'white' }}
+                              />
+                            ))}
+                          </div>
+                          
+                          {/* 節點下方的文字標籤 */}
+                          <div className="flex justify-between text-xs font-bold text-gray-400 mt-4 -mx-3">
+                            <button onClick={() => setFontSizeLevel('normal')} className={`transition-colors hover:text-gray-700 w-12 text-center ${fontSizeLevel === 'normal' ? 'text-gray-900 scale-105' : ''}`}>{t('fontNormal')}</button>
+                            <button onClick={() => setFontSizeLevel('large')} className={`transition-colors hover:text-gray-700 w-12 text-center ${fontSizeLevel === 'large' ? 'text-gray-900 scale-105' : ''}`}>{t('fontLarge')}</button>
+                            <button onClick={() => setFontSizeLevel('xlarge')} className={`transition-colors hover:text-gray-700 w-12 text-center ${fontSizeLevel === 'xlarge' ? 'text-gray-900 scale-105' : ''}`}>{t('fontXLarge')}</button>
+                          </div>
+                        </div>
+                      </div>
+                    </>
+                  )}
                 </div>
 
-                <button onClick={handleShareApp} className="w-8 h-8 sm:w-9 sm:h-9 rounded-full border bg-white flex items-center justify-center hover:opacity-80 transition-opacity shadow-sm" style={{ color: currentPrimaryColor, borderColor: hexToRgba(currentPrimaryColor, 0.2) }}>
+                <button onClick={handleShareApp} className="w-9 h-9 rounded-full border bg-white flex items-center justify-center hover:opacity-80 transition-opacity shadow-sm" style={{ color: currentPrimaryColor, borderColor: hexToRgba(currentPrimaryColor, 0.2) }}>
                   <Share2 size={16} />
                 </button>
-                <button onClick={toggleLanguage} className="text-xs sm:text-sm font-bold px-2 py-1 h-8 sm:h-9 rounded-lg border hover:opacity-80 transition-opacity bg-white shadow-sm flex items-center justify-center" style={{ color: currentPrimaryColor, borderColor: hexToRgba(currentPrimaryColor, 0.2) }}>{t('langSwitch')}</button>
-                <button onClick={() => setShowUserModal(true)} className="w-8 h-8 sm:w-10 sm:h-10 rounded-full overflow-hidden border-2 border-white shadow-md bg-white flex items-center justify-center shrink-0">
-                   <User size={18} style={{ color: currentPrimaryColor }} />
+                <button onClick={toggleLanguage} className="text-sm font-bold px-2 py-1 rounded-lg border hover:opacity-80 transition-opacity bg-white shadow-sm" style={{ color: currentPrimaryColor, borderColor: hexToRgba(currentPrimaryColor, 0.2) }}>{t('langSwitch')}</button>
+                <button onClick={() => setShowUserModal(true)} className="w-10 h-10 rounded-full overflow-hidden border-2 border-white shadow-md bg-white flex items-center justify-center">
+                   <User size={20} style={{ color: currentPrimaryColor }} />
                 </button>
               </div>
             </div>
