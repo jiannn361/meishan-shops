@@ -1579,8 +1579,8 @@ export default function App() {
           
           {/* 探頭吉祥物 */}
           {(!selectedShop && !selectedAnnouncement && !arTargetShop && !showFilterModal && !showUserModal) && (
-            <div className="absolute bottom-[30px] left-1/2 -translate-x-1/2 pointer-events-auto z-0 animate-float-mascot">
-               <img src="/mascot.png" alt="Mascot" className="w-[100px] h-[100px] md:w-[110px] md:h-[110px] object-bottom object-contain drop-shadow-[0_-8px_16px_rgba(0,0,0,0.15)] hover:-translate-y-3 transition-transform duration-300 cursor-pointer" onError={(e) => { e.target.onerror = null; e.target.src='https://cdn-icons-png.flaticon.com/512/3466/3466395.png'; }} />
+            <div className="absolute bottom-10 md:bottom-12 left-1/2 -translate-x-1/2 pointer-events-auto z-0 animate-float-mascot">
+               <img src="/mascot.png" alt="Mascot" className="w-28 h-28 md:w-32 md:h-32 object-bottom object-contain drop-shadow-[0_-8px_16px_rgba(0,0,0,0.15)] hover:-translate-y-3 transition-transform duration-300 cursor-pointer" onError={(e) => { e.target.onerror = null; e.target.src='https://cdn-icons-png.flaticon.com/512/3466/3466395.png'; }} />
             </div>
           )}
 
