@@ -579,6 +579,7 @@ const AnnouncementModal = ({ ann, onClose, currentPrimaryColor }) => {
 const ShopDetailModal = ({ shop, onClose, t, language, setArTargetShop, userLocation }) => {
   const [viewTrailMap, setViewTrailMap] = useState(false);
   const [showTransport, setShowTransport] = useState(false);
+  const [showTrailRoute, setShowTrailRoute] = useState(false); // 新增步道路線展開狀態
 
   if (!shop) return null;
   const isOpen = checkIsOpen(shop.hours);
@@ -799,10 +800,55 @@ const ShopDetailModal = ({ shop, onClose, t, language, setArTargetShop, userLoca
             </div>
           )}
 
-          {shop.trail_map && (
-            <button onClick={() => setViewTrailMap(true)} className="w-full py-3 mb-2 rounded-2xl flex items-center justify-center gap-2 font-bold shadow-sm transition-transform active:scale-95 mt-4" style={{ backgroundColor: hexToRgba(shopColor, 0.1), color: shopDarkColor, border: `1px solid ${hexToRgba(shopColor, 0.3)}` }}>
-               <MapIcon size={18} /> 查看步道簡圖
-            </button>
+          {/* 🥾 步道路線資訊 (摺疊面板) */}
+          {(shop.trail_map || shop.gpx_link) && (
+            <div className="mt-4 border border-gray-200 rounded-2xl overflow-hidden shadow-sm">
+               <button
+                 onClick={() => setShowTrailRoute(!showTrailRoute)}
+                 className="relative w-full py-3.5 px-4 flex items-center justify-center font-bold bg-gray-50 hover:bg-gray-100 transition-colors text-gray-700"
+               >
+                 <div className="flex items-center gap-2">
+                   <MapIcon size={18} style={{ color: shopColor }} />
+                   <span>查看步道路線</span>
+                 </div>
+                 <div className="absolute right-4 flex items-center">
+                   {showTrailRoute ? <ChevronUp size={18} className="text-gray-400" /> : <ChevronDown size={18} className="text-gray-400" />}
+                 </div>
+               </button>
+
+               {showTrailRoute && (
+                 <div className="p-4 bg-white border-t border-gray-100 space-y-4 animate-in slide-in-from-top-2 duration-200">
+                    
+                    {/* 步道簡圖 */}
+                    {shop.trail_map && (
+                      <div className="flex items-start gap-3">
+                        <div className="p-1.5 rounded-lg shrink-0" style={{ backgroundColor: hexToRgba(shopColor, 0.1), color: shopColor }}><MapIcon size={16} /></div>
+                        <div className="w-full pt-0.5">
+                          <h4 className="text-[13px] font-bold mb-1" style={{ color: shopDarkColor }}>步道簡圖</h4>
+                          <p className="text-sm text-gray-600 mb-2">查看官方提供的步道靜態導覽圖。</p>
+                          <button onClick={() => setViewTrailMap(true)} className="inline-flex items-center gap-1.5 px-3.5 py-2 text-white text-xs font-bold rounded-lg transition-colors shadow-sm active:scale-95" style={{ backgroundColor: shopColor }}>
+                             <MapIcon size={14} /> 開啟步道簡圖
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* GPX 軌跡導航 */}
+                    {shop.gpx_link && (
+                      <div className="flex items-start gap-3 pt-3 border-t border-gray-100">
+                        <div className="p-1.5 bg-blue-100 text-blue-600 rounded-lg shrink-0"><Navigation size={16} /></div>
+                        <div className="w-full pt-0.5">
+                          <h4 className="text-[13px] font-bold text-blue-800 mb-1">GPS 軌跡導航</h4>
+                          <p className="text-sm text-gray-600 mb-2">使用 Google Maps 查看精準的步道路線與您的目前位置。</p>
+                          <a href={shop.gpx_link} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-blue-600 text-white text-xs font-bold rounded-lg hover:bg-blue-700 transition-colors shadow-sm active:scale-95">
+                             <Navigation size={14} /> 開啟 Google 路線導航
+                          </a>
+                        </div>
+                      </div>
+                    )}
+                 </div>
+               )}
+            </div>
           )}
 
           <div className="flex flex-col gap-3 pt-2">
@@ -1151,6 +1197,7 @@ export default function App() {
               lat: parseFloat(f['lat'] || f['Lat'] || f['緯度']) || null,
               lng: parseFloat(f['lng'] || f['Lng'] || f['經度']) || null,
               services: services, matchedEvents: matchedEvents, hasElevator: hasElevator, trail_map: trailMap,
+              gpx_link: f['gpx_link'] || f['GPX'] || f['GPX連結'] || f['路線連結'] || f['步道連結'] || '', // 加入 GPX 連結抓取
               rating: (f['rating'] || f['Rating'] || f['星等']) ? parseFloat(f['rating'] || f['Rating'] || f['星等']) : null,
               reviews: parseInt(f['reviews'] || f['Reviews'] || f['評論數'] || 0), images: images,
               tel: f['tel'] || f['Tel'] || f['Phone'] || f['電話'] || '',
