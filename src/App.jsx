@@ -839,7 +839,12 @@ const ShopDetailModal = ({ shop, onClose, t, language, setArTargetShop, userLoca
                         <div className="p-1.5 bg-blue-100 text-blue-600 rounded-lg shrink-0"><Navigation size={16} /></div>
                         <div className="w-full pt-0.5">
                           <h4 className="text-[13px] font-bold text-blue-800 mb-1">GPS 軌跡導航</h4>
-                          <p className="text-sm text-gray-600 mb-2">使用 Google Maps 查看步道路線與目前位置。</p>
+                          <div className="text-sm text-gray-600 mb-2 space-y-1">
+                            <p>使用 Google Maps 查看精準的步道路線與您的目前位置。</p>
+                            <p className="text-xs text-amber-600 font-bold bg-amber-50 p-2 rounded-lg border border-amber-200">
+                              💡 貼心提醒：若點開後未看見軌跡，請稍候幾秒並重新載入，或點擊畫面最下方的標題即可顯示喔！
+                            </p>
+                          </div>
                           <a href={shop.gpx_link} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-blue-600 text-white text-xs font-bold rounded-lg hover:bg-blue-700 transition-colors shadow-sm active:scale-95">
                              <Navigation size={14} /> 開啟 Google 路線導航
                           </a>
