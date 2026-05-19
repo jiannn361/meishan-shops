@@ -577,9 +577,10 @@ const AnnouncementModal = ({ ann, onClose, currentPrimaryColor }) => {
 };
 
 const ShopDetailModal = ({ shop, onClose, t, language, setArTargetShop, userLocation }) => {
-  const [viewTrailMap, setViewTrailMap] = useState(false);
+  // 將原本的 viewTrailMap 改為 fullscreenImage，讓它能支援多種圖片放大
+  const [fullscreenImage, setFullscreenImage] = useState(null);
   const [showTransport, setShowTransport] = useState(false);
-  const [showTrailRoute, setShowTrailRoute] = useState(false); // 新增步道路線展開狀態
+  const [showTrailRoute, setShowTrailRoute] = useState(false);
 
   if (!shop) return null;
   const isOpen = checkIsOpen(shop.hours);
@@ -623,11 +624,11 @@ const ShopDetailModal = ({ shop, onClose, t, language, setArTargetShop, userLoca
     <div className="fixed inset-0 z-[110] flex items-center justify-center px-4 animate-fade-in">
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose}></div>
 
-      {viewTrailMap && (
-         <div className="fixed inset-0 z-[120] bg-black/90 backdrop-blur-sm flex flex-col items-center justify-center p-4 animate-fade-in" onClick={() => setViewTrailMap(false)}>
+      {/* 全螢幕圖片檢視器 (支援簡圖與高度圖) */}
+      {fullscreenImage && (
+         <div className="fixed inset-0 z-[120] bg-black/90 backdrop-blur-sm flex flex-col items-center justify-center p-4 animate-fade-in" onClick={() => setFullscreenImage(null)}>
             <button className="absolute top-6 right-6 text-white bg-black/50 p-2 rounded-full hover:bg-white/20 transition-colors"><X size={24} /></button>
-            <h3 className="absolute top-6 left-6 text-white font-bold text-lg drop-shadow-md">步道簡圖</h3>
-            <img src={shop.trail_map} alt="步道簡圖" className="max-w-full max-h-[80vh] object-contain rounded-xl shadow-2xl" onClick={e => e.stopPropagation()} />
+            <img src={fullscreenImage} alt="全螢幕圖片" className="max-w-full max-h-[80vh] object-contain rounded-xl shadow-2xl" onClick={e => e.stopPropagation()} />
          </div>
       )}
 
@@ -801,7 +802,7 @@ const ShopDetailModal = ({ shop, onClose, t, language, setArTargetShop, userLoca
           )}
 
           {/* 🥾 步道路線資訊 (摺疊面板) */}
-          {(shop.trail_map || shop.gpx_link) && (
+          {(shop.trail_map || shop.elevation_map || shop.gpx_link) && (
             <div className="mt-4 border border-gray-200 rounded-2xl overflow-hidden shadow-sm">
                <button
                  onClick={() => setShowTrailRoute(!showTrailRoute)}
@@ -826,27 +827,44 @@ const ShopDetailModal = ({ shop, onClose, t, language, setArTargetShop, userLoca
                         <div className="w-full pt-0.5">
                           <h4 className="text-[13px] font-bold mb-1" style={{ color: shopDarkColor }}>步道簡圖</h4>
                           <p className="text-sm text-gray-600 mb-2">查看步道導覽圖。</p>
-                          <button onClick={() => setViewTrailMap(true)} className="inline-flex items-center gap-1.5 px-3.5 py-2 text-white text-xs font-bold rounded-lg transition-colors shadow-sm active:scale-95" style={{ backgroundColor: shopColor }}>
+                          <button onClick={() => setFullscreenImage(shop.trail_map)} className="inline-flex items-center gap-1.5 px-3.5 py-2 text-white text-xs font-bold rounded-lg transition-colors shadow-sm active:scale-95" style={{ backgroundColor: shopColor }}>
                              <MapIcon size={14} /> 開啟步道簡圖
                           </button>
                         </div>
                       </div>
                     )}
 
-                    {/* GPX 軌跡導航 */}
+                    {/* 海拔高度圖 (新增功能) */}
+                    {shop.elevation_map && (
+                      <div className="flex items-start gap-3 pt-3 border-t border-gray-100">
+                        <div className="p-1.5 bg-orange-100 text-orange-600 rounded-lg shrink-0"><Mountain size={16} /></div>
+                        <div className="w-full pt-0.5">
+                          <h4 className="text-[13px] font-bold text-orange-800 mb-1">海拔高度變化</h4>
+                          <p className="text-sm text-gray-600 mb-2">參考步道的坡度與總里程，評估體力消耗。</p>
+                          <img 
+                            src={shop.elevation_map} 
+                            alt="海拔高度圖" 
+                            className="w-full object-cover rounded-xl border border-gray-200 shadow-sm cursor-pointer hover:opacity-90 transition-opacity" 
+                            onClick={() => setFullscreenImage(shop.elevation_map)} 
+                          />
+                        </div>
+                      </div>
+                    )}
+
+                    {/* 專屬步道地圖導航 (取代原本的 GPX 軌跡導航) */}
                     {shop.gpx_link && (
                       <div className="flex items-start gap-3 pt-3 border-t border-gray-100">
-                        <div className="p-1.5 bg-blue-100 text-blue-600 rounded-lg shrink-0"><Navigation size={16} /></div>
+                        <div className="p-1.5 bg-emerald-100 text-emerald-600 rounded-lg shrink-0"><Navigation size={16} /></div>
                         <div className="w-full pt-0.5">
-                          <h4 className="text-[13px] font-bold text-blue-800 mb-1">GPS 軌跡導航</h4>
+                          <h4 className="text-[13px] font-bold text-emerald-800 mb-1">查看步道地圖</h4>
                           <div className="text-sm text-gray-600 mb-2 space-y-1">
-                            <p>使用 Google Maps 查看精準的步道路線與您的目前位置。</p>
+                            <p>步道路線、高度變化與您的即時位置。</p>
                             <p className="text-xs text-amber-600 font-bold bg-amber-50 p-2 rounded-lg border border-amber-200">
-                              💡 貼心提醒：若點開後未看見軌跡，請稍候幾秒並重新載入，或點擊畫面最下方的標題即可顯示喔！
+                              💡 貼心提醒：進入地圖後，請稍帶幾秒鐘
                             </p>
                           </div>
-                          <a href={shop.gpx_link} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-blue-600 text-white text-xs font-bold rounded-lg hover:bg-blue-700 transition-colors shadow-sm active:scale-95">
-                             <Navigation size={14} /> 開啟 Google 路線導航
+                          <a href={shop.gpx_link} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-emerald-600 text-white text-xs font-bold rounded-lg hover:bg-emerald-700 transition-colors shadow-sm active:scale-95">
+                             <Navigation size={14} /> 開啟專屬步道地圖
                           </a>
                         </div>
                       </div>
@@ -1160,6 +1178,12 @@ export default function App() {
             if (Array.isArray(trailMapRaw) && trailMapRaw.length > 0) trailMap = trailMapRaw[0].url || trailMapRaw[0];
             else if (typeof trailMapRaw === 'string') trailMap = trailMapRaw.split(/[,，]/)[0].trim();
 
+            // 新增讀取高度圖欄位
+            let elevationMapRaw = f['elevation_map'] || f['高度圖'] || f['海拔圖'] || f['坡度圖'];
+            let elevationMap = '';
+            if (Array.isArray(elevationMapRaw) && elevationMapRaw.length > 0) elevationMap = elevationMapRaw[0].url || elevationMapRaw[0];
+            else if (typeof elevationMapRaw === 'string') elevationMap = elevationMapRaw.split(/[,，]/)[0].trim();
+
             let services = [];
             const rawSvc = f['services'] || f['服務標籤'] || f['Services'];
             if (Array.isArray(rawSvc)) services = rawSvc;
@@ -1202,7 +1226,8 @@ export default function App() {
               lat: parseFloat(f['lat'] || f['Lat'] || f['緯度']) || null,
               lng: parseFloat(f['lng'] || f['Lng'] || f['經度']) || null,
               services: services, matchedEvents: matchedEvents, hasElevator: hasElevator, trail_map: trailMap,
-              gpx_link: f['gpx_link'] || f['GPX'] || f['GPX連結'] || f['路線連結'] || f['步道連結'] || '', // 加入 GPX 連結抓取
+              elevation_map: elevationMap, // 加入高度圖資料
+              gpx_link: f['gpx_link'] || f['GPX'] || f['GPX連結'] || f['路線連結'] || f['步道連結'] || '',
               rating: (f['rating'] || f['Rating'] || f['星等']) ? parseFloat(f['rating'] || f['Rating'] || f['星等']) : null,
               reviews: parseInt(f['reviews'] || f['Reviews'] || f['評論數'] || 0), images: images,
               tel: f['tel'] || f['Tel'] || f['Phone'] || f['電話'] || '',
