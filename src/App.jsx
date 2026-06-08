@@ -278,7 +278,7 @@ const DefaultShopImage = () => (
   </div>
 );
 
-const ImageCarousel = ({ images, shopName, credit, onClick }) => { // ⚠️ 記得把 shopName, credit 傳進來
+const ImageCarousel = ({ images, credit, onClick }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [imgError, setImgError] = useState(false);
 
@@ -289,28 +289,28 @@ const ImageCarousel = ({ images, shopName, credit, onClick }) => { // ⚠️ 記
   }, [images?.length]);
 
   if (!images || images.length === 0 || imgError) return <div onClick={onClick} className="w-full h-full cursor-pointer"><DefaultShopImage /></div>;
-  if (images.length === 1) return <img src={images[0]} alt="shop" onClick={onClick} className="w-full h-full object-cover transition-transform duration-700 hover:scale-110 cursor-pointer" onError={() => setImgError(true)} />;
+  if (images.length === 1) return (
+    <div className="relative w-full h-full" onClick={onClick}>
+       <img src={images[0]} alt="shop" className="w-full h-full object-cover transition-transform duration-700 hover:scale-110 cursor-pointer" onError={() => setImgError(true)} />
+       {credit && <div className="absolute bottom-3 left-3 bg-black/40 backdrop-blur-md px-2 py-1 rounded-md text-[10px] text-white">© {credit}</div>}
+    </div>
+  );
 
   const nextSlide = (e) => { e.stopPropagation(); setCurrentIndex((prev) => (prev + 1) % images.length); };
   const prevSlide = (e) => { e.stopPropagation(); setCurrentIndex((prev) => (prev - 1 + images.length) % images.length); };
 
   return (
     <div className="relative w-full h-full group cursor-pointer" onClick={onClick}>
-      <img src={images[currentIndex]} alt="shop" className="w-full h-full object-cover transition-all duration-500" />
-      {/* 【新增】這裡就是圖片來源標註，半透明效果，不干擾視覺 */}
-      {credit && (
-        <div className="absolute bottom-3 left-3 bg-black/40 backdrop-blur-md px-2 py-1 rounded-md text-[10px] text-white">
-          © {credit}
-    </div>
-  )}
-  {images.length > 1 && (
-        <div className="absolute bottom-3 right-3 bg-black/50 backdrop-blur-md px-2 py-1 rounded-lg text-[10px] text-white font-medium">
-          {currentIndex + 1} / {images.length}
-        </div>
-      )}
+      <img src={images[currentIndex]} alt={`slide-${currentIndex}`} className="w-full h-full object-cover transition-all duration-500" onError={() => setImgError(true)} />
+      {/* 顯示圖片來源 */}
+      {credit && <div className="absolute bottom-3 left-3 bg-black/40 backdrop-blur-md px-2 py-1 rounded-md text-[10px] text-white">© {credit}</div>}
+      
+      <button onClick={prevSlide} className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/30 hover:bg-black/50 text-white p-1 rounded-full backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity"><ChevronLeft size={20} /></button>
+      <button onClick={nextSlide} className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/30 hover:bg-black/50 text-white p-1 rounded-full backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity"><ChevronRight size={20} /></button>
+      <div className="absolute bottom-3 right-3 bg-black/50 backdrop-blur-md px-2 py-1 rounded-lg text-xs text-white font-medium">{currentIndex + 1} / {images.length}</div>
     </div>
   );
-}; 
+};
 // ==========================================
 // 📢 最新消息輪播組件
 // ==========================================
@@ -645,7 +645,7 @@ const ShopDetailModal = ({ shop, onClose, t, language, setArTargetShop, userLoca
         </button>
 
         <div className="h-64 sm:h-72 relative shrink-0">
-          <ImageCarousel images={shop.images} onClick={(e) => e.stopPropagation()} />
+          <ImageCarousel images={shop.images} credit={shop.credit} onClick={(e) => e.stopPropagation()} />
           <div className="absolute bottom-0 inset-x-0 h-32 bg-gradient-to-t from-black/90 to-transparent pointer-events-none"></div>
           <div className="absolute bottom-4 left-5 right-5 text-white pointer-events-none pr-10">
             <h3 className="text-2xl sm:text-3xl font-bold mb-0.5 pointer-events-auto leading-tight drop-shadow-md">
@@ -1266,6 +1266,7 @@ export default function App() {
               parkingLink: f['parkingLink'] || f['停車連結'] || f['停車場連結'] || f['停車導航'] || '',
               bookings: shopBookings, hours: String(f['hours'] || f['Hours'] || f['營業時間'] || ''),
               description: f['description'] || f['Description'] || f['介紹'] || f['店家介紹'] || '暫無詳細介紹，歡迎親自蒞臨體驗！',
+              credit: f['圖片來源'] || f['image_credit'] || '',
             };
         });
 
