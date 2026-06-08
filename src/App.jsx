@@ -278,7 +278,7 @@ const DefaultShopImage = () => (
   </div>
 );
 
-const ImageCarousel = ({ images, onClick }) => {
+const ImageCarousel = ({ images, shopName, credit, onClick }) => { // ⚠️ 記得把 shopName, credit 傳進來
   const [currentIndex, setCurrentIndex] = useState(0);
   const [imgError, setImgError] = useState(false);
 
@@ -296,14 +296,21 @@ const ImageCarousel = ({ images, onClick }) => {
 
   return (
     <div className="relative w-full h-full group cursor-pointer" onClick={onClick}>
-      <img src={images[currentIndex]} alt={`slide-${currentIndex}`} className="w-full h-full object-cover transition-all duration-500" onError={() => setImgError(true)} />
-      <button onClick={prevSlide} className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/30 hover:bg-black/50 text-white p-1 rounded-full backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity"><ChevronLeft size={20} /></button>
-      <button onClick={nextSlide} className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/30 hover:bg-black/50 text-white p-1 rounded-full backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity"><ChevronRight size={20} /></button>
-      <div className="absolute bottom-3 right-3 bg-black/50 backdrop-blur-md px-2 py-1 rounded-lg text-xs text-white font-medium">{currentIndex + 1} / {images.length}</div>
+      <img src={images[currentIndex]} alt="shop" className="w-full h-full object-cover transition-all duration-500" />
+      {/* 【新增】這裡就是圖片來源標註，半透明效果，不干擾視覺 */}
+      {credit && (
+        <div className="absolute bottom-3 left-3 bg-black/40 backdrop-blur-md px-2 py-1 rounded-md text-[10px] text-white">
+          © {credit}
+    </div>
+  )}
+  {images.length > 1 && (
+        <div className="absolute bottom-3 right-3 bg-black/50 backdrop-blur-md px-2 py-1 rounded-lg text-[10px] text-white font-medium">
+          {currentIndex + 1} / {images.length}
+        </div>
+      )}
     </div>
   );
-};
-
+}; 
 // ==========================================
 // 📢 最新消息輪播組件
 // ==========================================
