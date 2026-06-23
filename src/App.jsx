@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { 
-  Search, MapPin, Phone, Navigation, Facebook, Star, Home, Coffee, Gift, User, 
+  Search, MapPin, Phone, Navigation, Facebook, Star, Home, Gift, User, 
   Filter, Heart, X, Mountain, Loader2, Camera, Tag, Clock, ChevronLeft, 
   ChevronRight, Info, LocateFixed, Globe, MessageCircle, Map as MapIcon, 
   ExternalLink, Calendar, Banknote, AlertCircle, ChevronDown, ChevronUp, Play, ArrowRight, Share2,
-  Bus, Car, Type, Zap, List
+  Bus, Car, Type, Zap, List, Utensils
 } from 'lucide-react';
 
 // 【網站設定區】
@@ -52,7 +52,7 @@ const translations = {
     welcomeTitle: "今天想去哪裡呢?", enterVillage: "開始探索",
     shareApp: '分享導覽', shareShop: '分享', shareSuccess: '已複製連結！',
     fontSize: '字體大小', fontNormal: '標準', fontLarge: '放大', fontXLarge: '特大',
-    mapView: '地圖模式', listView: '列表模式'
+    mapView: '開啟地圖分佈', listView: '查看店家列表'
   },
   en: {
     explore: 'Explore', pocketList: 'Pocket List', myFavorites: 'Favorites',
@@ -233,12 +233,12 @@ const InteractiveMap = ({ shops, onMarkerClick, villageData, language }) => {
   const mapRef = useRef(null);
   const markersRef = useRef([]);
 
-  // 取得對應的分類表情符號 (仿造您截圖的視覺)
+  // 取得對應的分類表情符號 (美食改為刀叉 🍽️)
   const getCategoryEmoji = (categories) => {
     if (!categories || categories.length === 0) return '📍';
     const cat = categories[0].toLowerCase();
     if (cat.includes('accommodation') || cat.includes('民宿')) return '🏠';
-    if (cat.includes('food') || cat.includes('美食')) return '☕';
+    if (cat.includes('food') || cat.includes('美食')) return '🍽️';
     if (cat.includes('attraction') || cat.includes('景點') || cat.includes('步道')) return '🥾';
     if (cat.includes('experience') || cat.includes('體驗')) return '✨';
     if (cat.includes('transport') || cat.includes('交通')) return '🚌';
@@ -270,7 +270,6 @@ const InteractiveMap = ({ shops, onMarkerClick, villageData, language }) => {
 
       // 初始化地圖
       if (!mapRef.current) {
-        // 確保容器乾淨
         const container = document.getElementById('interactive-village-map');
         if (container) container.innerHTML = '';
         
@@ -279,7 +278,7 @@ const InteractiveMap = ({ shops, onMarkerClick, villageData, language }) => {
           attributionControl: false 
         }).setView([23.55, 120.6], 13);
         
-        // 🎨 【修改點】改用高質感的深色地圖 (Dark Matter)，完美契合您的截圖風格！
+        // 🎨 改用高質感的深色地圖 (Dark Matter)
         L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
           maxZoom: 20,
           attribution: '© OpenStreetMap © CARTO'
@@ -307,7 +306,7 @@ const InteractiveMap = ({ shops, onMarkerClick, villageData, language }) => {
           const vColor = villageData[shop.village]?.color || '#059669';
           const displayName = language === 'en' ? (shop.name_en || shop.name) : shop.name;
           
-          // 仿造您截圖：深色圓形圖示 + 下方帶有名稱的透明氣泡標籤
+          // 深色圓形圖示 + 下方帶有名稱的透明氣泡標籤
           const customHtml = `
             <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; transform: translate(-50%, -100%); width: max-content; pointer-events: auto;">
               <div style="background-color: #1f2937; border: 2.5px solid ${vColor}; border-radius: 50%; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(0,0,0,0.5); margin: 0 auto; transition: transform 0.2s;">
@@ -322,7 +321,7 @@ const InteractiveMap = ({ shops, onMarkerClick, villageData, language }) => {
           const customIcon = L.divIcon({
             className: 'custom-map-marker',
             html: customHtml,
-            iconSize: [0, 0], // 設定為 0，靠內部 HTML 的 translate 定位
+            iconSize: [0, 0],
             iconAnchor: [0, 0]
           });
 
@@ -346,7 +345,6 @@ const InteractiveMap = ({ shops, onMarkerClick, villageData, language }) => {
   return (
     <div className="w-full h-[calc(100vh-270px)] sm:h-[calc(100vh-300px)] rounded-[28px] overflow-hidden shadow-inner border border-gray-700 relative z-0">
       <div id="interactive-village-map" className="w-full h-full z-0 bg-[#0f172a]" />
-      {/* 提示遮罩：若載入中顯示 */}
       <div id="map-loading" className="absolute inset-0 bg-[#0f172a] flex items-center justify-center z-[-1]">
         <Loader2 className="animate-spin text-emerald-500" size={32} />
       </div>
@@ -1205,7 +1203,7 @@ export default function App() {
   const [currentView, setCurrentView] = useState('home');
   const [favorites, setFavorites] = useState([]);
   const [userLocation, setUserLocation] = useState(null);
-  const [viewMode, setViewMode] = useState('list'); // 'list' or 'map'
+  const [viewMode, setViewMode] = useState('map'); // 預設改為地圖模式
   
   const [sortBy, setSortBy] = useState('default');
   const [searchQuery, setSearchQuery] = useState('');
@@ -1414,8 +1412,8 @@ export default function App() {
     'all': { labelKey: 'all', icon: <Search size={18}/> },
     'accommodation': { labelKey: 'accommodation', icon: <Home size={18}/> },
     '民宿': { labelKey: 'accommodation', icon: <Home size={18}/> },
-    'food': { labelKey: 'food', icon: <Coffee size={18}/> },
-    '美食': { labelKey: 'food', icon: <Coffee size={18}/> },
+    'food': { labelKey: 'food', icon: <Utensils size={18}/> },
+    '美食': { labelKey: 'food', icon: <Utensils size={18}/> },
     'gift': { labelKey: 'gift', icon: <Gift size={18}/> },
     '伴手禮': { labelKey: 'gift', icon: <Gift size={18}/> },
     'attraction': { labelKey: 'attraction', icon: <Camera size={18}/> },
@@ -1523,7 +1521,7 @@ export default function App() {
                 {Object.keys(villageData).map((vKey) => {
                   const vData = villageData[vKey];
                   return (
-                    <button key={vKey} onClick={() => setPreviewVillage(vKey)} className="flex flex-col items-start p-6 rounded-[32px] text-left bg-white/85 backdrop-blur-md shadow-lg border-2 transition-all hover:scale-105 active:scale-95 group relative overflow-hidden" style={{ borderColor: hexToRgba(vData.color, 0.4) }}>
+                    <button key={vKey} onClick={() => { setSelectedVillage(vKey); setSidebarOpen(false); setCurrentView('home'); setSortBy('default'); setViewMode('map'); setAppStarted(true); setPreviewVillage(null); }} className="flex flex-col items-start p-6 rounded-[32px] text-left bg-white/85 backdrop-blur-md shadow-lg border-2 transition-all hover:scale-105 active:scale-95 group relative overflow-hidden" style={{ borderColor: hexToRgba(vData.color, 0.4) }}>
                       <div className="absolute -right-6 -top-6 w-24 h-24 rounded-full opacity-10 group-hover:opacity-20 transition-opacity" style={{ backgroundColor: vData.color }}></div>
                       <div className="w-12 h-12 md:w-14 md:h-14 rounded-full mb-4 flex items-center justify-center shadow-sm relative overflow-hidden" style={{ backgroundColor: vData.color, color: vData.textBadge }}>
                          <img src={`/${vData.iconFile}`} alt="icon" className="absolute inset-0 w-full h-full object-cover z-10" onError={(e) => { e.target.style.display = 'none'; }} />
@@ -1535,29 +1533,6 @@ export default function App() {
                 })}
               </div>
             </div>
-          )}
-          {previewVillage && (
-             <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center animate-fade-in p-4">
-                <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setPreviewVillage(null)}></div>
-                <div className="relative w-full max-w-lg bg-white rounded-[40px] p-8 space-y-6 animate-slide-up shadow-2xl flex flex-col" style={{ borderTop: `8px solid ${villageData[previewVillage].color}` }}>
-                   <button onClick={() => setPreviewVillage(null)} className="absolute top-5 right-5 text-gray-400 hover:text-gray-600 p-2 bg-gray-100 rounded-full transition-colors"><X size={20} /></button>
-                   <div className="flex items-center gap-4">
-                      <div className="w-16 h-16 rounded-2xl flex items-center justify-center shadow-md relative overflow-hidden" style={{ backgroundColor: hexToRgba(villageData[previewVillage].color, 0.15), color: villageData[previewVillage].textDark }}>
-                         <img src={`/${villageData[previewVillage].iconFile}`} alt="icon" className="absolute inset-0 w-full h-full object-cover z-10 p-2" onError={(e) => { e.target.style.display = 'none'; }} />
-                      </div>
-                      <div>
-                         <h2 className="text-3xl font-extrabold" style={{ color: villageData[previewVillage].textDark }}>{villageData[previewVillage][language] || previewVillage}</h2>
-                         <p className="text-sm font-bold text-gray-400 mt-1">{language === 'en' ? villageData[previewVillage].desc_en : villageData[previewVillage].desc_zh}</p>
-                      </div>
-                   </div>
-                   <div className="bg-gray-50 rounded-2xl p-5 border border-gray-100">
-                      <p className="text-sm leading-loose text-gray-600 font-medium">{villageData[previewVillage].intro}</p>
-                   </div>
-                   <button onClick={() => { setSelectedVillage(previewVillage); setAppStarted(true); setPreviewVillage(null); }} className="w-full py-4 rounded-2xl font-bold text-lg text-white shadow-xl hover:-translate-y-1 transition-all active:translate-y-0 flex items-center justify-center gap-2 group" style={{ backgroundColor: villageData[previewVillage].color, boxShadow: `0 10px 20px -5px ${hexToRgba(villageData[previewVillage].color, 0.5)}` }}>
-                      {t('enterVillage')} <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
-                   </button>
-                </div>
-             </div>
           )}
         </div>
       </div>
@@ -1835,9 +1810,9 @@ export default function App() {
               className="absolute -top-16 md:-top-20 left-1/2 -translate-x-1/2 z-[90] bg-gray-900/95 backdrop-blur-md text-white px-5 py-3 md:px-6 md:py-3.5 rounded-full font-bold shadow-[0_8px_30px_rgba(0,0,0,0.3)] flex items-center gap-2 hover:scale-105 active:scale-95 transition-all border border-gray-700 pointer-events-auto"
             >
               {viewMode === 'list' ? (
-                <><MapIcon size={18} className="text-emerald-400" /> <span>{t('mapView')}</span></>
+                <><MapIcon size={18} className="text-emerald-400" /> <span>{language === 'en' ? 'Map View' : '開啟地圖分佈'}</span></>
               ) : (
-                <><List size={18} className="text-emerald-400" /> <span>{t('listView')}</span></>
+                <><List size={18} className="text-emerald-400" /> <span>{language === 'en' ? 'List View' : '查看店家列表'}</span></>
               )}
             </button>
           )}
@@ -1874,7 +1849,7 @@ export default function App() {
                 const vData = villageData[vKey];
                 const isSelected = selectedVillage === vKey;
                 return (
-                  <button key={vKey} onClick={() => { setSelectedVillage(vKey); setSidebarOpen(false); setCurrentView('home'); setSortBy('default'); }} style={isSelected ? { backgroundColor: hexToRgba(vData.color, 0.15), borderLeftColor: vData.color } : {}} className={`w-full text-left p-4 rounded-2xl flex justify-between items-center transition-all border-l-8 ${ isSelected ? 'font-bold shadow-sm' : 'border-transparent hover:bg-gray-50 text-gray-600' }`}>
+                  <button key={vKey} onClick={() => { setSelectedVillage(vKey); setSidebarOpen(false); setCurrentView('home'); setSortBy('default'); setViewMode('map'); setAppStarted(true); setPreviewVillage(null); }} className={`w-full text-left p-4 rounded-2xl flex justify-between items-center transition-all border-l-8 ${ isSelected ? 'font-bold shadow-sm' : 'border-transparent hover:bg-gray-50 text-gray-600' }`} style={isSelected ? { backgroundColor: hexToRgba(vData.color, 0.15), borderLeftColor: vData.color } : {}}>
                     <span className="text-lg" style={{ color: isSelected ? vData.textDark : '' }}>{vData?.[language] || vKey}</span>
                     <span className="text-xs font-bold" style={{ color: isSelected ? hexToRgba(vData.textDark, 0.8) : '#9ca3af' }}>{language === 'en' ? vData?.desc_en : vData?.desc_zh}</span>
                   </button>
