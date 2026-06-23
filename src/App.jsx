@@ -22,11 +22,11 @@ const APP_CONFIG = {
 
 // 特色活動設定
 const EVENT_CONFIG = {
-  '黃頭鷺': { customImg: '/bird-event.png', color: '#d97706', bg: '#fef3c7', label: '賞鷺點' },
-  '紫藤花': { customImg: '/flower-event.png', icon: Star, color: '#9333ea', bg: '#f3e8ff', label: '賞花點' },
-  '日出': { customImg: '/sunrise-event.png', icon: Star, color: '#ea580c', bg: '#ffedd5', label: '絕美日出' },
-  '雲海': { customImg: '/cloud-event.png', icon: Star, color: '#0284c7', bg: '#e0f2fe', label: '雲海勝地' },
-  '螢火蟲': { customImg: '/star-event.png', color: '#ca8a04', bg: '#fef08a', label: '賞螢秘境' }
+  '黃頭鷺': { emoji: '🦅', customImg: '/bird-event.png', color: '#d97706', bg: '#fef3c7', label: '賞鷺點' },
+  '紫藤花': { emoji: '🌸', customImg: '/flower-event.png', icon: Star, color: '#9333ea', bg: '#f3e8ff', label: '賞花點' },
+  '日出': { emoji: '🌅', customImg: '/sunrise-event.png', icon: Star, color: '#ea580c', bg: '#ffedd5', label: '絕美日出' },
+  '雲海': { emoji: '☁️', customImg: '/cloud-event.png', icon: Star, color: '#0284c7', bg: '#e0f2fe', label: '雲海勝地' },
+  '螢火蟲': { emoji: '🌟', customImg: '/star-event.png', color: '#ca8a04', bg: '#fef08a', label: '賞螢秘境' }
 };
 
 // 【多國語言字典】
