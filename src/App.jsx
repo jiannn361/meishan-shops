@@ -1,17 +1,17 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { 
-  Search, MapPin, Phone, Navigation, Facebook, Star, Home, Gift, User, 
+  Search, MapPin, Phone, Navigation, Facebook, Star, Home, Coffee, Gift, User, 
   Filter, Heart, X, Mountain, Loader2, Camera, Tag, Clock, ChevronLeft, 
   ChevronRight, Info, LocateFixed, Globe, MessageCircle, Map as MapIcon, 
   ExternalLink, Calendar, Banknote, AlertCircle, ChevronDown, ChevronUp, Play, ArrowRight, Share2,
-  Bus, Car, Type, Zap, List, Utensils
+  Bus, Car, Type, Zap, List
 } from 'lucide-react';
 
 // 【網站設定區】
 const APP_CONFIG = {
   appName: "Meishan Taiping",
   subTitle: "Meishan, Chiayi",
-  airtableApiKey: import.meta.env.VITE_AIRTABLE_API_KEY || "", 
+  airtableApiKey: import.meta.env.VITE_AIRTABLE_API_KEY || "", // 若部署時需使用環境變數，請自行改回對應的寫法
   airtableBaseId: "appkU3kxP74Gq7iXj", 
   airtableTableName: "Table 1", 
   liffId: "2009010332-K14upnUb",
@@ -52,7 +52,7 @@ const translations = {
     welcomeTitle: "今天想去哪裡呢?", enterVillage: "開始探索",
     shareApp: '分享導覽', shareShop: '分享', shareSuccess: '已複製連結！',
     fontSize: '字體大小', fontNormal: '標準', fontLarge: '放大', fontXLarge: '特大',
-    mapView: '開啟地圖分佈', listView: '查看店家列表'
+    mapView: '地圖模式', listView: '列表模式'
   },
   en: {
     explore: 'Explore', pocketList: 'Pocket List', myFavorites: 'Favorites',
@@ -233,7 +233,7 @@ const InteractiveMap = ({ shops, onMarkerClick, villageData, language }) => {
   const mapRef = useRef(null);
   const markersRef = useRef([]);
 
-  // 取得對應的分類表情符號 (美食改為刀叉 🍽️)
+  // 取得對應的分類表情符號
   const getCategoryEmoji = (categories) => {
     if (!categories || categories.length === 0) return '📍';
     const cat = categories[0].toLowerCase();
@@ -249,7 +249,7 @@ const InteractiveMap = ({ shops, onMarkerClick, villageData, language }) => {
   useEffect(() => {
     let isMounted = true;
 
-    // 動態載入 Leaflet 資源 (免安裝套件)
+    // 動態載入 Leaflet 資源
     const loadLeaflet = () => {
       return new Promise((resolve) => {
         if (window.L) return resolve(window.L);
@@ -268,18 +268,17 @@ const InteractiveMap = ({ shops, onMarkerClick, villageData, language }) => {
     loadLeaflet().then((L) => {
       if (!isMounted) return;
 
-      // 初始化地圖
       if (!mapRef.current) {
         const container = document.getElementById('interactive-village-map');
         if (container) container.innerHTML = '';
         
         const map = L.map('interactive-village-map', { 
-          zoomControl: false, // 隱藏預設縮放按鈕，讓畫面更乾淨
+          zoomControl: false, 
           attributionControl: false 
         }).setView([23.55, 120.6], 13);
         
-        // 🎨 改用高質感的深色地圖 (Dark Matter)
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+        // 🎨 使用明亮質感的 Voyager 探索者地圖
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
           maxZoom: 20,
           attribution: '© OpenStreetMap © CARTO'
         }).addTo(map);
@@ -289,7 +288,6 @@ const InteractiveMap = ({ shops, onMarkerClick, villageData, language }) => {
 
       const map = mapRef.current;
 
-      // 清除舊的標記
       if (markersRef.current.length > 0) {
         markersRef.current.forEach(m => map.removeLayer(m));
         markersRef.current = [];
@@ -297,7 +295,6 @@ const InteractiveMap = ({ shops, onMarkerClick, villageData, language }) => {
 
       const bounds = [];
 
-      // 繪製新的店家標記
       shops.forEach(shop => {
         if (shop.lat && shop.lng) {
           bounds.push([shop.lat, shop.lng]);
@@ -306,7 +303,6 @@ const InteractiveMap = ({ shops, onMarkerClick, villageData, language }) => {
           const vColor = villageData[shop.village]?.color || '#059669';
           const displayName = language === 'en' ? (shop.name_en || shop.name) : shop.name;
           
-          // 深色圓形圖示 + 下方帶有名稱的透明氣泡標籤
           const customHtml = `
             <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; transform: translate(-50%, -100%); width: max-content; pointer-events: auto;">
               <div style="background-color: #1f2937; border: 2.5px solid ${vColor}; border-radius: 50%; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(0,0,0,0.5); margin: 0 auto; transition: transform 0.2s;">
@@ -331,7 +327,6 @@ const InteractiveMap = ({ shops, onMarkerClick, villageData, language }) => {
         }
       });
 
-      // 自動縮放以顯示所有標記
       if (bounds.length > 0) {
         map.fitBounds(bounds, { padding: [50, 50], maxZoom: 16 });
       }
@@ -343,9 +338,9 @@ const InteractiveMap = ({ shops, onMarkerClick, villageData, language }) => {
   }, [shops, onMarkerClick, villageData, language]);
 
   return (
-    <div className="w-full h-[calc(100vh-270px)] sm:h-[calc(100vh-300px)] rounded-[28px] overflow-hidden shadow-inner border border-gray-700 relative z-0">
-      <div id="interactive-village-map" className="w-full h-full z-0 bg-[#0f172a]" />
-      <div id="map-loading" className="absolute inset-0 bg-[#0f172a] flex items-center justify-center z-[-1]">
+    <div className="w-full h-[calc(100vh-270px)] sm:h-[calc(100vh-300px)] rounded-[28px] overflow-hidden shadow-inner border border-gray-200 relative z-0">
+      <div id="interactive-village-map" className="w-full h-full z-0 bg-gray-100" />
+      <div id="map-loading" className="absolute inset-0 bg-gray-100 flex items-center justify-center z-[-1]">
         <Loader2 className="animate-spin text-emerald-500" size={32} />
       </div>
     </div>
@@ -437,10 +432,10 @@ const ImageCarousel = ({ images, credit, onClick }) => {
     <div className="relative w-full h-full group cursor-pointer" onClick={onClick}>
       <img src={images[currentIndex]} alt={`slide-${currentIndex}`} className="w-full h-full object-cover transition-all duration-500" onError={() => setImgError(true)} />
       
-      {/* 顯示圖片來源與照片計數器 (移至右下角並拉高 z-index 避免被陰影遮擋) */}
+      {/* 顯示圖片來源與照片計數器 (合併到右下角) */}
       <div className="absolute bottom-3 right-3 z-30 flex flex-col items-end gap-1.5 pointer-events-none">
         {credit && <div className="bg-black/50 backdrop-blur-md px-2 py-1 rounded-md text-[10px] text-white/90 shadow-sm border border-white/10">© {credit}</div>}
-        {images.length > 1 && <div className="bg-black/50 backdrop-blur-md px-2 py-1 rounded-lg text-[10px] sm:text-xs text-white font-medium border border-white/10">{currentIndex + 1} / {images.length}</div>}
+        <div className="bg-black/50 backdrop-blur-md px-2 py-1 rounded-lg text-[10px] sm:text-xs text-white font-medium border border-white/10">{currentIndex + 1} / {images.length}</div>
       </div>
       
       <button onClick={prevSlide} className="absolute left-2 top-1/2 -translate-y-1/2 z-20 bg-black/30 hover:bg-black/50 text-white p-1 rounded-full backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity"><ChevronLeft size={20} /></button>
@@ -483,7 +478,6 @@ const AnnouncementCarousel = ({ announcements, onSelect, currentPrimaryColor }) 
             </div>
          )}
 
-         {/* 輪播控制按鈕 (僅在數量大於1時顯示) */}
          {announcements.length > 1 && (
            <>
              <button onClick={prevSlide} className="absolute left-3 top-1/2 -translate-y-1/2 bg-black/30 hover:bg-black/50 text-white p-2 rounded-full backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity"><ChevronLeft size={24} /></button>
@@ -492,7 +486,6 @@ const AnnouncementCarousel = ({ announcements, onSelect, currentPrimaryColor }) 
            </>
          )}
          
-         {/* 有圖片時顯示底部黑色漸層標題 */}
          {hasImage && (
            <div className="absolute bottom-0 inset-x-0 h-20 bg-gradient-to-t from-black/80 to-transparent flex items-end px-5 pb-4">
               <h4 className="font-bold text-white text-lg md:text-xl truncate drop-shadow-md">{ann.name}</h4>
@@ -729,7 +722,6 @@ const ShopDetailModal = ({ shop, onClose, t, language, setArTargetShop, userLoca
   if (!shop) return null;
   const isOpen = checkIsOpen(shop.hours);
   
-  // 語言名稱顯示邏輯
   const isEn = language === 'en';
   const displayMainName = isEn ? (shop.name_en || shop.name) : shop.name;
   const displaySubName = (!isEn && shop.name_en) ? shop.name_en : null;
@@ -993,11 +985,11 @@ const ShopDetailModal = ({ shop, onClose, t, language, setArTargetShop, userLoca
                       <div className="flex items-start gap-3 pt-3 border-t border-gray-100">
                         <div className="p-1.5 bg-emerald-100 text-emerald-600 rounded-lg shrink-0"><Navigation size={16} /></div>
                         <div className="w-full pt-0.5">
-                          <h4 className="text-[13px] font-bold text-emerald-800 mb-1">查看步道地圖</h4>
+                          <h4 className="text-[13px] font-bold text-emerald-800 mb-1">專屬互動式步道地圖</h4>
                           <div className="text-sm text-gray-600 mb-2 space-y-1">
-                            <p>步道路線、高度變化與您的即時位置。</p>
+                            <p>開啟專屬輕量化登山地圖，查看精準路線、高度變化與您的即時位置。</p>
                             <p className="text-xs text-amber-600 font-bold bg-amber-50 p-2 rounded-lg border border-amber-200">
-                              💡 貼心提醒：進入地圖後，請稍帶幾秒鐘
+                              💡 貼心提醒：進入地圖後，請允許【定位權限】，並可點擊右側選單切換【衛星圖】，讓山徑更清晰喔！
                             </p>
                           </div>
                           <a href={shop.gpx_link} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-emerald-600 text-white text-xs font-bold rounded-lg hover:bg-emerald-700 transition-colors shadow-sm active:scale-95">
@@ -1128,7 +1120,6 @@ const UserModal = ({ showUserModal, setShowUserModal, t, APP_CONFIG, currentPrim
           <p className="text-sm text-gray-500">{t('welcome')}</p>
         </div>
 
-        {/* 字體大小調整拉桿區塊 */}
         <div className="space-y-4 mt-6 pt-4 border-t border-gray-100">
           <div className="flex items-center gap-2 mb-2">
             <div className="p-1.5 bg-gray-100 rounded-lg text-gray-600"><Type size={16} /></div>
@@ -1144,12 +1135,9 @@ const UserModal = ({ showUserModal, setShowUserModal, t, APP_CONFIG, currentPrim
                else if (ratio < 0.66) setFontSizeLevel('large');
                else setFontSizeLevel('xlarge');
             }}>
-              {/* 拉桿底部灰線 */}
               <div className="absolute left-0 right-0 h-1.5 bg-gray-200 rounded-full top-1/2 -translate-y-1/2 z-0"></div>
-              {/* 拉桿進度色線 */}
               <div className="absolute left-0 h-1.5 rounded-full top-1/2 -translate-y-1/2 z-0 transition-all duration-300" style={{ backgroundColor: currentPrimaryColor, width: fontSizeLevel === 'normal' ? '0%' : fontSizeLevel === 'large' ? '50%' : '100%' }}></div>
 
-              {/* 三個節點圓圈 */}
               {['normal', 'large', 'xlarge'].map((level) => (
                 <button
                   key={level}
@@ -1160,7 +1148,6 @@ const UserModal = ({ showUserModal, setShowUserModal, t, APP_CONFIG, currentPrim
               ))}
             </div>
             
-            {/* 節點下方的文字標籤 */}
             <div className="flex justify-between text-xs font-bold text-gray-400 mt-3 -mx-4">
               <button onClick={() => setFontSizeLevel('normal')} className={`transition-colors hover:text-gray-700 w-14 text-center ${fontSizeLevel === 'normal' ? 'text-gray-900 scale-105' : ''}`}>{t('fontNormal')}</button>
               <button onClick={() => setFontSizeLevel('large')} className={`transition-colors hover:text-gray-700 w-14 text-center ${fontSizeLevel === 'large' ? 'text-gray-900 scale-105' : ''}`}>{t('fontLarge')}</button>
@@ -1236,7 +1223,6 @@ export default function App() {
     setLanguage(prev => prev === 'zh' ? 'en' : 'zh');
   }, []);
 
-  // 監聽字體大小變更，應用到整個網頁根節點
   useEffect(() => {
     if (fontSizeLevel === 'large') document.documentElement.style.fontSize = '112.5%';
     else if (fontSizeLevel === 'xlarge') document.documentElement.style.fontSize = '125%';
@@ -1285,7 +1271,8 @@ export default function App() {
 
   useEffect(() => {
     const fetchAirtableData = async () => {
-      if (!APP_CONFIG.airtableApiKey) { console.log("Airtable API Key 未設定"); setLoading(false); return; }
+      // 避免編譯錯誤，將金鑰直接做 fallback
+      if (!APP_CONFIG.airtableApiKey) { console.log("請設定 Airtable API Key"); setLoading(false); return; }
       const CACHE_KEY = 'meishan_airtable_data'; const CACHE_TIME_KEY = 'meishan_airtable_time';
       const CACHE_DURATION = 1000 * 60 * 3; 
       const cachedData = localStorage.getItem(CACHE_KEY);
@@ -1412,8 +1399,8 @@ export default function App() {
     'all': { labelKey: 'all', icon: <Search size={18}/> },
     'accommodation': { labelKey: 'accommodation', icon: <Home size={18}/> },
     '民宿': { labelKey: 'accommodation', icon: <Home size={18}/> },
-    'food': { labelKey: 'food', icon: <Utensils size={18}/> },
-    '美食': { labelKey: 'food', icon: <Utensils size={18}/> },
+    'food': { labelKey: 'food', icon: <Coffee size={18}/> },
+    '美食': { labelKey: 'food', icon: <Coffee size={18}/> },
     'gift': { labelKey: 'gift', icon: <Gift size={18}/> },
     '伴手禮': { labelKey: 'gift', icon: <Gift size={18}/> },
     'attraction': { labelKey: 'attraction', icon: <Camera size={18}/> },
@@ -1521,7 +1508,7 @@ export default function App() {
                 {Object.keys(villageData).map((vKey) => {
                   const vData = villageData[vKey];
                   return (
-                    <button key={vKey} onClick={() => { setSelectedVillage(vKey); setSidebarOpen(false); setCurrentView('home'); setSortBy('default'); setViewMode('map'); setAppStarted(true); setPreviewVillage(null); }} className="flex flex-col items-start p-6 rounded-[32px] text-left bg-white/85 backdrop-blur-md shadow-lg border-2 transition-all hover:scale-105 active:scale-95 group relative overflow-hidden" style={{ borderColor: hexToRgba(vData.color, 0.4) }}>
+                    <button key={vKey} onClick={() => setPreviewVillage(vKey)} className="flex flex-col items-start p-6 rounded-[32px] text-left bg-white/85 backdrop-blur-md shadow-lg border-2 transition-all hover:scale-105 active:scale-95 group relative overflow-hidden" style={{ borderColor: hexToRgba(vData.color, 0.4) }}>
                       <div className="absolute -right-6 -top-6 w-24 h-24 rounded-full opacity-10 group-hover:opacity-20 transition-opacity" style={{ backgroundColor: vData.color }}></div>
                       <div className="w-12 h-12 md:w-14 md:h-14 rounded-full mb-4 flex items-center justify-center shadow-sm relative overflow-hidden" style={{ backgroundColor: vData.color, color: vData.textBadge }}>
                          <img src={`/${vData.iconFile}`} alt="icon" className="absolute inset-0 w-full h-full object-cover z-10" onError={(e) => { e.target.style.display = 'none'; }} />
@@ -1533,6 +1520,29 @@ export default function App() {
                 })}
               </div>
             </div>
+          )}
+          {previewVillage && (
+             <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center animate-fade-in p-4">
+                <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setPreviewVillage(null)}></div>
+                <div className="relative w-full max-w-lg bg-white rounded-[40px] p-8 space-y-6 animate-slide-up shadow-2xl flex flex-col" style={{ borderTop: `8px solid ${villageData[previewVillage].color}` }}>
+                   <button onClick={() => setPreviewVillage(null)} className="absolute top-5 right-5 text-gray-400 hover:text-gray-600 p-2 bg-gray-100 rounded-full transition-colors"><X size={20} /></button>
+                   <div className="flex items-center gap-4">
+                      <div className="w-16 h-16 rounded-2xl flex items-center justify-center shadow-md relative overflow-hidden" style={{ backgroundColor: hexToRgba(villageData[previewVillage].color, 0.15), color: villageData[previewVillage].textDark }}>
+                         <img src={`/${villageData[previewVillage].iconFile}`} alt="icon" className="absolute inset-0 w-full h-full object-cover z-10 p-2" onError={(e) => { e.target.style.display = 'none'; }} />
+                      </div>
+                      <div>
+                         <h2 className="text-3xl font-extrabold" style={{ color: villageData[previewVillage].textDark }}>{villageData[previewVillage][language] || previewVillage}</h2>
+                         <p className="text-sm font-bold text-gray-400 mt-1">{language === 'en' ? villageData[previewVillage].desc_en : villageData[previewVillage].desc_zh}</p>
+                      </div>
+                   </div>
+                   <div className="bg-gray-50 rounded-2xl p-5 border border-gray-100">
+                      <p className="text-sm leading-loose text-gray-600 font-medium">{villageData[previewVillage].intro}</p>
+                   </div>
+                   <button onClick={() => { setSelectedVillage(previewVillage); setAppStarted(true); setPreviewVillage(null); }} className="w-full py-4 rounded-2xl font-bold text-lg text-white shadow-xl hover:-translate-y-1 transition-all active:translate-y-0 flex items-center justify-center gap-2 group" style={{ backgroundColor: villageData[previewVillage].color, boxShadow: `0 10px 20px -5px ${hexToRgba(villageData[previewVillage].color, 0.5)}` }}>
+                      {t('enterVillage')} <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
+                   </button>
+                </div>
+             </div>
           )}
         </div>
       </div>
@@ -1676,7 +1686,8 @@ export default function App() {
                     return (
                       <div key={shop.id} className="group relative bg-white/95 backdrop-blur-md rounded-[28px] overflow-hidden shadow-[0_8px_30px_rgb(0,0,0,0.06)] hover:shadow-[0_15px_40px_rgb(0,0,0,0.12)] transition-all duration-300 border border-white flex flex-col h-full hover:-translate-y-1">
                         <div className="h-56 w-full relative overflow-hidden bg-gray-100 shrink-0">
-                          <ImageCarousel images={shop.images} onClick={() => setSelectedShop(shop)} credit={shop.credit} />
+                          {/* 列表圖片不要顯示出處 */}
+                          <ImageCarousel images={shop.images} onClick={() => setSelectedShop(shop)} />
                           <button onClick={(e) => { e.preventDefault(); toggleFavorite(shop.id); }} className="absolute top-4 right-4 bg-white/90 backdrop-blur-md p-2.5 rounded-full shadow-md hover:scale-110 transition-all z-10"><Heart size={20} className={isFav ? "fill-rose-500 text-rose-500" : "text-gray-400"} /></button>
 
                           {shop.matchedEvents && shop.matchedEvents.length > 0 && (
@@ -1799,7 +1810,7 @@ export default function App() {
           </div>
       </div>
 
-      {/* 🗺️ 右下角懸浮按鈕：地圖與列表無縫切換 (移開避免遮住吉祥物) */}
+      {/* 🗺️ 右下角懸浮按鈕：地圖與列表無縫切換 */}
       {currentView === 'home' && processedShops.length > 0 && (
         <button
           onClick={() => setViewMode(prev => prev === 'list' ? 'map' : 'list')}
@@ -1849,7 +1860,7 @@ export default function App() {
                 const vData = villageData[vKey];
                 const isSelected = selectedVillage === vKey;
                 return (
-                  <button key={vKey} onClick={() => { setSelectedVillage(vKey); setSidebarOpen(false); setCurrentView('home'); setSortBy('default'); setViewMode('map'); setAppStarted(true); setPreviewVillage(null); }} className={`w-full text-left p-4 rounded-2xl flex justify-between items-center transition-all border-l-8 ${ isSelected ? 'font-bold shadow-sm' : 'border-transparent hover:bg-gray-50 text-gray-600' }`} style={isSelected ? { backgroundColor: hexToRgba(vData.color, 0.15), borderLeftColor: vData.color } : {}}>
+                  <button key={vKey} onClick={() => { setSelectedVillage(vKey); setSidebarOpen(false); setCurrentView('home'); setSortBy('default'); setViewMode('map'); }} style={isSelected ? { backgroundColor: hexToRgba(vData.color, 0.15), borderLeftColor: vData.color } : {}} className={`w-full text-left p-4 rounded-2xl flex justify-between items-center transition-all border-l-8 ${ isSelected ? 'font-bold shadow-sm' : 'border-transparent hover:bg-gray-50 text-gray-600' }`}>
                     <span className="text-lg" style={{ color: isSelected ? vData.textDark : '' }}>{vData?.[language] || vKey}</span>
                     <span className="text-xs font-bold" style={{ color: isSelected ? hexToRgba(vData.textDark, 0.8) : '#9ca3af' }}>{language === 'en' ? vData?.desc_en : vData?.desc_zh}</span>
                   </button>
