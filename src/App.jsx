@@ -1799,24 +1799,24 @@ export default function App() {
           </div>
       </div>
 
+      {/* 🗺️ 右下角懸浮按鈕：地圖與列表無縫切換 (移開避免遮住吉祥物) */}
+      {currentView === 'home' && processedShops.length > 0 && (
+        <button
+          onClick={() => setViewMode(prev => prev === 'list' ? 'map' : 'list')}
+          className="fixed bottom-[100px] md:bottom-[120px] right-4 md:right-8 z-[90] bg-gray-900/95 backdrop-blur-md text-white px-4 py-3 md:px-5 md:py-3.5 rounded-full font-bold shadow-[0_8px_30px_rgba(0,0,0,0.3)] flex items-center gap-2 hover:scale-105 active:scale-95 transition-all border border-gray-700"
+        >
+          {viewMode === 'list' ? (
+            <><MapIcon size={18} className="text-emerald-400" /> <span className="text-sm">{t('mapView')}</span></>
+          ) : (
+            <><List size={18} className="text-emerald-400" /> <span className="text-sm">{t('listView')}</span></>
+          )}
+        </button>
+      )}
+
       {/* 底部懸浮選單 (Dock) */}
       <div className="fixed bottom-6 left-0 right-0 flex justify-center z-[85] pointer-events-none">
         <div className="relative flex justify-center pointer-events-none">
           
-          {/* 地圖與列表切換按鈕 (漂浮於主選單上方) */}
-          {currentView === 'home' && processedShops.length > 0 && (
-            <button
-              onClick={() => setViewMode(prev => prev === 'list' ? 'map' : 'list')}
-              className="absolute -top-16 md:-top-20 left-1/2 -translate-x-1/2 z-[90] bg-gray-900/95 backdrop-blur-md text-white px-5 py-3 md:px-6 md:py-3.5 rounded-full font-bold shadow-[0_8px_30px_rgba(0,0,0,0.3)] flex items-center gap-2 hover:scale-105 active:scale-95 transition-all border border-gray-700 pointer-events-auto"
-            >
-              {viewMode === 'list' ? (
-                <><MapIcon size={18} className="text-emerald-400" /> <span>{language === 'en' ? 'Map View' : '開啟地圖分佈'}</span></>
-              ) : (
-                <><List size={18} className="text-emerald-400" /> <span>{language === 'en' ? 'List View' : '查看店家列表'}</span></>
-              )}
-            </button>
-          )}
-
           {/* 探頭吉祥物 */}
           {(!selectedShop && !selectedAnnouncement && !arTargetShop && !showFilterModal && !showUserModal) && (
             <div className="absolute bottom-10 md:bottom-12 left-1/2 -translate-x-1/2 pointer-events-auto z-0 animate-float-mascot">
