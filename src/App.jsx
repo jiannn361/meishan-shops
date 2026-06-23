@@ -303,10 +303,22 @@ const InteractiveMap = ({ shops, onMarkerClick, villageData, language }) => {
           const vColor = villageData[shop.village]?.color || '#059669';
           const displayName = language === 'en' ? (shop.name_en || shop.name) : shop.name;
           
+          // 👇 新增：判斷是否為特色活動，強制覆蓋圖示與外框顏色！
+          let markerContent = `<span style="font-size: 18px;">${emoji}</span>`;
+          let markerBorder = vColor;
+
+          if (shop.matchedEvents && shop.matchedEvents.length > 0) {
+             const activeEvent = shop.matchedEvents[0];
+             if (activeEvent.emoji) {
+               markerContent = `<span style="font-size: 18px;">${activeEvent.emoji}</span>`;
+             }
+             markerBorder = activeEvent.color || vColor;
+          }
+          
           const customHtml = `
             <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; transform: translate(-50%, -100%); width: max-content; pointer-events: auto;">
-              <div style="background-color: #1f2937; border: 2.5px solid ${vColor}; border-radius: 50%; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(0,0,0,0.5); margin: 0 auto; transition: transform 0.2s;">
-                <span style="font-size: 18px;">${emoji}</span>
+              <div style="background-color: #1f2937; border: 2.5px solid ${markerBorder}; border-radius: 50%; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(0,0,0,0.5); margin: 0 auto; transition: transform 0.2s;">
+                ${markerContent}
               </div>
               <div style="background-color: rgba(17, 24, 39, 0.85); color: #f3f4f6; padding: 4px 10px; border-radius: 8px; font-size: 13px; font-weight: bold; margin-top: 6px; box-shadow: 0 4px 12px rgba(0,0,0,0.5); backdrop-filter: blur(4px); white-space: nowrap; border: 1px solid rgba(255,255,255,0.1);">
                 ${displayName}
