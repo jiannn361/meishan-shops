@@ -1506,7 +1506,7 @@ export default function App() {
     return (
       <div className="min-h-[100dvh] w-full bg-gray-100 font-sans relative flex flex-col items-center justify-center overflow-x-hidden">
         {/* 全域漸層背景 (取代原本的圖片，不會有破圖問題) */}
-        <div className="fixed inset-0 w-full h-full z-0 bg-gradient-to-br from-emerald-50 via-teal-50 to-emerald-100 pointer-events-none">
+      <div className="fixed inset-0 w-full h-full z-0 bg-gradient-to-br from-purple-100 via-pink-100 to-teal-50 pointer-events-none">
         {/* 可以保留原本的遮罩，讓畫面更有層次 */}
         <div className="absolute inset-0 bg-white/20 backdrop-blur-[2px]"></div>
       </div>
