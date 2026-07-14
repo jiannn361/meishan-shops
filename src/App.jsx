@@ -1282,17 +1282,23 @@ export default function App() {
   };
 
   useEffect(() => {
+    // 【修改點】加入更嚴格的防護，避免短時間內無窮觸發請求
     const fetchAirtableData = async () => {
-      // 避免編譯錯誤，將金鑰直接做 fallback
-      if (!APP_CONFIG.airtableApiKey) { console.log("請設定 Airtable API Key"); setLoading(false); return; }
-      const CACHE_KEY = 'meishan_airtable_data'; const CACHE_TIME_KEY = 'meishan_airtable_time';
+      if (!APP_CONFIG.airtableApiKey) { setLoading(false); return; }
+      
+      const CACHE_KEY = 'meishan_airtable_data'; 
+      const CACHE_TIME_KEY = 'meishan_airtable_time';
       const CACHE_DURATION = 1000 * 60 * 3; 
+      
       const cachedData = localStorage.getItem(CACHE_KEY);
       const cachedTime = localStorage.getItem(CACHE_TIME_KEY);
       const now = new Date().getTime();
 
+      // 如果有快取且時間還沒過期，直接讀取快取，根本不去請求 API
       if (cachedData && cachedTime && (now - parseInt(cachedTime)) < CACHE_DURATION) {
-        setShops(JSON.parse(cachedData)); setLoading(false); return;
+        setShops(JSON.parse(cachedData)); 
+        setLoading(false); 
+        return;
       }
 
       setLoading(true);
@@ -1402,10 +1408,17 @@ export default function App() {
         setShops(processedShops);
         localStorage.setItem(CACHE_KEY, JSON.stringify(processedShops));
         localStorage.setItem(CACHE_TIME_KEY, now.toString());
-      } catch (error) { console.log("Airtable 讀取失敗:", error); } finally { setLoading(false); }
+        setShops(processedShops);
+      } catch (error) { 
+        console.error("Airtable 讀取失敗", error); 
+      } finally { 
+        setLoading(false); 
+      }
     };
+    
+    // 只在組件掛載時執行一次
     fetchAirtableData();
-  }, [language]);
+  }, []); // 關鍵：依賴陣列為空，只執行一次
 
   const categoryConfig = {
     'all': { labelKey: 'all', icon: <Search size={18}/> },
