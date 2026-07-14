@@ -1505,11 +1505,11 @@ export default function App() {
   if (!appStarted) {
     return (
       <div className="min-h-[100dvh] w-full bg-gray-100 font-sans relative flex flex-col items-center justify-center overflow-x-hidden">
-        {/* 全域固定背景 (修正破圖與白底) */}
-        <div className="fixed inset-0 w-full h-full z-[0] pointer-events-none">
-          <img src="/bg.png" alt="Background" className="w-full h-full object-cover" onError={(e) => { e.target.style.display = 'none'; e.target.parentElement.classList.add('bg-gradient-to-br', 'from-[#f2cfc9]', 'via-[#d2cbe3]', 'to-[#b4d8d4]'); }} />
-          <div className="absolute inset-0 bg-white/20 backdrop-blur-[2px]"></div>
-        </div>
+        {/* 全域漸層背景 (取代原本的圖片，不會有破圖問題) */}
+        <div className="fixed inset-0 w-full h-full z-0 bg-gradient-to-br from-emerald-50 via-teal-50 to-emerald-100 pointer-events-none">
+        {/* 可以保留原本的遮罩，讓畫面更有層次 */}
+        <div className="absolute inset-0 bg-white/20 backdrop-blur-[2px]"></div>
+      </div>
 
         <div className="relative z-10 flex flex-col w-full min-h-[100dvh]">
           {landingStep === 'welcome' && (
