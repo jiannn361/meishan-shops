@@ -1536,7 +1536,14 @@ export default function App() {
                     <button key={vKey} onClick={() => setPreviewVillage(vKey)} className="flex flex-col items-start p-6 rounded-[32px] text-left bg-white/85 backdrop-blur-md shadow-lg border-2 transition-all hover:scale-105 active:scale-95 group relative overflow-hidden" style={{ borderColor: hexToRgba(vData.color, 0.4) }}>
                       <div className="absolute -right-6 -top-6 w-24 h-24 rounded-full opacity-10 group-hover:opacity-20 transition-opacity" style={{ backgroundColor: vData.color }}></div>
                       <div className="w-12 h-12 md:w-14 md:h-14 rounded-full mb-4 flex items-center justify-center shadow-sm relative overflow-hidden" style={{ backgroundColor: vData.color, color: vData.textBadge }}>
-                         <img src={`/${vData.iconFile}`} alt="icon" className="absolute inset-0 w-full h-full object-cover z-10" onError={(e) => { e.target.style.display = 'none'; }} />
+                      {vData.iconFile && (
+  <img 
+    src={`/${vData.iconFile}`} 
+    alt="icon" 
+    className="absolute inset-0 w-full h-full object-cover z-10" 
+    onError={(e) => { e.target.style.display = 'none'; }} 
+  />
+)}
                       </div>
                       <h3 className="font-extrabold text-xl md:text-2xl mb-1" style={{ color: vData.textDark }}>{vData[language] || vKey}</h3>
                       <p className="text-sm font-bold" style={{ color: hexToRgba(vData.textDark, 0.6) }}>{language === 'en' ? vData.desc_en : vData.desc_zh}</p>
@@ -1592,9 +1599,8 @@ export default function App() {
       </style>
 
       {/* 全域固定背景 (解決破圖) */}
-      <div className="fixed inset-0 z-[0] pointer-events-none">
-        <img src={`/${villageData[selectedVillage]?.bgFile}`} alt="Village Background" className="w-full h-full object-cover opacity-80" style={{ animation: 'slowFloat 20s ease-in-out infinite' }} onError={(e) => e.target.style.display = 'none'} />
-      </div>
+      {/* 純白色背景，乾淨又專業 */}
+ <div className="fixed inset-0 w-full h-full z-0 bg-white pointer-events-none"></div>
 
       {/* 主畫面容器 (滿版寬度) */}
       <div className="relative z-10 w-full pb-32">
