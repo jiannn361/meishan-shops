@@ -8,6 +8,15 @@ import {
 } from 'lucide-react';
 
 // 【網站設定區】
+// 使用安全的方式取得環境變數，避免 import.meta 在特定打包設定下報錯
+const getEnv = (key) => {
+  try {
+    return import.meta.env[key];
+  } catch (e) {
+    return "";
+  }
+};
+
 const APP_CONFIG = {
   appName: "Meishan Taiping",
   subTitle: "Meishan, Chiayi",
@@ -838,12 +847,12 @@ const ShopDetailModal = ({ shop, onClose, t, language, setArTargetShop, userLoca
                    <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold" style={{ backgroundColor: hexToRgba(shopDarkColor, 0.15), color: shopDarkColor }}><Calendar size={14} />{t('byAppointment')}</div>
                  ) : isOpen === 'flexible' ? (
                    /* 👇 新增這段彈性營業專屬的橘色標籤 */
-                   <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold" style={{ backgroundColor: '#c2f5f8', color: '#135669' }}>
+                   <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold" style={{ backgroundColor: '#e0e7ff', color: '#4338ca' }}>
                      <Phone size={14} />{t('flexibleHours')}
                    </div>
                  ) : (
                    <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold`}
-                    style={ isOpen === true ? { backgroundColor: hexToRgba(shopDarkColor, 0.15), color: shopDarkColor } : isOpen === 'opening_soon' ? { backgroundColor: '#ffedd5', color: '#c2410c' } : isOpen === 'closing_soon' ? { backgroundColor: '#ffedd5', color: '#c2410c' } : isOpen === false ? { backgroundColor: '#f3f4f6', color: '#4b5563' } : { backgroundColor: '#eff6ff', color: '#2563eb' } }>
+                    style={ isOpen === true ? { backgroundColor: hexToRgba(shopDarkColor, 0.15), color: shopDarkColor } : isOpen === 'opening_soon' ? { backgroundColor: '#fef3c7', color: '#b45309' } : isOpen === 'closing_soon' ? { backgroundColor: '#ffedd5', color: '#c2410c' } : isOpen === false ? { backgroundColor: '#f3f4f6', color: '#4b5563' } : { backgroundColor: '#eff6ff', color: '#2563eb' } }>
                      <Clock size={14} />
                      {isOpen === true ? t('openNow') : isOpen === 'opening_soon' ? t('openingSoon') : isOpen === 'closing_soon' ? t('closingSoon') : isOpen === false ? t('closed') : t('checkAnnouncement')}
                    </div>
