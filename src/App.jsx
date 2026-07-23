@@ -838,7 +838,7 @@ const ShopDetailModal = ({ shop, onClose, t, language, setArTargetShop, userLoca
                    <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold" style={{ backgroundColor: hexToRgba(shopDarkColor, 0.15), color: shopDarkColor }}><Calendar size={14} />{t('byAppointment')}</div>
                  ) : isOpen === 'flexible' ? (
                    /* 👇 新增這段彈性營業專屬的橘色標籤 */
-                   <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold" style={{ backgroundColor: '#ffedd5', color: '#c2410c' }}>
+                   <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold" style={{ backgroundColor: '#ffedd5', color: '#2999b8' }}>
                      <Phone size={14} />{t('flexibleHours')}
                    </div>
                  ) : (
