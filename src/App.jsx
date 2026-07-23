@@ -843,7 +843,7 @@ const ShopDetailModal = ({ shop, onClose, t, language, setArTargetShop, userLoca
                    </div>
                  ) : (
                    <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold`}
-                    style={ isOpen === true ? { backgroundColor: hexToRgba(shopDarkColor, 0.15), color: shopDarkColor } : isOpen === 'opening_soon' ? { backgroundColor: '#c2f5f8', color: '#135669' } : isOpen === 'closing_soon' ? { backgroundColor: '#ffedd5', color: '#c2410c' } : isOpen === false ? { backgroundColor: '#f3f4f6', color: '#4b5563' } : { backgroundColor: '#eff6ff', color: '#2563eb' } }>
+                    style={ isOpen === true ? { backgroundColor: hexToRgba(shopDarkColor, 0.15), color: shopDarkColor } : isOpen === 'opening_soon' ? { backgroundColor: '#ffedd5', color: '#c2410c' } : isOpen === 'closing_soon' ? { backgroundColor: '#ffedd5', color: '#c2410c' } : isOpen === false ? { backgroundColor: '#f3f4f6', color: '#4b5563' } : { backgroundColor: '#eff6ff', color: '#2563eb' } }>
                      <Clock size={14} />
                      {isOpen === true ? t('openNow') : isOpen === 'opening_soon' ? t('openingSoon') : isOpen === 'closing_soon' ? t('closingSoon') : isOpen === false ? t('closed') : t('checkAnnouncement')}
                    </div>
@@ -1755,7 +1755,7 @@ export default function App() {
                             </div>
                           ) : isOpen === 'flexible' ? (
                             /* 👇 新增這段彈性營業在卡片上的橘色底標籤 */
-                            <div className="absolute bottom-4 left-4 bg-orange-500/95 backdrop-blur-md pl-3 pr-4 py-1.5 rounded-full flex items-center gap-2 shadow-lg z-10 pointer-events-none border border-white/20">
+                            <div className="absolute bottom-4 left-4 bg-indigo-500/95 backdrop-blur-md pl-3 pr-4 py-1.5 rounded-full flex items-center gap-2 shadow-lg z-10 pointer-events-none border border-white/20">
                               <Phone size={14} className="text-white" />
                               <span className="text-xs font-bold text-white tracking-wide">{t('flexibleHours')}</span>
                             </div>
