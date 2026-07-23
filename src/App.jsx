@@ -11,7 +11,7 @@ import {
 const APP_CONFIG = {
   appName: "Meishan Taiping",
   subTitle: "Meishan, Chiayi",
-  airtableApiKey: import.meta.env.VITE_AIRTABLE_API_KEY || "", // 若部署時需使用環境變數，請自行改回對應的寫法
+  airtableApiKey: import.meta.env.VITE_AIRTABLE_API_KEY || "", 
   airtableBaseId: "appkU3kxP74Gq7iXj", 
   airtableTableName: "Table 1", 
   liffId: "2009010332-K14upnUb",
@@ -37,6 +37,7 @@ const translations = {
     accommodation: '民宿', food: '美食', gift: '伴手禮', attraction: '景點',
     experience: '體驗', transport: '交通', favoritesList: '收藏清單', featured: '精選推薦',
     openNow: '營業中', openingSoon: '即將營業', closingSoon: '即將休息', closed: '休息中',
+    flexibleHours: '彈性營業(建議先電話聯絡)', // 新增翻譯
     checkAnnouncement: '詳見公告', byAppointment: '預約制', bookNow: '預約/預訂',
     distance: '距離', shopsCount: '間', loading: '快到了再等一下...',
     noFavorites: '您的口袋名單還是空的喔！', noShops: '哎呀，找不到符合的店家...',
@@ -60,6 +61,7 @@ const translations = {
     accommodation: 'Stays', food: 'Food', gift: 'Gifts', attraction: 'Spots',
     experience: 'Exp', transport: 'Transport', favoritesList: 'Favorites', featured: 'Featured',
     openNow: 'Open Now', openingSoon: 'Opening Soon', closingSoon: 'Closing Soon', closed: 'Closed',
+    flexibleHours: 'Flexible (Call ahead)', // 新增翻譯
     checkAnnouncement: 'Check Info', byAppointment: 'By Appt', bookNow: 'Book Now',
     distance: 'Dist', shopsCount: 'shops', loading: 'Almost there...',
     noFavorites: 'No favorites yet!', noShops: 'No shops match your criteria.',
@@ -134,6 +136,7 @@ const checkIsOpen = (hoursString) => {
 
   cleanHours = expandDayRanges(cleanHours);
   if (cleanHours.includes('預約制')) return 'appointment';
+  if (cleanHours.includes('彈性')) return 'flexible'; // 新增彈性營業判斷
   if (cleanHours.toLowerCase().includes('google')) return 'google';
   if (cleanHours.toLowerCase().includes('fb') || cleanHours.includes('粉絲專頁')) return 'fb';
   if (cleanHours === '營業中') return true;
@@ -746,7 +749,7 @@ const ShopDetailModal = ({ shop, onClose, t, language, setArTargetShop, userLoca
   const hasHours = !!shop.hours;
   const showAccommodationBadge = isAccommodation && !hasHours;
   const accBadgeText = shop.bookings && shop.bookings.length > 0 ? t('bookNow') : t('byAppointment');
-  const hideHoursText = !shop.hours || String(shop.hours).trim().toLowerCase() === 'google' || String(shop.hours).trim().toLowerCase() === 'fb' || String(shop.hours).includes('預約制');
+  const hideHoursText = !shop.hours || String(shop.hours).trim().toLowerCase() === 'google' || String(shop.hours).trim().toLowerCase() === 'fb' || String(shop.hours).includes('預約制') || isOpen === 'flexible'; // 隱藏彈性營業的原本文字時間
   const shopColor = villageData[shop.village]?.color || '#059669';
   const shopDarkColor = villageData[shop.village]?.textDark || '#047857';
 
@@ -833,6 +836,11 @@ const ShopDetailModal = ({ shop, onClose, t, language, setArTargetShop, userLoca
                    <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold" style={{ backgroundColor: hexToRgba(shopDarkColor, 0.15), color: shopDarkColor }}><Calendar size={14} />{accBadgeText}</div>
                  ) : isOpen === 'appointment' ? (
                    <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold" style={{ backgroundColor: hexToRgba(shopDarkColor, 0.15), color: shopDarkColor }}><Calendar size={14} />{t('byAppointment')}</div>
+                 ) : isOpen === 'flexible' ? (
+                   /* 👇 新增這段彈性營業專屬的橘色標籤 */
+                   <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold" style={{ backgroundColor: '#ffedd5', color: '#c2410c' }}>
+                     <Phone size={14} />{t('flexibleHours')}
+                   </div>
                  ) : (
                    <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold`}
                     style={ isOpen === true ? { backgroundColor: hexToRgba(shopDarkColor, 0.15), color: shopDarkColor } : isOpen === 'opening_soon' ? { backgroundColor: '#fef3c7', color: '#b45309' } : isOpen === 'closing_soon' ? { backgroundColor: '#ffedd5', color: '#c2410c' } : isOpen === false ? { backgroundColor: '#f3f4f6', color: '#4b5563' } : { backgroundColor: '#eff6ff', color: '#2563eb' } }>
@@ -1485,7 +1493,9 @@ export default function App() {
         const isOpen = checkIsOpen(shop.hours);
         const isAccommodation = shop.categories && shop.categories.includes('accommodation');
         const showAccommodationBadge = isAccommodation && !shop.hours;
-        return isOpen === true || isOpen === 'opening_soon' || isOpen === 'closing_soon' || isOpen === 'appointment' || showAccommodationBadge;
+        
+        // 👈 將 isOpen === 'flexible' 補進這行 return 裡面！
+        return isOpen === true || isOpen === 'opening_soon' || isOpen === 'closing_soon' || isOpen === 'appointment' || isOpen === 'flexible' || showAccommodationBadge;
       });
     }
     
@@ -1711,7 +1721,7 @@ export default function App() {
                     const hasHours = !!shop.hours;
                     const showAccommodationBadge = isAccommodation && !hasHours;
                     const accBadgeText = shop.bookings && shop.bookings.length > 0 ? t('bookNow') : t('byAppointment');
-                    const hideCardHours = !shop.hours || String(shop.hours).trim().toLowerCase() === 'google' || String(shop.hours).trim().toLowerCase() === 'fb' || String(shop.hours).includes('預約制');
+                    const hideCardHours = !shop.hours || String(shop.hours).trim().toLowerCase() === 'google' || String(shop.hours).trim().toLowerCase() === 'fb' || String(shop.hours).includes('預約制') || isOpen === 'flexible';
                     const shopCardColor = villageData[shop.village]?.color || '#059669';
 
                     return (
@@ -1742,6 +1752,12 @@ export default function App() {
                           {showAccommodationBadge || isOpen === 'appointment' ? (
                             <div className="absolute bottom-4 left-4 backdrop-blur-md pl-3 pr-4 py-1.5 rounded-full flex items-center gap-2 shadow-lg z-10 pointer-events-none border border-white/20" style={{ backgroundColor: hexToRgba(villageData[shop.village]?.textDark || '#047857', 0.95) }}>
                               <Calendar size={14} className="text-white" /><span className="text-xs font-bold text-white tracking-wide">{showAccommodationBadge ? accBadgeText : t('byAppointment')}</span>
+                            </div>
+                          ) : isOpen === 'flexible' ? (
+                            /* 👇 新增這段彈性營業在卡片上的橘色底標籤 */
+                            <div className="absolute bottom-4 left-4 bg-orange-500/95 backdrop-blur-md pl-3 pr-4 py-1.5 rounded-full flex items-center gap-2 shadow-lg z-10 pointer-events-none border border-white/20">
+                              <Phone size={14} className="text-white" />
+                              <span className="text-xs font-bold text-white tracking-wide">{t('flexibleHours')}</span>
                             </div>
                           ) : isOpen === 'google' ? (
                              <div className="absolute bottom-4 left-4 bg-blue-500/95 backdrop-blur-md pl-3 pr-4 py-1.5 rounded-full flex items-center gap-2 shadow-lg z-10 pointer-events-none border border-white/20"><Info size={14} className="text-white" /><span className="text-xs font-bold text-white tracking-wide">{t('googleInfo')}</span></div>
