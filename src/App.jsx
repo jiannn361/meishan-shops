@@ -371,7 +371,6 @@ const InteractiveMap = ({ shops, onMarkerClick, villageData, language }) => {
   );
 };
 
-
 const Mascot = ({ size = 60, className = "", animation = "", imageUrl = null }) => {
   const defaultMascotUrl = "/mascot.png";
   const mascotSrc = imageUrl || defaultMascotUrl;
@@ -846,7 +845,7 @@ const ShopDetailModal = ({ shop, onClose, t, language, setArTargetShop, userLoca
                  ) : isOpen === 'appointment' ? (
                    <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold" style={{ backgroundColor: hexToRgba(shopDarkColor, 0.15), color: shopDarkColor }}><Calendar size={14} />{t('byAppointment')}</div>
                  ) : isOpen === 'flexible' ? (
-                   /* 👇 新增這段彈性營業專屬的橘色標籤 */
+                   /* 👇 新增這段彈性營業專屬的橘色/紫藍色標籤 */
                    <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold" style={{ backgroundColor: '#e0e7ff', color: '#4338ca' }}>
                      <Phone size={14} />{t('flexibleHours')}
                    </div>
@@ -1134,19 +1133,39 @@ const FilterModal = ({ showFilterModal, setShowFilterModal, filterOpenOnly, setF
   );
 };
 
-const UserModal = ({ showUserModal, setShowUserModal, t, APP_CONFIG, currentPrimaryColor, currentDarkColor, favorites, setFavorites, fontSizeLevel, setFontSizeLevel }) => {
+const UserModal = ({ showUserModal, setShowUserModal, t, APP_CONFIG, currentPrimaryColor, currentDarkColor, favorites, setFavorites, fontSizeLevel, setFontSizeLevel, lineProfile, onLineLogin }) => {
   if (!showUserModal) return null;
+
+  // 👇 判斷是否有成功抓到 LINE 的資料
+  const displayName = lineProfile ? lineProfile.displayName : t('guest');
+  const avatarUrl = lineProfile ? lineProfile.pictureUrl : null;
+
   return (
     <div className="fixed inset-0 z-[120] flex items-end sm:items-center justify-center animate-fade-in">
       <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setShowUserModal(false)}></div>
       <div className="relative w-full max-w-sm sm:max-w-md bg-white rounded-t-[32px] sm:rounded-[32px] p-6 pb-32 sm:pb-8 space-y-6 animate-in slide-in-from-bottom duration-300 max-h-[85vh] overflow-y-auto shadow-2xl">
         <button onClick={() => setShowUserModal(false)} className="absolute top-4 right-4 z-50 bg-gray-100 p-2 rounded-full text-gray-500"><X size={20} strokeWidth={2.5} /></button>
+        
         <div className="text-center pt-2">
+          {/* 👇 頭像顯示邏輯：有 LINE 照片就顯示，沒有就顯示預設的灰人 */}
           <div className="w-20 h-20 mx-auto rounded-full overflow-hidden border-4 shadow-lg mb-4 flex items-center justify-center" style={{ borderColor: hexToRgba(currentPrimaryColor, 0.2), backgroundColor: hexToRgba(currentPrimaryColor, 0.05) }}>
-             <div className="relative w-full h-full flex items-center justify-center"><User size={40} className="relative z-10" strokeWidth={1.5} style={{ color: currentPrimaryColor }} /></div>
+             {avatarUrl ? (
+               <img src={avatarUrl} alt="LINE Avatar" className="w-full h-full object-cover" />
+             ) : (
+               <div className="relative w-full h-full flex items-center justify-center"><User size={40} className="relative z-10" strokeWidth={1.5} style={{ color: currentPrimaryColor }} /></div>
+             )}
           </div>
-          <h3 className="text-xl font-bold text-gray-800">{t('guest')}</h3>
-          <p className="text-sm text-gray-500">{t('welcome')}</p>
+          
+          <h3 className="text-xl font-bold text-gray-800">{displayName}</h3>
+          
+          {/* 👇 如果還沒登入，顯示綠色的 LINE 登入按鈕 */}
+          {!lineProfile ? (
+             <button onClick={onLineLogin} className="mt-3 text-sm font-bold bg-[#06C755] text-white px-5 py-2 rounded-full shadow-md hover:opacity-90 transition-opacity flex items-center justify-center gap-2 mx-auto">
+                <MessageCircle size={16} /> 登入 LINE 帳號
+             </button>
+          ) : (
+             <p className="text-sm text-gray-500 mt-1">{t('welcome')}</p>
+          )}
         </div>
 
         <div className="space-y-4 mt-6 pt-4 border-t border-gray-100">
@@ -1235,10 +1254,81 @@ export default function App() {
   const [isSidebarOpen, setSidebarOpen] = useState(false);
   const [fontSizeLevel, setFontSizeLevel] = useState(localStorage.getItem('meishan_font_size') || 'normal');
 
+  // 👇 1. 新增這個用來存放 LINE 使用者資料的狀態
+  const [lineProfile, setLineProfile] = useState(null);
+
+  // 👇 2. 新增這個 useEffect 來啟動 LINE LIFF
+  useEffect(() => {
+    const initLineLiff = async () => {
+      try {
+        await liff.init({ liffId: APP_CONFIG.liffId });
+        // 如果使用者已經在 LINE 裡面打開，或者已經登入過
+        if (liff.isLoggedIn()) {
+          const profile = await liff.getProfile();
+          setLineProfile(profile); // 把抓到的名字和照片存起來
+        }
+      } catch (error) {
+        console.error('LINE LIFF 初始化失敗', error);
+      }
+    };
+    initLineLiff();
+  }, []);
+
   const t = useCallback((key) => (translations[language]?.[key] || key), [language]);
   const currentPrimaryColor = villageData[selectedVillage]?.color || '#059669';
   const currentDarkColor = villageData[selectedVillage]?.textDark || '#047857';
   const currentBadgeColor = villageData[selectedVillage]?.textBadge || '#ffffff';
+
+  // 👇 新增：儲存 LINE 設定與狀態
+  const [lineProfile, setLineProfile] = useState(null);
+  const [liffInstance, setLiffInstance] = useState(null);
+
+  // 👇 新增：動態載入 LINE LIFF SDK
+  useEffect(() => {
+    let isMounted = true;
+    
+    const loadLiff = () => {
+      return new Promise((resolve, reject) => {
+        if (window.liff) {
+          resolve(window.liff);
+          return;
+        }
+        const script = document.createElement('script');
+        script.src = 'https://static.line-scdn.net/liff/edge/2/sdk.js';
+        script.onload = () => resolve(window.liff);
+        script.onerror = () => reject(new Error('Failed to load LIFF SDK'));
+        document.head.appendChild(script);
+      });
+    };
+
+    loadLiff()
+      .then(async (liff) => {
+        if (!isMounted) return;
+        setLiffInstance(liff);
+        try {
+          await liff.init({ liffId: APP_CONFIG.liffId });
+          if (liff.isLoggedIn()) {
+            const profile = await liff.getProfile();
+            setLineProfile(profile);
+          }
+        } catch (error) {
+          console.error('LIFF 初始化失敗', error);
+        }
+      })
+      .catch((error) => console.error(error));
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const handleLineLogin = () => {
+    if (liffInstance && !liffInstance.isLoggedIn()) {
+      liffInstance.login();
+    } else if (!liffInstance) {
+       alert("LINE 系統正在載入中，請稍候再試。");
+    }
+  };
 
   const toggleFavorite = (id) => {
     setFavorites(prev => {
@@ -1299,7 +1389,6 @@ export default function App() {
   };
 
   useEffect(() => {
-    // 【修改點】加入更嚴格的防護，避免短時間內無窮觸發請求
     const fetchAirtableData = async () => {
       if (!APP_CONFIG.airtableApiKey) { setLoading(false); return; }
       
@@ -1418,6 +1507,7 @@ export default function App() {
               parkingLink: f['parkingLink'] || f['停車連結'] || f['停車場連結'] || f['停車導航'] || '',
               bookings: shopBookings, hours: String(f['hours'] || f['Hours'] || f['營業時間'] || ''),
               description: f['description'] || f['Description'] || f['介紹'] || f['店家介紹'] || '暫無詳細介紹，歡迎親自蒞臨體驗！',
+              description_en: f['description_en'] || f['Description_en'] || f['介紹_英'] || f['店家介紹_英'] || '',
               credit: f['圖片來源'] || f['image_credit'] || '',
             };
         });
@@ -1763,7 +1853,7 @@ export default function App() {
                               <Calendar size={14} className="text-white" /><span className="text-xs font-bold text-white tracking-wide">{showAccommodationBadge ? accBadgeText : t('byAppointment')}</span>
                             </div>
                           ) : isOpen === 'flexible' ? (
-                            /* 👇 新增這段彈性營業在卡片上的橘色底標籤 */
+                            /* 👇 新增這段彈性營業在卡片上的紫藍色底標籤 */
                             <div className="absolute bottom-4 left-4 bg-indigo-500/95 backdrop-blur-md pl-3 pr-4 py-1.5 rounded-full flex items-center gap-2 shadow-lg z-10 pointer-events-none border border-white/20">
                               <Phone size={14} className="text-white" />
                               <span className="text-xs font-bold text-white tracking-wide">{t('flexibleHours')}</span>
@@ -1931,7 +2021,20 @@ export default function App() {
       {selectedAnnouncement && <AnnouncementModal ann={selectedAnnouncement} onClose={() => setSelectedAnnouncement(null)} currentPrimaryColor={currentPrimaryColor} />}
       <ShopDetailModal shop={selectedShop} onClose={() => setSelectedShop(null)} t={t} language={language} setArTargetShop={setArTargetShop} userLocation={userLocation} />
       <FilterModal showFilterModal={showFilterModal} setShowFilterModal={setShowFilterModal} filterOpenOnly={filterOpenOnly} setFilterOpenOnly={setFilterOpenOnly} filterElevator={filterElevator} setFilterElevator={setFilterElevator} hasAnyEventsInVillage={hasAnyEventsInVillage} filterEventOnly={filterEventOnly} setFilterEventOnly={setFilterEventOnly} filterEV={filterEV} setFilterEV={setFilterEV} currentPrimaryColor={currentPrimaryColor} t={t} language={language} />
-      <UserModal showUserModal={showUserModal} setShowUserModal={setShowUserModal} t={t} APP_CONFIG={APP_CONFIG} currentPrimaryColor={currentPrimaryColor} currentDarkColor={currentDarkColor} favorites={favorites} setFavorites={setFavorites} fontSizeLevel={fontSizeLevel} setFontSizeLevel={setFontSizeLevel} />
+      <UserModal 
+        showUserModal={showUserModal} 
+        setShowUserModal={setShowUserModal} 
+        t={t} 
+        APP_CONFIG={APP_CONFIG} 
+        currentPrimaryColor={currentPrimaryColor} 
+        currentDarkColor={currentDarkColor} 
+        favorites={favorites} 
+        setFavorites={setFavorites} 
+        fontSizeLevel={fontSizeLevel} 
+        setFontSizeLevel={setFontSizeLevel} 
+        lineProfile={lineProfile}
+        onLineLogin={handleLineLogin}
+      />
       {arTargetShop && <ARNavigation targetShop={arTargetShop} userLoc={userLocation} onClose={() => setArTargetShop(null)} language={language} />}
     </div>
   );
