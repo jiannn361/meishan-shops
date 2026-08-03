@@ -20,7 +20,7 @@ const getEnv = (key) => {
 const APP_CONFIG = {
   appName: "Meishan Taiping",
   subTitle: "Meishan, Chiayi",
-  airtableApiKey: import.meta.env.VITE_AIRTABLE_API_KEY || "", 
+  airtableApiKey: getEnv('VITE_AIRTABLE_API_KEY') || "", 
   airtableBaseId: "appkU3kxP74Gq7iXj", 
   airtableTableName: "Table 1", 
   liffId: "2009010332-K14upnUb",
@@ -370,6 +370,7 @@ const InteractiveMap = ({ shops, onMarkerClick, villageData, language }) => {
     </div>
   );
 };
+
 
 const Mascot = ({ size = 60, className = "", animation = "", imageUrl = null }) => {
   const defaultMascotUrl = "/mascot.png";
@@ -845,7 +846,7 @@ const ShopDetailModal = ({ shop, onClose, t, language, setArTargetShop, userLoca
                  ) : isOpen === 'appointment' ? (
                    <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold" style={{ backgroundColor: hexToRgba(shopDarkColor, 0.15), color: shopDarkColor }}><Calendar size={14} />{t('byAppointment')}</div>
                  ) : isOpen === 'flexible' ? (
-                   /* 👇 新增這段彈性營業專屬的橘色/紫藍色標籤 */
+                   /* 👇 新增這段彈性營業專屬的橘色標籤 */
                    <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold" style={{ backgroundColor: '#e0e7ff', color: '#4338ca' }}>
                      <Phone size={14} />{t('flexibleHours')}
                    </div>
@@ -1135,8 +1136,7 @@ const FilterModal = ({ showFilterModal, setShowFilterModal, filterOpenOnly, setF
 
 const UserModal = ({ showUserModal, setShowUserModal, t, APP_CONFIG, currentPrimaryColor, currentDarkColor, favorites, setFavorites, fontSizeLevel, setFontSizeLevel, lineProfile, onLineLogin }) => {
   if (!showUserModal) return null;
-
-  // 👇 判斷是否有成功抓到 LINE 的資料
+  
   const displayName = lineProfile ? lineProfile.displayName : t('guest');
   const avatarUrl = lineProfile ? lineProfile.pictureUrl : null;
 
@@ -1147,7 +1147,6 @@ const UserModal = ({ showUserModal, setShowUserModal, t, APP_CONFIG, currentPrim
         <button onClick={() => setShowUserModal(false)} className="absolute top-4 right-4 z-50 bg-gray-100 p-2 rounded-full text-gray-500"><X size={20} strokeWidth={2.5} /></button>
         
         <div className="text-center pt-2">
-          {/* 👇 頭像顯示邏輯：有 LINE 照片就顯示，沒有就顯示預設的灰人 */}
           <div className="w-20 h-20 mx-auto rounded-full overflow-hidden border-4 shadow-lg mb-4 flex items-center justify-center" style={{ borderColor: hexToRgba(currentPrimaryColor, 0.2), backgroundColor: hexToRgba(currentPrimaryColor, 0.05) }}>
              {avatarUrl ? (
                <img src={avatarUrl} alt="LINE Avatar" className="w-full h-full object-cover" />
@@ -1158,7 +1157,6 @@ const UserModal = ({ showUserModal, setShowUserModal, t, APP_CONFIG, currentPrim
           
           <h3 className="text-xl font-bold text-gray-800">{displayName}</h3>
           
-          {/* 👇 如果還沒登入，顯示綠色的 LINE 登入按鈕 */}
           {!lineProfile ? (
              <button onClick={onLineLogin} className="mt-3 text-sm font-bold bg-[#06C755] text-white px-5 py-2 rounded-full shadow-md hover:opacity-90 transition-opacity flex items-center justify-center gap-2 mx-auto">
                 <MessageCircle size={16} /> 登入 LINE 帳號
@@ -1254,39 +1252,15 @@ export default function App() {
   const [isSidebarOpen, setSidebarOpen] = useState(false);
   const [fontSizeLevel, setFontSizeLevel] = useState(localStorage.getItem('meishan_font_size') || 'normal');
 
-  // 👇 1. 新增這個用來存放 LINE 使用者資料的狀態
-  const [lineProfile, setLineProfile] = useState(null);
-
-  // 👇 2. 新增這個 useEffect 來啟動 LINE LIFF
-  useEffect(() => {
-    const initLineLiff = async () => {
-      try {
-        await liff.init({ liffId: APP_CONFIG.liffId });
-        // 如果使用者已經在 LINE 裡面打開，或者已經登入過
-        if (liff.isLoggedIn()) {
-          const profile = await liff.getProfile();
-          setLineProfile(profile); // 把抓到的名字和照片存起來
-        }
-      } catch (error) {
-        console.error('LINE LIFF 初始化失敗', error);
-      }
-    };
-    initLineLiff();
-  }, []);
-
-  const t = useCallback((key) => (translations[language]?.[key] || key), [language]);
-  const currentPrimaryColor = villageData[selectedVillage]?.color || '#059669';
-  const currentDarkColor = villageData[selectedVillage]?.textDark || '#047857';
-  const currentBadgeColor = villageData[selectedVillage]?.textBadge || '#ffffff';
-
-  // 👇 新增：儲存 LINE 設定與狀態
+  // 👇 1. 存放 LINE 資料與引擎的狀態
   const [lineProfile, setLineProfile] = useState(null);
   const [liffInstance, setLiffInstance] = useState(null);
 
-  // 👇 新增：動態載入 LINE LIFF SDK
+  // 👇 2. 安全載入 LINE SDK (避免 Vercel 找不到模組報錯)
   useEffect(() => {
     let isMounted = true;
     
+    // 使用動態載入 Script 的方式，這是最安全的做法
     const loadLiff = () => {
       return new Promise((resolve, reject) => {
         if (window.liff) {
@@ -1322,6 +1296,7 @@ export default function App() {
     };
   }, []);
 
+  // 👇 3. 處理點擊登入的動作
   const handleLineLogin = () => {
     if (liffInstance && !liffInstance.isLoggedIn()) {
       liffInstance.login();
@@ -1329,6 +1304,11 @@ export default function App() {
        alert("LINE 系統正在載入中，請稍候再試。");
     }
   };
+
+  const t = useCallback((key) => (translations[language]?.[key] || key), [language]);
+  const currentPrimaryColor = villageData[selectedVillage]?.color || '#059669';
+  const currentDarkColor = villageData[selectedVillage]?.textDark || '#047857';
+  const currentBadgeColor = villageData[selectedVillage]?.textBadge || '#ffffff';
 
   const toggleFavorite = (id) => {
     setFavorites(prev => {
@@ -1507,7 +1487,6 @@ export default function App() {
               parkingLink: f['parkingLink'] || f['停車連結'] || f['停車場連結'] || f['停車導航'] || '',
               bookings: shopBookings, hours: String(f['hours'] || f['Hours'] || f['營業時間'] || ''),
               description: f['description'] || f['Description'] || f['介紹'] || f['店家介紹'] || '暫無詳細介紹，歡迎親自蒞臨體驗！',
-              description_en: f['description_en'] || f['Description_en'] || f['介紹_英'] || f['店家介紹_英'] || '',
               credit: f['圖片來源'] || f['image_credit'] || '',
             };
         });
@@ -1593,7 +1572,6 @@ export default function App() {
         const isAccommodation = shop.categories && shop.categories.includes('accommodation');
         const showAccommodationBadge = isAccommodation && !shop.hours;
         
-        // 👈 將 isOpen === 'flexible' 補進這行 return 裡面！
         return isOpen === true || isOpen === 'opening_soon' || isOpen === 'closing_soon' || isOpen === 'appointment' || isOpen === 'flexible' || showAccommodationBadge;
       });
     }
@@ -1713,9 +1691,9 @@ export default function App() {
 
       {/* 主畫面容器 (滿版寬度) */}
       <div className="relative z-10 w-full pb-32">
-          
-          {/* 頂部導航列 */}
-          <div className="px-6 pt-12 pb-4 bg-white/80 sticky top-0 z-20 backdrop-blur-md border-b border-gray-100 shadow-sm">
+         
+         {/* 頂部導航列 */}
+         <div className="px-6 pt-12 pb-4 bg-white/80 sticky top-0 z-20 backdrop-blur-md border-b border-gray-100 shadow-sm">
             <div className="max-w-7xl mx-auto w-full flex justify-between items-center">
               <div className="flex items-center gap-1">
                 <button onClick={() => { if (currentView === 'favorites') { setCurrentView('home'); } else { setAppStarted(false); setLandingStep('select'); setPreviewVillage(null); } }} className="w-10 h-10 -ml-3 rounded-full flex items-center justify-center transition-colors hover:bg-white/50 active:bg-gray-200" style={{ color: currentPrimaryColor }}>
@@ -1739,9 +1717,9 @@ export default function App() {
                 </button>
               </div>
             </div>
-          </div>
+         </div>
 
-          {currentView === 'home' && (
+         {currentView === 'home' && (
             <>
               {/* 搜尋列 */}
               <div className="px-6 my-6">
@@ -1774,10 +1752,10 @@ export default function App() {
                 </div>
               </div>
             </>
-          )}
+         )}
 
-          {/* 列表標題狀態 */}
-          <div className="px-6 mb-6">
+         {/* 列表標題狀態 */}
+         <div className="px-6 mb-6">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 max-w-7xl mx-auto w-full border-b border-gray-200/50 pb-4">
               <h2 className="text-xl md:text-2xl font-extrabold text-gray-800 drop-shadow-sm flex items-center gap-2">
                 <div className="w-2 h-6 rounded-full" style={{ backgroundColor: currentPrimaryColor }}></div>
@@ -1792,10 +1770,10 @@ export default function App() {
                 <div className="flex items-center gap-1 text-xs font-bold px-3 py-1.5 rounded-lg bg-gray-900 text-white shadow-sm"><Star size={14} className="fill-yellow-400 text-yellow-400" /><span>{processedShops.length} {t('shopsCount')}</span></div>
               </div>
             </div>
-          </div>
+         </div>
 
-          {/* 店家卡片清單 / 互動地圖 (RWD Grid 智慧網格) */}
-          <div className="px-6 w-full">
+         {/* 店家卡片清單 / 互動地圖 (RWD Grid 智慧網格) */}
+         <div className="px-6 w-full">
             {loading ? (
                <div className="flex flex-col items-center justify-center py-20 bg-white/80 backdrop-blur-xl rounded-3xl border border-white shadow-2xl mx-auto max-w-sm">
                  <Mascot imageUrl="/mascot-run.png" size={140} animation="ride" className="mb-4" />
@@ -1853,7 +1831,7 @@ export default function App() {
                               <Calendar size={14} className="text-white" /><span className="text-xs font-bold text-white tracking-wide">{showAccommodationBadge ? accBadgeText : t('byAppointment')}</span>
                             </div>
                           ) : isOpen === 'flexible' ? (
-                            /* 👇 新增這段彈性營業在卡片上的紫藍色底標籤 */
+                            /* 👇 新增這段彈性營業在卡片上的橘色底標籤 */
                             <div className="absolute bottom-4 left-4 bg-indigo-500/95 backdrop-blur-md pl-3 pr-4 py-1.5 rounded-full flex items-center gap-2 shadow-lg z-10 pointer-events-none border border-white/20">
                               <Phone size={14} className="text-white" />
                               <span className="text-xs font-bold text-white tracking-wide">{t('flexibleHours')}</span>
