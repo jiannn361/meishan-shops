@@ -26,7 +26,7 @@ const APP_CONFIG = {
   liffId: "2009010332-K14upnUb",
   aboutUsUrl: "https://www.facebook.com/TaipingSuspensionBridge?locale=zh_TW", 
   notionUrl: "https://www.notion.so/2a11f9fee71981239a89ebdbb2f25441?source=copy_link", 
-  contactLineUrl: "https://line.me/R/ti/p/@taiping", 
+  contactLineUrl: "https://line.me/ti/p/~@703hkgpk", 
 };
 
 // 特色活動設定
