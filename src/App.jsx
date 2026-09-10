@@ -286,13 +286,14 @@ const InteractiveMap = ({ shops, onMarkerClick, villageData, language }) => {
         
         const map = L.map('interactive-village-map', { 
           zoomControl: false, 
-          attributionControl: false 
+          // OpenStreetMap requires visible map-data attribution.
+          attributionControl: true
         }).setView([23.55, 120.6], 13);
         
-        // 🎨 使用明亮質感的 Voyager 探索者地圖
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-          maxZoom: 20,
-          attribution: '© OpenStreetMap © CARTO'
+        // 🗺️ 使用 OpenStreetMap 官方底圖，避免第三方 CARTO 圖磚的 API Key 浮水印。
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          maxZoom: 19,
+          attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         }).addTo(map);
         
         mapRef.current = map;
