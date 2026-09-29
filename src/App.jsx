@@ -4,25 +4,12 @@ import {
   Filter, Heart, X, Mountain, Loader2, Camera, Tag, Clock, ChevronLeft, 
   ChevronRight, Info, LocateFixed, Globe, MessageCircle, Map as MapIcon, 
   ExternalLink, Calendar, Banknote, AlertCircle, ChevronDown, ChevronUp, Play, ArrowRight, Share2,
-  Bus, Car, Type, Zap, List
+  Bus, Car, Type, Zap, List, Pencil, Send
 } from 'lucide-react';
-
-// 【網站設定區】
-// 使用安全的方式取得環境變數，避免 import.meta 在特定打包設定下報錯
-const getEnv = (key) => {
-  try {
-    return import.meta.env[key];
-  } catch (e) {
-    return "";
-  }
-};
 
 const APP_CONFIG = {
   appName: "Meishan Taiping",
   subTitle: "Meishan, Chiayi",
-  airtableApiKey: getEnv('VITE_AIRTABLE_API_KEY') || "", 
-  airtableBaseId: "appkU3kxP74Gq7iXj", 
-  airtableTableName: "Table 1", 
   liffId: "2009010332-K14upnUb",
   aboutUsUrl: "https://www.facebook.com/TaipingSuspensionBridge?locale=zh_TW", 
   notionUrl: "https://www.notion.so/2a11f9fee71981239a89ebdbb2f25441?source=copy_link", 
@@ -62,7 +49,8 @@ const translations = {
     welcomeTitle: "今天想去哪裡呢?", enterVillage: "開始探索",
     shareApp: '分享導覽', shareShop: '分享', shareSuccess: '已複製連結！',
     fontSize: '字體大小', fontNormal: '標準', fontLarge: '放大', fontXLarge: '特大',
-    mapView: '地圖模式', listView: '列表模式'
+    mapView: '地圖模式', listView: '列表模式', suggestEdit: '提供修改建議',
+    suggestShop: '新增／修改店家建議'
   },
   en: {
     explore: 'Explore', pocketList: 'Pocket List', myFavorites: 'Favorites',
@@ -86,7 +74,8 @@ const translations = {
     welcomeTitle: "Where to explore?", enterVillage: "Enter Village",
     shareApp: 'Share', shareShop: 'Share', shareSuccess: 'Link copied!',
     fontSize: 'Font Size', fontNormal: 'Normal', fontLarge: 'Large', fontXLarge: 'X-Large',
-    mapView: 'Map View', listView: 'List View'
+    mapView: 'Map View', listView: 'List View', suggestEdit: 'Suggest an edit',
+    suggestShop: 'Add / update a place'
   }
 };
 
@@ -739,7 +728,142 @@ const AnnouncementModal = ({ ann, onClose, currentPrimaryColor }) => {
   );
 };
 
-const ShopDetailModal = ({ shop, onClose, t, language, setArTargetShop, userLocation }) => {
+const SuggestionModal = ({ shop, onClose, language, currentPrimaryColor }) => {
+  const isEn = language === 'en';
+  const [suggestionType, setSuggestionType] = useState(shop ? 'closed' : 'new');
+  const [shopName, setShopName] = useState(shop?.name || '');
+  const [village, setVillage] = useState(shop?.village || '');
+  const [details, setDetails] = useState('');
+  const [acceptsContact, setAcceptsContact] = useState(false);
+  const [contact, setContact] = useState('');
+  const [website, setWebsite] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+  const [submitError, setSubmitError] = useState('');
+
+  const typeLabels = isEn ? {
+    closed: 'This place has closed', hours: 'Business hours are incorrect',
+    contact: 'Contact or address is incorrect', info: 'Other information is incorrect',
+    new: 'Add a new place', other: 'Other'
+  } : {
+    closed: '店家已停業', hours: '營業時間有誤', contact: '電話或地址有誤',
+    info: '其他店家資料有誤', new: '新增店家', other: '其他建議'
+  };
+
+  const apiTypeLabels = {
+    closed: '店家已停業', hours: '營業時間有誤', contact: '電話或地址有誤',
+    info: '其他店家資料有誤', new: '新增店家', other: '其他建議'
+  };
+
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    setSubmitting(true);
+    setSubmitError('');
+
+    try {
+      const response = await fetch('/api/suggestions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          suggestionType: apiTypeLabels[suggestionType],
+          shopName,
+          shopId: shop?.id || '',
+          village,
+          details,
+          acceptsContact,
+          contact: acceptsContact ? contact : '',
+          website,
+        }),
+      });
+
+      if (!response.ok) throw new Error('Suggestion submission failed');
+      localStorage.removeItem('meishan_suggestion_draft');
+      setSubmitted(true);
+    } catch (error) {
+      console.error(error);
+      localStorage.setItem('meishan_suggestion_draft', JSON.stringify({
+        suggestionType, shopName, village, details, acceptsContact, contact, shopId: shop?.id || null
+      }));
+      setSubmitError(isEn ? 'We could not save your suggestion. Please try again later.' : '目前無法儲存建議，請稍後再試。您的內容已暫存在這台裝置。');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-[140] flex items-end sm:items-center justify-center animate-fade-in">
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose}></div>
+      <div className="relative w-full max-w-lg bg-white rounded-t-[32px] sm:rounded-[32px] p-6 pb-8 shadow-2xl max-h-[92vh] overflow-y-auto">
+        <button onClick={onClose} className="absolute top-4 right-4 z-10 bg-gray-100 p-2 rounded-full text-gray-500"><X size={20} /></button>
+
+        <div className="pr-10 mb-5">
+          <div className="w-11 h-11 rounded-2xl flex items-center justify-center mb-3" style={{ backgroundColor: hexToRgba(currentPrimaryColor, 0.15), color: currentPrimaryColor }}>
+            <Pencil size={21} />
+          </div>
+          <h3 className="text-xl font-extrabold text-gray-900">{isEn ? 'Anonymous place suggestion' : '匿名提供店家修改建議'}</h3>
+          <p className="text-sm text-gray-500 mt-1 leading-relaxed">
+            {isEn ? 'No login is required. We do not include your LINE identity, name, or contact details unless you choose to provide them.' : '不需登入，也不會傳送您的 LINE 身分、姓名或聯絡資料；只有您主動勾選時才會留下聯絡方式。'}
+          </p>
+        </div>
+
+        {submitted ? (
+          <div className="py-8 text-center">
+            <div className="w-16 h-16 rounded-full bg-green-100 text-green-600 flex items-center justify-center mx-auto mb-4"><Send size={28} /></div>
+            <h4 className="text-xl font-extrabold text-gray-900">{isEn ? 'Thank you for your suggestion' : '謝謝您提供建議'}</h4>
+            <p className="text-sm text-gray-500 mt-2">{isEn ? 'The report has been added to our review list.' : '建議已匿名送入待確認清單，我們會查證後更新資料。'}</p>
+            <button onClick={onClose} className="mt-6 px-8 py-3 rounded-xl text-white font-bold" style={{ backgroundColor: currentPrimaryColor }}>{isEn ? 'Done' : '完成'}</button>
+          </div>
+        ) : <form onSubmit={handleSubmit} className="space-y-4">
+          <input value={website} onChange={(e) => setWebsite(e.target.value)} tabIndex={-1} autoComplete="off" aria-hidden="true" className="hidden" />
+          <label className="block">
+            <span className="block text-sm font-bold text-gray-700 mb-1.5">{isEn ? 'Suggestion type' : '建議類型'}</span>
+            <select value={suggestionType} onChange={(e) => setSuggestionType(e.target.value)} className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-gray-800 outline-none focus:ring-2" style={{ '--tw-ring-color': hexToRgba(currentPrimaryColor, 0.35) }}>
+              {Object.entries(typeLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
+            </select>
+          </label>
+
+          <div className="grid sm:grid-cols-2 gap-4">
+            <label className="block">
+              <span className="block text-sm font-bold text-gray-700 mb-1.5">{isEn ? 'Place name' : '店家名稱'}</span>
+              <input value={shopName} onChange={(e) => setShopName(e.target.value)} required className="w-full rounded-xl border border-gray-200 px-4 py-3 outline-none focus:ring-2" style={{ '--tw-ring-color': hexToRgba(currentPrimaryColor, 0.35) }} placeholder={isEn ? 'Enter a place name' : '請填寫店家名稱'} />
+            </label>
+            <label className="block">
+              <span className="block text-sm font-bold text-gray-700 mb-1.5">{isEn ? 'Village / area' : '村落／地區'}</span>
+              <input value={village} onChange={(e) => setVillage(e.target.value)} className="w-full rounded-xl border border-gray-200 px-4 py-3 outline-none focus:ring-2" style={{ '--tw-ring-color': hexToRgba(currentPrimaryColor, 0.35) }} placeholder={isEn ? 'Optional' : '例如：太平村'} />
+            </label>
+          </div>
+
+          <label className="block">
+            <span className="block text-sm font-bold text-gray-700 mb-1.5">{isEn ? 'What should be changed?' : '建議修改內容'}</span>
+            <textarea value={details} onChange={(e) => setDetails(e.target.value)} required rows={4} maxLength={1000} className="w-full rounded-xl border border-gray-200 px-4 py-3 outline-none focus:ring-2 resize-none" style={{ '--tw-ring-color': hexToRgba(currentPrimaryColor, 0.35) }} placeholder={isEn ? 'Please describe the latest status or correct information.' : '請描述最新狀態或正確資料，例如：已於 2026 年 8 月停業。'} />
+            <span className="block text-right text-xs text-gray-400 mt-1">{details.length}/1000</span>
+          </label>
+
+          <label className="flex items-start gap-3 p-4 bg-gray-50 rounded-xl cursor-pointer">
+            <input type="checkbox" checked={acceptsContact} onChange={(e) => setAcceptsContact(e.target.checked)} className="mt-1 w-4 h-4 accent-green-600" />
+            <span><strong className="block text-sm text-gray-700">{isEn ? 'I am willing to be contacted' : '我願意接受後續聯絡'}</strong><span className="text-xs text-gray-500">{isEn ? 'Optional. Leave this unchecked to remain anonymous.' : '完全選填；不勾選即可維持匿名。'}</span></span>
+          </label>
+
+          {acceptsContact && (
+            <label className="block">
+              <span className="block text-sm font-bold text-gray-700 mb-1.5">{isEn ? 'Contact' : '聯絡方式'}</span>
+              <input value={contact} onChange={(e) => setContact(e.target.value)} required className="w-full rounded-xl border border-gray-200 px-4 py-3 outline-none focus:ring-2" style={{ '--tw-ring-color': hexToRgba(currentPrimaryColor, 0.35) }} placeholder={isEn ? 'Phone, email, or LINE name' : '電話、Email 或 LINE 名稱'} />
+            </label>
+          )}
+
+          {submitError && <div className="rounded-xl bg-rose-50 border border-rose-200 p-3 text-sm text-rose-700">{submitError}</div>}
+
+          <button type="submit" disabled={submitting} className="w-full text-white py-3.5 rounded-xl font-extrabold flex items-center justify-center gap-2 shadow-lg hover:opacity-90 active:scale-[0.99] transition-all disabled:opacity-60" style={{ backgroundColor: currentPrimaryColor }}>
+            {submitting ? <Loader2 size={18} className="animate-spin" /> : <Send size={18} />} {submitting ? (isEn ? 'Submitting...' : '送出中...') : (isEn ? 'Submit anonymously' : '匿名送出建議')}
+          </button>
+          <p className="text-xs text-center text-gray-400">{isEn ? 'Your suggestion will be stored in our review list.' : '建議會直接存入管理端的「店家修改建議」清單。'}</p>
+        </form>}
+      </div>
+    </div>
+  );
+};
+
+const ShopDetailModal = ({ shop, onClose, t, language, setArTargetShop, userLocation, onSuggestEdit }) => {
   const [fullscreenImage, setFullscreenImage] = useState(null);
   const [showTransport, setShowTransport] = useState(false);
   const [showTrailRoute, setShowTrailRoute] = useState(false);
@@ -1072,6 +1196,10 @@ const ShopDetailModal = ({ shop, onClose, t, language, setArTargetShop, userLoca
                 ))}
               </div>
             )}
+
+            <button onClick={() => onSuggestEdit(shop)} className="w-full py-3 rounded-xl border border-dashed flex items-center justify-center gap-2 text-sm font-bold transition-colors hover:bg-gray-50" style={{ borderColor: hexToRgba(shopDarkColor, 0.45), color: shopDarkColor }}>
+              <Pencil size={16} /> {t('suggestEdit')}
+            </button>
           </div>
         </div>
       </div>
@@ -1135,7 +1263,7 @@ const FilterModal = ({ showFilterModal, setShowFilterModal, filterOpenOnly, setF
   );
 };
 
-const UserModal = ({ showUserModal, setShowUserModal, t, APP_CONFIG, currentPrimaryColor, currentDarkColor, favorites, setFavorites, fontSizeLevel, setFontSizeLevel, lineProfile, onLineLogin }) => {
+const UserModal = ({ showUserModal, setShowUserModal, t, APP_CONFIG, currentPrimaryColor, currentDarkColor, favorites, setFavorites, fontSizeLevel, setFontSizeLevel, lineProfile, onLineLogin, onSuggestEdit }) => {
   if (!showUserModal) return null;
   
   const displayName = lineProfile ? lineProfile.displayName : t('guest');
@@ -1212,6 +1340,9 @@ const UserModal = ({ showUserModal, setShowUserModal, t, APP_CONFIG, currentPrim
           <button className="w-full flex items-center justify-between p-4 bg-gray-50 hover:bg-gray-100 rounded-xl transition-colors text-left" onClick={() => { if (APP_CONFIG.aboutUsUrl) window.open(APP_CONFIG.aboutUsUrl, '_blank'); else alert(t('aboutUsText')); }}>
             <span className="flex items-center gap-3 text-gray-700"><Info size={18} /> {t('aboutUs')}</span><ChevronRight size={16} className="text-gray-400" />
           </button>
+          <button className="w-full flex items-center justify-between p-4 rounded-xl transition-colors text-left border" style={{ backgroundColor: hexToRgba(currentPrimaryColor, 0.08), borderColor: hexToRgba(currentPrimaryColor, 0.25) }} onClick={() => { setShowUserModal(false); onSuggestEdit(null); }}>
+            <span className="flex items-center gap-3 font-bold" style={{ color: currentDarkColor }}><Pencil size={18} /> {t('suggestShop')}</span><ChevronRight size={16} style={{ color: currentPrimaryColor }} />
+          </button>
           <button className="w-full flex items-center justify-between p-4 bg-gray-50 hover:bg-gray-100 rounded-xl transition-colors text-left" onClick={() => window.open(APP_CONFIG.contactLineUrl, '_blank')}>
             <span className="flex items-center gap-3 text-gray-700"><MessageCircle size={18} /> {t('contactSupport')}</span><ChevronRight size={16} className="text-gray-400" />
           </button>
@@ -1246,6 +1377,8 @@ export default function App() {
   const [arTargetShop, setArTargetShop] = useState(null);
   const [showFilterModal, setShowFilterModal] = useState(false);
   const [showUserModal, setShowUserModal] = useState(false);
+  const [showSuggestionModal, setShowSuggestionModal] = useState(false);
+  const [suggestionTarget, setSuggestionTarget] = useState(null);
   const [filterOpenOnly, setFilterOpenOnly] = useState(false);
   const [filterElevator, setFilterElevator] = useState(false);
   const [filterEventOnly, setFilterEventOnly] = useState(false);
@@ -1311,6 +1444,11 @@ export default function App() {
   const currentDarkColor = villageData[selectedVillage]?.textDark || '#047857';
   const currentBadgeColor = villageData[selectedVillage]?.textBadge || '#ffffff';
 
+  const openSuggestionModal = (shop = null) => {
+    setSuggestionTarget(shop);
+    setShowSuggestionModal(true);
+  };
+
   const toggleFavorite = (id) => {
     setFavorites(prev => {
       const newList = prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id];
@@ -1371,8 +1509,6 @@ export default function App() {
 
   useEffect(() => {
     const fetchAirtableData = async () => {
-      if (!APP_CONFIG.airtableApiKey) { setLoading(false); return; }
-      
       const CACHE_KEY = 'meishan_airtable_data'; 
       const CACHE_TIME_KEY = 'meishan_airtable_time';
       const CACHE_DURATION = 1000 * 60 * 3; 
@@ -1389,18 +1525,11 @@ export default function App() {
       }
 
       setLoading(true);
-      let allRecords = []; let offset = '';
-
       try {
-        while (true) {
-          let url = `https://api.airtable.com/v0/${APP_CONFIG.airtableBaseId}/${encodeURIComponent(APP_CONFIG.airtableTableName)}?view=Grid%20view`;
-          if (offset) url += `&offset=${offset}`;
-          const response = await fetch(url, { headers: { Authorization: `Bearer ${APP_CONFIG.airtableApiKey}` } });
-          if (!response.ok) throw new Error(`API Error: ${response.statusText}`);
-          const data = await response.json();
-          allRecords = [...allRecords, ...data.records];
-          if (data.offset) offset = data.offset; else break;
-        }
+        const response = await fetch('/api/shops');
+        if (!response.ok) throw new Error(`API Error: ${response.statusText}`);
+        const data = await response.json();
+        const allRecords = data.records || [];
         
         const processedShops = allRecords.map(record => {
             const f = record.fields;
@@ -1954,7 +2083,7 @@ export default function App() {
         <div className="relative flex justify-center pointer-events-none">
           
           {/* 探頭吉祥物 */}
-          {(!selectedShop && !selectedAnnouncement && !arTargetShop && !showFilterModal && !showUserModal) && (
+          {(!selectedShop && !selectedAnnouncement && !arTargetShop && !showFilterModal && !showUserModal && !showSuggestionModal) && (
             <div className="absolute bottom-10 md:bottom-12 left-1/2 -translate-x-1/2 pointer-events-auto z-0 animate-float-mascot">
                <img src="/mascot.png" alt="Mascot" className="w-28 h-28 md:w-32 md:h-32 object-bottom object-contain drop-shadow-[0_-8px_16px_rgba(0,0,0,0.15)] hover:-translate-y-3 transition-transform duration-300 cursor-pointer" onError={(e) => { e.target.onerror = null; e.target.src='https://cdn-icons-png.flaticon.com/512/3466/3466395.png'; }} />
             </div>
@@ -1998,7 +2127,7 @@ export default function App() {
       )}
 
       {selectedAnnouncement && <AnnouncementModal ann={selectedAnnouncement} onClose={() => setSelectedAnnouncement(null)} currentPrimaryColor={currentPrimaryColor} />}
-      <ShopDetailModal shop={selectedShop} onClose={() => setSelectedShop(null)} t={t} language={language} setArTargetShop={setArTargetShop} userLocation={userLocation} />
+      <ShopDetailModal shop={selectedShop} onClose={() => setSelectedShop(null)} t={t} language={language} setArTargetShop={setArTargetShop} userLocation={userLocation} onSuggestEdit={openSuggestionModal} />
       <FilterModal showFilterModal={showFilterModal} setShowFilterModal={setShowFilterModal} filterOpenOnly={filterOpenOnly} setFilterOpenOnly={setFilterOpenOnly} filterElevator={filterElevator} setFilterElevator={setFilterElevator} hasAnyEventsInVillage={hasAnyEventsInVillage} filterEventOnly={filterEventOnly} setFilterEventOnly={setFilterEventOnly} filterEV={filterEV} setFilterEV={setFilterEV} currentPrimaryColor={currentPrimaryColor} t={t} language={language} />
       <UserModal 
         showUserModal={showUserModal} 
@@ -2013,7 +2142,16 @@ export default function App() {
         setFontSizeLevel={setFontSizeLevel} 
         lineProfile={lineProfile}
         onLineLogin={handleLineLogin}
+        onSuggestEdit={openSuggestionModal}
       />
+      {showSuggestionModal && (
+        <SuggestionModal
+          shop={suggestionTarget}
+          onClose={() => setShowSuggestionModal(false)}
+          language={language}
+          currentPrimaryColor={currentPrimaryColor}
+        />
+      )}
       {arTargetShop && <ARNavigation targetShop={arTargetShop} userLoc={userLocation} onClose={() => setArTargetShop(null)} language={language} />}
     </div>
   );

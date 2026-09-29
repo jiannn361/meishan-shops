@@ -1,10 +1,46 @@
-import { defineConfig } from 'vite'
+import { defineConfig, loadEnv } from 'vite'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
+import shopHandler from './api/shops.js'
+import suggestionHandler from './api/suggestions.js'
 
-export default defineConfig({
+const localApiPlugin = () => ({
+  name: 'local-api',
+  configureServer(server) {
+    server.middlewares.use(async (request, response, next) => {
+      const pathname = request.url?.split('?')[0]
+      const handler = pathname === '/api/shops' ? shopHandler : pathname === '/api/suggestions' ? suggestionHandler : null
+      if (!handler) return next()
+
+      response.status = (statusCode) => {
+        response.statusCode = statusCode
+        return response
+      }
+      response.json = (data) => {
+        response.setHeader('Content-Type', 'application/json; charset=utf-8')
+        response.end(JSON.stringify(data))
+      }
+
+      if (request.method === 'POST') {
+        const chunks = []
+        for await (const chunk of request) chunks.push(chunk)
+        const rawBody = Buffer.concat(chunks).toString('utf8')
+        request.body = rawBody ? JSON.parse(rawBody) : {}
+      }
+
+      await handler(request, response)
+    })
+  },
+})
+
+export default defineConfig(({ mode }) => {
+  const env = loadEnv(mode, process.cwd(), '')
+  process.env.AIRTABLE_API_KEY ||= env.AIRTABLE_API_KEY || env.VITE_AIRTABLE_API_KEY
+
+  return {
   plugins: [
     react(),
+    localApiPlugin(),
     VitePWA({
       // 自動更新 Service Worker (背景默默更新)
       registerType: 'autoUpdate',
@@ -59,4 +95,5 @@ export default defineConfig({
       }
     })
   ]
+  }
 })
