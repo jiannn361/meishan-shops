@@ -101,6 +101,41 @@ const hexToRgba = (hex, alpha) => {
 
 const getGoogleMapLink = (name, address) => `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent((address || '') + ' ' + (name || ''))}`;
 
+const normalizeMediaUrl = (value) => {
+  const rawUrl = String(value || '').trim();
+  if (!rawUrl) return '';
+
+  try {
+    const url = new URL(rawUrl);
+    if (url.hostname === 'drive.google.com') {
+      const pathMatch = url.pathname.match(/\/file\/d\/([^/]+)/);
+      const fileId = pathMatch?.[1] || url.searchParams.get('id');
+      if (fileId) return `https://drive.google.com/thumbnail?id=${encodeURIComponent(fileId)}&sz=w1600`;
+    }
+  } catch {
+    return '';
+  }
+
+  return rawUrl;
+};
+
+const extractMediaUrls = (value) => {
+  const items = Array.isArray(value) ? value : [value];
+
+  return items.flatMap((item) => {
+    const rawValue = typeof item === 'object' && item !== null ? item.url : item;
+    const text = String(rawValue || '').trim();
+    if (!text) return [];
+
+    const labeledUrls = [...text.matchAll(/\((https?:\/\/[^)]+)\)/g)].map((match) => match[1]);
+    const candidates = labeledUrls.length > 0
+      ? labeledUrls
+      : text.split(/[,，]\s*(?=https?:\/\/)/).filter((part) => /^https?:\/\//i.test(part.trim()));
+
+    return candidates.map(normalizeMediaUrl).filter(Boolean);
+  });
+};
+
 const getDynamicText = (shop, field, language) => {
   if (!shop) return '';
   return (language === 'en' && shop[`${field}_en`]) ? shop[`${field}_en`] : shop[field];
@@ -1508,10 +1543,10 @@ export default function App() {
   };
 
   useEffect(() => {
-    const fetchAirtableData = async () => {
-      const CACHE_KEY = 'meishan_airtable_data'; 
-      const CACHE_TIME_KEY = 'meishan_airtable_time';
-      const CACHE_DURATION = 1000 * 60 * 3; 
+    const fetchShopData = async () => {
+      const CACHE_KEY = 'meishan_shop_data';
+      const CACHE_TIME_KEY = 'meishan_shop_time';
+      const CACHE_DURATION = 1000 * 60 * 60 * 24;
       
       const cachedData = localStorage.getItem(CACHE_KEY);
       const cachedTime = localStorage.getItem(CACHE_TIME_KEY);
@@ -1526,10 +1561,12 @@ export default function App() {
 
       setLoading(true);
       try {
-        const response = await fetch('/api/shops');
-        if (!response.ok) throw new Error(`API Error: ${response.statusText}`);
-        const data = await response.json();
-        const allRecords = data.records || [];
+        const apiResponse = await fetch('/api/shops');
+        const apiIsJson = apiResponse.headers.get('content-type')?.includes('application/json');
+        if (!apiResponse.ok || !apiIsJson) throw new Error('Shop data API is unavailable');
+
+        const data = await apiResponse.json();
+        const allRecords = Array.isArray(data.records) ? data.records : [];
         
         const processedShops = allRecords.map(record => {
             const f = record.fields;
@@ -1540,18 +1577,13 @@ export default function App() {
 
             let images = [];
             const rawImg = f['images'] || f['image'] || f['圖片'] || f['圖片網址'] || f['Images'];
-            if (Array.isArray(rawImg)) images = rawImg.map(img => img.url || img);
-            else if (rawImg) images = String(rawImg).split(/[,，]/).map(s => String(s).trim());
+            images = extractMediaUrls(rawImg);
 
             let trailMapRaw = f['trail_map'] || f['步道簡圖'] || f['Trail Map'] || f['簡圖'];
-            let trailMap = '';
-            if (Array.isArray(trailMapRaw) && trailMapRaw.length > 0) trailMap = trailMapRaw[0].url || trailMapRaw[0];
-            else if (typeof trailMapRaw === 'string') trailMap = trailMapRaw.split(/[,，]/)[0].trim();
+            const trailMap = extractMediaUrls(trailMapRaw)[0] || '';
 
             let elevationMapRaw = f['elevation_map'] || f['高度圖'] || f['海拔圖'] || f['坡度圖'];
-            let elevationMap = '';
-            if (Array.isArray(elevationMapRaw) && elevationMapRaw.length > 0) elevationMap = elevationMapRaw[0].url || elevationMapRaw[0];
-            else if (typeof elevationMapRaw === 'string') elevationMap = elevationMapRaw.split(/[,，]/)[0].trim();
+            const elevationMap = extractMediaUrls(elevationMapRaw)[0] || '';
 
             let services = [];
             const rawSvc = f['services'] || f['服務標籤'] || f['Services'];
@@ -1624,16 +1656,23 @@ export default function App() {
         setShops(processedShops);
         localStorage.setItem(CACHE_KEY, JSON.stringify(processedShops));
         localStorage.setItem(CACHE_TIME_KEY, now.toString());
-        setShops(processedShops);
-      } catch (error) { 
-        console.error("Airtable 讀取失敗", error); 
+      } catch (error) {
+        console.error("Google Sheets 讀取失敗", error);
+        // 暫時離線或資料服務忙碌時，仍顯示上一次成功下載的店家資料。
+        if (cachedData) {
+          try {
+            setShops(JSON.parse(cachedData));
+          } catch (cacheError) {
+            console.error('店家離線快取讀取失敗', cacheError);
+          }
+        }
       } finally { 
         setLoading(false); 
       }
     };
     
     // 只在組件掛載時執行一次
-    fetchAirtableData();
+    fetchShopData();
   }, []); // 關鍵：依賴陣列為空，只執行一次
 
   const categoryConfig = {

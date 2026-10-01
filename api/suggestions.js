@@ -1,4 +1,4 @@
-import { airtableRequest } from './airtable.js';
+import { GOOGLE_APPS_SCRIPT_URL, readGoogleSheetsJson } from './googleSheets.js';
 
 const ALLOWED_TYPES = new Set([
   '店家已停業',
@@ -32,33 +32,33 @@ export default async function handler(request, response) {
       return response.status(400).json({ error: 'Please complete the required fields' });
     }
 
-    const fields = {
-      '店家名稱': shopName,
-      '店家資料ID': cleanText(body.shopId, 80),
-      '村落／地區': cleanText(body.village, 80),
-      '建議類型': suggestionType,
-      '建議內容': details,
-      '願意接受聯絡': acceptsContact,
-      '聯絡方式': acceptsContact ? cleanText(body.contact, 240) : '',
-      '處理狀態': '待確認',
+    const submission = {
+      suggestionType,
+      shopName,
+      shopId: cleanText(body.shopId, 80),
+      village: cleanText(body.village, 80),
+      details,
+      acceptsContact,
+      contact: acceptsContact ? cleanText(body.contact, 240) : '',
+      website: '',
     };
 
-    const airtableResponse = await airtableRequest('店家修改建議', {
+    const googleResponse = await fetch(GOOGLE_APPS_SCRIPT_URL, {
       method: 'POST',
-      body: JSON.stringify({ records: [{ fields }], typecast: true }),
+      redirect: 'follow',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify(submission),
     });
+    const data = await readGoogleSheetsJson(googleResponse);
 
-    if (!airtableResponse.ok) {
-      const detail = await airtableResponse.text();
-      console.error('Airtable suggestion request failed', airtableResponse.status, detail);
+    if (!googleResponse.ok || !data.ok) {
+      console.error('Google Sheets suggestion request failed', googleResponse.status, data.error || 'Invalid response');
       return response.status(502).json({ error: 'Unable to save suggestion' });
     }
 
-    const data = await airtableResponse.json();
-    return response.status(201).json({ ok: true, id: data.records?.[0]?.id || null });
+    return response.status(201).json({ ok: true, id: data.id || null });
   } catch (error) {
     console.error('Suggestion API error', error);
     return response.status(500).json({ error: 'Unable to save suggestion' });
   }
 }
-

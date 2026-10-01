@@ -1,4 +1,4 @@
-import { airtableRequest } from './airtable.js';
+import { GOOGLE_APPS_SCRIPT_URL, readGoogleSheetsJson } from './googleSheets.js';
 
 export default async function handler(request, response) {
   if (request.method !== 'GET') {
@@ -7,30 +7,20 @@ export default async function handler(request, response) {
   }
 
   try {
-    const records = [];
-    let offset = '';
+    const url = new URL(GOOGLE_APPS_SCRIPT_URL);
+    url.searchParams.set('action', 'shops');
+    const googleResponse = await fetch(url, { redirect: 'follow' });
+    const data = await readGoogleSheetsJson(googleResponse);
 
-    do {
-      const params = new URLSearchParams({ view: 'Grid view' });
-      if (offset) params.set('offset', offset);
-      const airtableResponse = await airtableRequest('Table 1', {}, `?${params.toString()}`);
+    if (!googleResponse.ok || !data.ok || !Array.isArray(data.records)) {
+      console.error('Google Sheets shop request failed', googleResponse.status, data.error || 'Invalid response');
+      return response.status(502).json({ error: 'Unable to load shop data' });
+    }
 
-      if (!airtableResponse.ok) {
-        const detail = await airtableResponse.text();
-        console.error('Airtable shop request failed', airtableResponse.status, detail);
-        return response.status(502).json({ error: 'Unable to load shop data' });
-      }
-
-      const data = await airtableResponse.json();
-      records.push(...data.records);
-      offset = data.offset || '';
-    } while (offset);
-
-    response.setHeader('Cache-Control', 's-maxage=180, stale-while-revalidate=300');
-    return response.status(200).json({ records });
+    response.setHeader('Cache-Control', 's-maxage=86400, stale-while-revalidate=604800');
+    return response.status(200).json({ records: data.records });
   } catch (error) {
     console.error('Shop API error', error);
     return response.status(500).json({ error: 'Unable to load shop data' });
   }
 }
-

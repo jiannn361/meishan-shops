@@ -1,4 +1,4 @@
-import { defineConfig, loadEnv } from 'vite'
+import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
 import shopHandler from './api/shops.js'
@@ -33,11 +33,7 @@ const localApiPlugin = () => ({
   },
 })
 
-export default defineConfig(({ mode }) => {
-  const env = loadEnv(mode, process.cwd(), '')
-  process.env.AIRTABLE_API_KEY ||= env.AIRTABLE_API_KEY || env.VITE_AIRTABLE_API_KEY
-
-  return {
+export default defineConfig({
   plugins: [
     react(),
     localApiPlugin(),
@@ -53,23 +49,7 @@ export default defineConfig(({ mode }) => {
         // 提高單一檔案大小限制到 5MB (確保大圖片也能被快取)
         maximumFileSizeToCacheInBytes: 5000000, 
         
-        // 如果有外部的圖片 (例如 Google Map 圖片或 Airtable 的圖片) 也可以設定快取
-        runtimeCaching: [
-          {
-            urlPattern: /^https:\/\/v5\.airtableusercontent\.com\/.*/i,
-            handler: 'CacheFirst',
-            options: {
-              cacheName: 'airtable-image-cache',
-              expiration: {
-                maxEntries: 100,
-                maxAgeSeconds: 60 * 60 * 24 * 7 // 快取保留 7 天
-              },
-              cacheableResponse: {
-                statuses: [0, 200]
-              }
-            }
-          }
-        ]
+        runtimeCaching: []
       },
       
       // 這是安裝成手機 App 的設定 (遊客可以把網站加到手機桌面變成一個真正的 App)
@@ -95,5 +75,4 @@ export default defineConfig(({ mode }) => {
       }
     })
   ]
-  }
 })
