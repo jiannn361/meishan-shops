@@ -136,6 +136,19 @@ const extractMediaUrls = (value) => {
   });
 };
 
+const findShopByName = (shops = [], value) => {
+  const searchName = String(value || '').trim().toLocaleLowerCase();
+  if (searchName.length < 2) return null;
+
+  const namesFor = (shop) => [shop?.name, shop?.name_en]
+    .map((name) => String(name || '').trim().toLocaleLowerCase())
+    .filter(Boolean);
+
+  return shops.find((shop) => namesFor(shop).includes(searchName))
+    || shops.find((shop) => namesFor(shop).some((name) => name.includes(searchName) || searchName.includes(name)))
+    || null;
+};
+
 const getDynamicText = (shop, field, language) => {
   if (!shop) return '';
   return (language === 'en' && shop[`${field}_en`]) ? shop[`${field}_en`] : shop[field];
@@ -763,11 +776,11 @@ const AnnouncementModal = ({ ann, onClose, currentPrimaryColor }) => {
   );
 };
 
-const SuggestionModal = ({ shop, onClose, language, currentPrimaryColor }) => {
+const SuggestionModal = ({ shop, shops, defaultVillage, onClose, language, currentPrimaryColor }) => {
   const isEn = language === 'en';
   const [suggestionType, setSuggestionType] = useState(shop ? 'closed' : 'new');
   const [shopName, setShopName] = useState(shop?.name || '');
-  const [village, setVillage] = useState(shop?.village || '');
+  const [village, setVillage] = useState(shop?.village || defaultVillage || '');
   const [details, setDetails] = useState('');
   const [acceptsContact, setAcceptsContact] = useState(false);
   const [contact, setContact] = useState('');
@@ -790,6 +803,15 @@ const SuggestionModal = ({ shop, onClose, language, currentPrimaryColor }) => {
     info: '其他店家資料有誤', new: '新增店家', other: '其他建議'
   };
 
+  const matchedShop = shop || findShopByName(shops, shopName);
+
+  const handleShopNameChange = (event) => {
+    const nextName = event.target.value;
+    const nextMatchedShop = findShopByName(shops, nextName);
+    setShopName(nextName);
+    if (nextMatchedShop?.village) setVillage(nextMatchedShop.village);
+  };
+
   const handleSubmit = async (event) => {
     event.preventDefault();
     setSubmitting(true);
@@ -802,8 +824,8 @@ const SuggestionModal = ({ shop, onClose, language, currentPrimaryColor }) => {
         body: JSON.stringify({
           suggestionType: apiTypeLabels[suggestionType],
           shopName,
-          shopId: shop?.id || '',
-          village,
+          shopId: matchedShop?.id || '',
+          village: village || matchedShop?.village || defaultVillage || '',
           details,
           acceptsContact,
           contact: acceptsContact ? contact : '',
@@ -817,7 +839,7 @@ const SuggestionModal = ({ shop, onClose, language, currentPrimaryColor }) => {
     } catch (error) {
       console.error(error);
       localStorage.setItem('meishan_suggestion_draft', JSON.stringify({
-        suggestionType, shopName, village, details, acceptsContact, contact, shopId: shop?.id || null
+        suggestionType, shopName, village, details, acceptsContact, contact, shopId: matchedShop?.id || null
       }));
       setSubmitError(isEn ? 'We could not save your suggestion. Please try again later.' : '目前無法儲存建議，請稍後再試。您的內容已暫存在這台裝置。');
     } finally {
@@ -860,7 +882,7 @@ const SuggestionModal = ({ shop, onClose, language, currentPrimaryColor }) => {
           <div className="grid sm:grid-cols-2 gap-4">
             <label className="block">
               <span className="block text-sm font-bold text-gray-700 mb-1.5">{isEn ? 'Place name' : '店家名稱'}</span>
-              <input value={shopName} onChange={(e) => setShopName(e.target.value)} required className="w-full rounded-xl border border-gray-200 px-4 py-3 outline-none focus:ring-2" style={{ '--tw-ring-color': hexToRgba(currentPrimaryColor, 0.35) }} placeholder={isEn ? 'Enter a place name' : '請填寫店家名稱'} />
+              <input value={shopName} onChange={handleShopNameChange} required className="w-full rounded-xl border border-gray-200 px-4 py-3 outline-none focus:ring-2" style={{ '--tw-ring-color': hexToRgba(currentPrimaryColor, 0.35) }} placeholder={isEn ? 'Enter a place name' : '請填寫店家名稱'} />
             </label>
             <label className="block">
               <span className="block text-sm font-bold text-gray-700 mb-1.5">{isEn ? 'Village / area' : '村落／地區'}</span>
@@ -2186,6 +2208,8 @@ export default function App() {
       {showSuggestionModal && (
         <SuggestionModal
           shop={suggestionTarget}
+          shops={shops}
+          defaultVillage={selectedVillage}
           onClose={() => setShowSuggestionModal(false)}
           language={language}
           currentPrimaryColor={currentPrimaryColor}
